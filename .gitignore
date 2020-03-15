@@ -1,0 +1,10 @@
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+antlr4cpp_generated_src
+antlr4_runtime
+antlr4
+bin
+gen
+*.swp
