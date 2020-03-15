@@ -1,5 +1,12 @@
-# Install antlr
+# Install llvm
+sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+sudo apt install llvm
+sudo apt install clang
 
+# Install gtest
+sudo apt install build-essential
+
+# Install antlr
 sudo apt install cmake
 sudo apt install uuid-dev
 sudo apt install pkg-config
