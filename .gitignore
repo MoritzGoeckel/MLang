@@ -8,3 +8,4 @@ antlr4
 bin
 gen
 *.swp
+compile_commands.json

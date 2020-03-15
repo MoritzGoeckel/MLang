@@ -35,6 +35,16 @@ set(ANTLR_EXECUTABLE /home/moritz/.local/lib/antlr-4.7.1-complete.jar)
 # add macros to generate ANTLR Cpp code from grammar
 find_package(ANTLR REQUIRED)
 
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+add_executable(tests
+  src/tests/Tests.cpp
+)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+target_link_libraries(tests
+    gtest pthread)
+
 # Call macro to add lexer and grammar to your build dependencies.
 antlr_target(MGrammar MGrammar.g4
              PACKAGE MGrammar
