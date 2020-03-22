@@ -24,7 +24,7 @@ class MVisitor : public MGrammarBaseVisitor {
 };
 
 int main() {
-    ANTLRInputStream input(u8"int test = 10 ;");
+    ANTLRInputStream input(u8"int test = 10;");
     MGrammarLexer lexer(&input);
     CommonTokenStream tokens(&lexer);
 

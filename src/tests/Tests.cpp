@@ -1,8 +1,23 @@
+#include "../Mlang.h"
 #include "gtest/gtest.h"
 
-TEST(Writer, WriteFileTest) { EXPECT_EQ(15, 1); }
+TEST(Mlang, ExecuteStringSimple) {
+    Mlang mlang;
+    mlang.executeString("int i = 10;");
+    // EXPECT_EQ(15, 1);
+}
 
-int main(int argc, char **argv) {
+TEST(Mlang, ExecuteFile) {
+    Mlang mlang;
+    mlang.executeFile("mfiles/simple.m");
+}
+
+int main(int argc, char** argv) {
+    Mlang::init();
+
     ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
+
+    Mlang::shutdown();
+    return result;
 }

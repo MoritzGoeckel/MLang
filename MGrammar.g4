@@ -48,7 +48,7 @@ variable_declaration        : type IDENTIFIER ; // Remove explicit types
 
 variable_declaration_list   : (variable_declaration ',')* variable_declaration ;
 
-method_declaration          : type IDENTIFIER '(' variable_declaration_list ')' block ;
+method_declaration          : type IDENTIFIER '(' variable_declaration_list ')' block ; // Remove explicit types
 block                       : '{' statement* '}' ;
 
 WHITESPACE                  : [ \t\r\n]+ -> skip ;
