@@ -8,6 +8,17 @@ class Mlang {
 
     ~Mlang();
 
+    struct Settings {
+        bool showTokens = false;
+        bool showParseTree = false;
+        bool showFileContent = false;
+        bool showModule = false;
+        bool showResult = false;
+        bool showPrettyParseTree = false;
+    };
+
+    Settings settings;
+
     /**
      * Execute mlang source code
      * @param mlang source code

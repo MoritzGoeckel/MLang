@@ -26,7 +26,7 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
-#include "transformer/SampleListener.h"
+#include "transformer/PrintVisitor.h"
 
 Mlang::Mlang() {}
 
@@ -62,15 +62,28 @@ void Mlang::executeString(std::string theCode) {
     antlr4::CommonTokenStream tokens(&lexer);
 
     tokens.fill();
-    for (auto token : tokens.getTokens()) {
-        std::cout << token->toString() << std::endl;
+
+    if (settings.showTokens) {
+        for (auto token : tokens.getTokens()) {
+            std::cout << token->toString() << std::endl;
+        }
     }
 
     MGrammar::MGrammarParser parser(&tokens);
+    // const std::vector<std::string> &ruleNames = parser.getRuleNames();
     antlr4::tree::ParseTree *tree = parser.r();
 
-    std::cout << tree->toStringTree(&parser) << std::endl << std::endl;
+    if (settings.showParseTree) {
+        std::cout << tree->toStringTree(&parser) << std::endl << std::endl;
+    }
 
+    if (settings.showPrettyParseTree) {
+        PrintVisitor visitor;
+        visitor.visit(tree);
+        std::cout << visitor.toString();
+    }
+
+    /*
     // Run listener
     MListener listener;
     antlr4::tree::ParseTreeWalker::DEFAULT.walk(&listener, tree);
@@ -78,6 +91,7 @@ void Mlang::executeString(std::string theCode) {
     // Run visitor
     MVisitor visitor;
     visitor.visit(tree);
+    */
 
     // ------------------- LLVM ------------------
     llvm::LLVMContext Context;
@@ -86,20 +100,21 @@ void Mlang::executeString(std::string theCode) {
     auto Owner = llvm::make_unique<llvm::Module>("test", Context);
     llvm::Module *M = Owner.get();
 
-    // Create the add1 function entry and insert this entry into module M.  The
-    // function will have a return type of "int" and take an argument of "int".
+    // Create the add1 function entry and insert this entry into module M.
+    // The function will have a return type of "int" and take an argument of
+    // "int".
     llvm::Function *Add1F = llvm::Function::Create(
         llvm::FunctionType::get(llvm::Type::getInt32Ty(Context),
                                 {llvm::Type::getInt32Ty(Context)}, false),
         llvm::Function::ExternalLinkage, "add1", M);
 
-    // Add a basic block to the function. As before, it automatically inserts
-    // because of the last argument.
+    // Add a basic block to the function. As before, it automatically
+    // inserts because of the last argument.
     llvm::BasicBlock *BB =
         llvm::BasicBlock::Create(Context, "EntryBlock", Add1F);
 
-    // Create a basic block builder with default parameters.  The builder will
-    // automatically append instructions to the basic block `BB'.
+    // Create a basic block builder with default parameters.  The builder
+    // will automatically append instructions to the basic block `BB'.
     llvm::IRBuilder<> builder(BB);
 
     // Get pointers to the constant `1'.
@@ -118,8 +133,8 @@ void Mlang::executeString(std::string theCode) {
 
     // Now, function add1 is ready.
 
-    // Now we're going to create function `foo', which returns an int and takes
-    // no arguments.
+    // Now we're going to create function `foo', which returns an int and
+    // takes no arguments.
     llvm::Function *FooF = llvm::Function::Create(
         llvm::FunctionType::get(llvm::Type::getInt32Ty(Context), {}, false),
         llvm::Function::ExternalLinkage, "foo", M);
@@ -145,16 +160,22 @@ void Mlang::executeString(std::string theCode) {
     // Now we create the JIT.
     llvm::ExecutionEngine *EE = llvm::EngineBuilder(std::move(Owner)).create();
 
-    llvm::outs() << "We just constructed this LLVM module:\n\n" << *M;
-    llvm::outs() << "\n\nRunning foo: ";
-    llvm::outs().flush();
+    if (settings.showModule) {
+        llvm::outs() << "We just constructed this LLVM module:\n\n" << *M;
+        llvm::outs() << "\n\nRunning foo: ";
+        llvm::outs().flush();
+    }
 
     // Call the `foo' function with no arguments:
     std::vector<llvm::GenericValue> noargs;
     llvm::GenericValue gv = EE->runFunction(FooF, noargs);
 
     // Import result of execution:
-    llvm::outs() << "Result: " << gv.IntVal << "\n";
+
+    if (settings.showResult) {
+        llvm::outs() << "Result: " << gv.IntVal << "\n";
+    }
+
     delete EE;
 }
 
@@ -164,11 +185,12 @@ void Mlang::executeFile(std::string thePath) {
     strBuffer << stream.rdbuf();
 
     auto fileContent = strBuffer.str();
-    std::cout << "Reading path: " << thePath << std::endl
-              << "Content:      " << std::endl
-              << "##############" << std::endl
-              << fileContent << std::endl
-              << "##############" << std::endl;
+
+    if (settings.showFileContent) {
+        std::cout << "Path:         " << thePath << std::endl
+                  << "Content:      " << std::endl
+                  << fileContent << "<EOF>" << std::endl;
+    }
 
     executeString(fileContent);
 }

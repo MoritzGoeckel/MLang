@@ -1,19 +1,46 @@
 grammar MGrammar;
 
-r                           : statement* EOF ;
-statement                   : expression ';' ;
+r                           : (statement | COMMENT)* EOF ;
+COMMENT                     : '#' ~( '\r' | '\n' )* ;
+statement                   : (expr | ret) ';' ; // TODO: seperate by \n
 
-expression                  : assignment |
-                              operation  |
-                              call       |
-                              literal    |
-                              IDENTIFIER ;
+expr                        : nr_expr               |
+                              infix_call            ;
 
-assignment                  : (IDENTIFIER | variable_declaration) '=' expression ;
-operation                   : (IDENTIFIER | literal) OPERATOR expression ;
+nr_expr                     : '(' expr ')'          |
+                              assignment            |
+                              block                 |
+                              call                  |
+                              literal               |
+                              identifier            ;
+
+ret                         : 'ret' expr ;
+
+assignment                  : assignment_left '=' assignment_right ;
+assignment_left             : identifier    |
+                              variable_decl |
+                              function_decl ;
+assignment_right            : expr;
+
+variable_decl               : 'let' identifier ;
+
+identifier_list             : (identifier ',')* identifier ;
+function_decl               : 'let' identifier '(' identifier_list? ')' ;
+
+infix_call                  : infix_call_left identifier infix_call_right ;
+infix_call_left             : nr_expr ;
+infix_call_right            : expr ;
+
+IDENTIFIER                  : [a-zA-Z+\-><*/_]+[a-zA-Z+\-><*/_0-9]* ;
+identifier                  : IDENTIFIER ;
+
+argument_list               : (expr ',')* expr ;
+call                        : identifier '(' argument_list? ')' ;
+
+block                       : '{' statement* '}' ;
 
 literal                     : type_float  |
-                              type_int |
+                              type_int    |
                               type_string ;
 
 type_float                  : FLOAT ;
@@ -23,32 +50,5 @@ type_string                 : STRING ;
 FLOAT                       : [0-9]+ '.' [0-9]+ ;
 INTEGER                     : [0-9]+ ;
 STRING                      : '"' [a-zA-Z0-9]* '"' ;
-
-IDENTIFIER                  : [a-zA-Z]+[0-9]* ;
-
-OPERATOR                    : '+' |
-                              '-' |
-                              '/' |
-                              '*' |
-                              '.' ;
-
-brackets                    : '(' expression ')' ; // TODO
-
-argument_list               : (expression ',')* expression ;
-
-call                        : IDENTIFIER '(' argument_list ')' |
-                              IDENTIFIER '()' ;
-
-type                        : 'string' |
-                              'int'    |
-                              'void'   |
-                              'float'  ;
-
-variable_declaration        : type IDENTIFIER ; // Remove explicit types
-
-variable_declaration_list   : (variable_declaration ',')* variable_declaration ;
-
-method_declaration          : type IDENTIFIER '(' variable_declaration_list ')' block ; // Remove explicit types
-block                       : '{' statement* '}' ;
 
 WHITESPACE                  : [ \t\r\n]+ -> skip ;
