@@ -28,6 +28,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "preprocessor/Preprocessor.h"
 #include "transformer/PrintVisitor.h"
+#include "transformer/PtToAstVisitor.h"
 
 Mlang::Mlang() {}
 
@@ -80,7 +81,15 @@ void Mlang::executeString(std::string theCode) {
     }
 
     if (settings.showPrettyParseTree) {
+        std::cout << "Pretty Parse Tree:" << std::endl;
         PrintVisitor visitor;
+        visitor.visit(tree);
+        std::cout << visitor.toString();
+    }
+
+    if (settings.showAbastractSyntaxTree) {
+        std::cout << "Abstract Syntax Tree:" << std::endl;
+        PtToAstVisitor visitor;
         visitor.visit(tree);
         std::cout << visitor.toString();
     }

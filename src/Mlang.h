@@ -15,6 +15,7 @@ class Mlang {
         bool showModule = false;
         bool showResult = false;
         bool showPrettyParseTree = false;
+        bool showAbastractSyntaxTree = false;
     };
 
     Settings settings;

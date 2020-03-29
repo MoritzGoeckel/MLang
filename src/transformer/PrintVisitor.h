@@ -124,6 +124,7 @@ class PrintVisitor : public MGrammarBaseVisitor {
             ++indentation;
         }
 
+        // Generate indentation
         std::string indent;
         for (unsigned int i = 0u; i < indentation; ++i) {
             indent += "  ";
