@@ -26,6 +26,7 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
+#include "preprocessor/Preprocessor.h"
 #include "transformer/PrintVisitor.h"
 
 Mlang::Mlang() {}
@@ -55,8 +56,9 @@ void Mlang::shutdown() {
 }
 
 void Mlang::executeString(std::string theCode) {
-    // ------------------- ANTLR ------------------
+    Preprocessor::run(theCode);
 
+    // ------------------- ANTLR ------------------
     antlr4::ANTLRInputStream input(theCode);
     MGrammar::MGrammarLexer lexer(&input);
     antlr4::CommonTokenStream tokens(&lexer);
@@ -87,10 +89,6 @@ void Mlang::executeString(std::string theCode) {
     // Run listener
     MListener listener;
     antlr4::tree::ParseTreeWalker::DEFAULT.walk(&listener, tree);
-
-    // Run visitor
-    MVisitor visitor;
-    visitor.visit(tree);
     */
 
     // ------------------- LLVM ------------------
@@ -187,8 +185,7 @@ void Mlang::executeFile(std::string thePath) {
     auto fileContent = strBuffer.str();
 
     if (settings.showFileContent) {
-        std::cout << "Path:         " << thePath << std::endl
-                  << "Content:      " << std::endl
+        std::cout << "File: " << thePath << std::endl
                   << fileContent << "<EOF>" << std::endl;
     }
 

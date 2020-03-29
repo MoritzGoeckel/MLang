@@ -20,7 +20,8 @@ TEST(Mlang, ExecuteFiles) {
         {"001_addition.m", "002_addition_infix.m", "003_var_declaration.m",
          "004_var_declaration_addition.m", "005_mutiple_vars.m",
          "006_method_declaration.m", "007_method_declaration_brackets.m",
-         "008_method_decl_multiline.m", "009_comment.m"});
+         "008_method_decl_multiline.m", "009_comment.m", "010_if.m",
+         "011_if_else.m", "012_while.m", "013_if_else_no_brackets.m"});
 
     Mlang mlang;
     // mlang.settings.showParseTree = true;
@@ -29,7 +30,7 @@ TEST(Mlang, ExecuteFiles) {
 
     for (auto& str : files) {
         mlang.executeFile("mfiles/" + str);
-        std::cout << std::endl;
+        std::cout << std::endl << std::endl;
         // TODO: Error checking
     }
 }

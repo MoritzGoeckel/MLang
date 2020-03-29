@@ -1,8 +1,8 @@
 grammar MGrammar;
 
-r                           : (statement | COMMENT)* EOF ;
+r                           : block EOF ;
 COMMENT                     : '#' ~( '\r' | '\n' )* ;
-statement                   : (expr | ret) ';' ; // TODO: seperate by \n
+statement                   : ((expr | ret ) ';') | branching | block; // TODO: seperate by \n
 
 expr                        : nr_expr               |
                               infix_call            ;
@@ -15,6 +15,14 @@ nr_expr                     : '(' expr ')'          |
                               identifier            ;
 
 ret                         : 'ret' expr ;
+
+branching                   : branching_if | branching_while;
+
+branching_if                : 'if' '(' expr ')' positive ('else' negative)? ;
+positive                    : statement ;
+negative                    : statement ;
+
+branching_while             : 'while' '(' expr ')' statement ;
 
 assignment                  : assignment_left '=' assignment_right ;
 assignment_left             : identifier    |
@@ -31,24 +39,27 @@ infix_call                  : infix_call_left identifier infix_call_right ;
 infix_call_left             : nr_expr ;
 infix_call_right            : expr ;
 
-IDENTIFIER                  : [a-zA-Z+\-><*/_]+[a-zA-Z+\-><*/_0-9]* ;
-identifier                  : IDENTIFIER ;
-
 argument_list               : (expr ',')* expr ;
 call                        : identifier '(' argument_list? ')' ;
 
-block                       : '{' statement* '}' ;
+block                       : '{' (statement | COMMENT)* '}' ;
 
 literal                     : type_float  |
                               type_int    |
+                              type_bool   |
                               type_string ;
 
 type_float                  : FLOAT ;
 type_int                    : INTEGER ;
+type_bool                   : BOOL ;
 type_string                 : STRING ;
 
 FLOAT                       : [0-9]+ '.' [0-9]+ ;
 INTEGER                     : [0-9]+ ;
 STRING                      : '"' [a-zA-Z0-9]* '"' ;
+BOOL                        : 'true' | 'false' ;
+
+identifier                  : IDENTIFIER ;
+IDENTIFIER                  : [a-zA-Z+\-><*/_]+[a-zA-Z+\-><*/_0-9]* ; // Needs to be way down in the file
 
 WHITESPACE                  : [ \t\r\n]+ -> skip ;

@@ -14,16 +14,6 @@ class PrintVisitor : public MGrammarBaseVisitor {
 
     std::string toString() { return out.str(); }
 
-    virtual antlrcpp::Any visitStatement(
-        MGrammarParser::StatementContext *ctx) override {
-        for (unsigned int i = 0u; i < indentation; ++i) {
-            out << "  ";
-        }
-        auto result = visitChildren(ctx);
-        out << std::endl;
-        return result;
-    }
-
     virtual antlrcpp::Any visitRet(MGrammarParser::RetContext *ctx) override {
         out << "ret(";
         auto result = visitChildren(ctx);
@@ -43,7 +33,7 @@ class PrintVisitor : public MGrammarBaseVisitor {
 
     virtual antlrcpp::Any visitVariable_decl(
         MGrammarParser::Variable_declContext *ctx) override {
-        out << "let(";
+        out << "letvar(";
         auto result = visitChildren(ctx);
         out << ")";
         return result;
@@ -63,7 +53,7 @@ class PrintVisitor : public MGrammarBaseVisitor {
 
     virtual antlrcpp::Any visitFunction_decl(
         MGrammarParser::Function_declContext *ctx) override {
-        out << "let('";
+        out << "letfn('";
         visit(ctx->identifier());
         out << "'";
         if (ctx->identifier_list()) {
@@ -117,19 +107,82 @@ class PrintVisitor : public MGrammarBaseVisitor {
 
     virtual antlrcpp::Any visitBlock(
         MGrammarParser::BlockContext *ctx) override {
-        out << "{" << std::endl;
-        ++indentation;
+        const auto &statements = ctx->statement();
+        if (statements.size() == 1u) {
+            return visit(statements[0]);
+        }
 
-        auto result = visitChildren(ctx);
+        if (statements.empty()) {
+            return antlrcpp::Any(ctx);
+        }
 
-        --indentation;
-        out << "}";
-        return result;
+        auto parent = static_cast<antlr4::ParserRuleContext *>(ctx->parent);
+
+        // Dont indent if it is the most outer block
+        if (parent->getRuleIndex() != MGrammarParser::RuleR) {
+            out << "{" << std::endl;
+            ++indentation;
+        }
+
+        std::string indent;
+        for (unsigned int i = 0u; i < indentation; ++i) {
+            indent += "  ";
+        }
+
+        for (auto &s : statements) {
+            out << indent;
+            visit(s);
+            out << std::endl;
+        }
+
+        // Dont indent if it is the most outer block
+        if (parent->getRuleIndex() != MGrammarParser::RuleR) {
+            --indentation;
+            out << "}";
+        }
+        return antlrcpp::Any(ctx);
     }
 
     virtual antlrcpp::Any visitLiteral(
         MGrammarParser::LiteralContext *ctx) override {
-        out << ctx->getText();
+        std::string type;
+        if (ctx->type_float())
+            type = "float";
+        else if (ctx->type_int())
+            type = "int";
+        else if (ctx->type_bool())
+            type = "bool";
+        else if (ctx->type_string())
+            type = "string";
+        else
+            throw "Unknown type";
+
+        out << type << "('" << ctx->getText() << "')";
+        return antlrcpp::Any(ctx);
+    }
+
+    virtual antlrcpp::Any visitBranching_if(
+        MGrammarParser::Branching_ifContext *ctx) override {
+        out << "if(";
+        visit(ctx->expr());
+        out << ", ";
+        visit(ctx->positive());
+        if (ctx->negative()) {
+            out << ", ";
+            visit(ctx->negative());
+        }
+        out << ")";
+        return antlrcpp::Any(ctx);
+    }
+
+    virtual antlrcpp::Any visitBranching_while(
+        MGrammarParser::Branching_whileContext *ctx) override {
+        out << "while(";
+        visit(ctx->expr());
+        out << ", ";
+        visit(ctx->statement());
+        out << ")";
+
         return antlrcpp::Any(ctx);
     }
 };
