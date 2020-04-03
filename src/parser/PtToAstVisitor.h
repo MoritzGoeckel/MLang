@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -9,16 +11,18 @@ using namespace MGrammar;
 
 class PtToAstVisitor : public MGrammarBaseVisitor {
    private:
+    // TODO: Use return instead of stack
     std::vector<std::shared_ptr<AST::Node>> stack;
 
    public:
     PtToAstVisitor() {}
 
-    std::string toString() {
-        if (stack.empty()) return "Empty stack";
+    std::shared_ptr<AST::Node> getAST() {
+        if (stack.empty()) throw "Empty stack";
         if (stack.size() != 1u)
-            return "Bad stack size: " + std::to_string(stack.size());
-        return stack.front()->toString();
+            throw "Bad stack size: " + std::to_string(stack.size());
+
+        return stack.front();
     }
 
     virtual antlrcpp::Any visitRet(MGrammarParser::RetContext *ctx) override {
@@ -172,15 +176,15 @@ class PtToAstVisitor : public MGrammarBaseVisitor {
 
     virtual antlrcpp::Any visitLiteral(
         MGrammarParser::LiteralContext *ctx) override {
-        AST::Type type;
+        AST::DataType type;
         if (ctx->type_float())
-            type = AST::Type::Float;
+            type = AST::DataType::Float;
         else if (ctx->type_int())
-            type = AST::Type::Int;
+            type = AST::DataType::Int;
         else if (ctx->type_bool())
-            type = AST::Type::Bool;
+            type = AST::DataType::Bool;
         else if (ctx->type_string())
-            type = AST::Type::String;
+            type = AST::DataType::String;
         else
             throw "Unknown type";
 

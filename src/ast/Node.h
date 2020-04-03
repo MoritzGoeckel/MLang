@@ -1,43 +1,68 @@
 #pragma once
+
 #include <memory>
 #include <vector>
 
 namespace AST {
 
-enum Type { Int, Float, String, Bool, Unknown };
+enum class DataType { Int, Float, String, Bool, Void, Unknown };
+
+enum class NodeType {
+    Identifier,
+    Block,
+    Call,
+    Ret,
+    Assign,
+    Declvar,
+    Declfn,
+    If,
+    While,
+    Literal
+};
 
 class Node {
+   protected:
+    DataType dataType = DataType::Void;
+
    public:
     std::string toString() {
         std::stringstream stream;
         toString(stream);
         return stream.str();
     };
+
     // virtual void emit() = 0;
 
     virtual void toString(std::stringstream& stream) = 0;
+    virtual NodeType getType() = 0;
+    virtual std::vector<std::shared_ptr<Node>> getChildren() = 0;
 
-    static std::string toString(Type type) {
+    DataType getDataType() { return dataType; }
+
+    static std::string toString(DataType type) {
         switch (type) {
-            case Int:
+            case DataType::Int:
                 return "int";
-            case Float:
+            case DataType::Float:
                 return "float";
-            case String:
+            case DataType::String:
                 return "string";
-            case Bool:
+            case DataType::Bool:
                 return "bool";
-            case Unknown:
+            case DataType::Void:
+                return "unknown";
+            case DataType::Unknown:
                 return "unknown";
         }
     }
 
-    static Type toType(const std::string& str) {
-        if (str == "int") return Int;
-        if (str == "float") return Float;
-        if (str == "string") return String;
-        if (str == "bool") return Bool;
-        return Unknown;
+    static DataType toDataType(const std::string& str) {
+        if (str == "int") return DataType::Int;
+        if (str == "float") return DataType::Float;
+        if (str == "string") return DataType::String;
+        if (str == "bool") return DataType::Bool;
+        if (str == "void") return DataType::Void;
+        return DataType::Unknown;
     }
 
     template <typename T>
@@ -57,7 +82,12 @@ class Identifier : public Node {
 
    public:
     Identifier(const std::string& id) : id(id) {}
-    virtual void toString(std::stringstream& stream) { stream << id; }
+    virtual void toString(std::stringstream& stream) {
+        stream << "'" << id << "'";
+    }
+
+    virtual NodeType getType() { return NodeType::Identifier; }
+    virtual std::vector<std::shared_ptr<Node>> getChildren() { return {}; }
 };
 
 class Block : public Node {
@@ -73,7 +103,16 @@ class Block : public Node {
         stream << "}";
     }
 
-   public:
+    virtual NodeType getType() { return NodeType::Block; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() {
+        std::vector<std::shared_ptr<Node>> vec;
+        vec.resize(children.size());
+        for (auto& c : children) {
+            vec.emplace_back(c);
+        }
+        return vec;
+    }
 };
 
 class Call : public Node {
@@ -88,13 +127,25 @@ class Call : public Node {
           arguments(arguments) {}
 
     virtual void toString(std::stringstream& stream) {
-        stream << "call('";
+        stream << "call(";
         method->toString(stream);
         if (!arguments.empty()) {
-            stream << "', ";
+            stream << ", ";
             print(stream, arguments);
         }
         stream << ")";
+    }
+
+    virtual NodeType getType() { return NodeType::Call; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() {
+        std::vector<std::shared_ptr<Node>> vec;
+        vec.resize(arguments.size() + 1);
+        vec.emplace_back(method);
+        for (auto& a : arguments) {
+            vec.emplace_back(a);
+        }
+        return vec;
     }
 };
 
@@ -111,6 +162,12 @@ class Ret : public Node {
         if (expr) expr->toString(stream);
         stream << ")";
     }
+
+    virtual NodeType getType() { return NodeType::Ret; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() { return {expr}; }
+
+    std::shared_ptr<Node> getExpr() { return expr; }
 };
 
 class Assign : public Node {
@@ -129,6 +186,15 @@ class Assign : public Node {
         right->toString(stream);
         stream << ")";
     }
+
+    virtual NodeType getType() { return NodeType::Assign; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() {
+        return {left, right};
+    }
+
+    std::shared_ptr<Node> getLeft() { return left; }
+    std::shared_ptr<Node> getRight() { return right; }
 };
 
 class Declvar : public Node {
@@ -144,6 +210,10 @@ class Declvar : public Node {
         name->toString(stream);
         stream << ")";
     }
+
+    virtual NodeType getType() { return NodeType::Declvar; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() { return {name}; }
 };
 
 class Declfn : public Node {
@@ -171,6 +241,18 @@ class Declfn : public Node {
             }
         }
         stream << "))";
+    }
+
+    virtual NodeType getType() { return NodeType::Declfn; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() {
+        std::vector<std::shared_ptr<Node>> vec;
+        vec.resize(parameters.size() + 1);
+        vec.emplace_back(name);
+        for (auto& p : parameters) {
+            vec.emplace_back(p);
+        }
+        return vec;
     }
 };
 
@@ -200,6 +282,12 @@ class If : public Node {
         }
         stream << ")";
     }
+
+    virtual NodeType getType() { return NodeType::If; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() {
+        return {condition, bodyPositive, bodyNegative};
+    }
 };
 
 class While : public Node {
@@ -218,21 +306,32 @@ class While : public Node {
         body->toString(stream);
         stream << ")";
     }
+
+    virtual NodeType getType() { return NodeType::While; }
+    virtual std::vector<std::shared_ptr<Node>> getChildren() {
+        return {condition, body};
+    }
 };
 
 class Literal : public Node {
    private:
     std::string value;
-    Type type;
 
    public:
-    Literal(const std::string& value, Type type) : value(value), type(type) {}
-    Literal(const std::string& value, std::string& type)
-        : value(value), type(toType(type)) {}
+    Literal(const std::string& value, DataType dataType) : value(value) {
+        this->dataType = dataType;
+    }
+
+    Literal(const std::string& value, std::string& dataType) : value(value) {
+        this->dataType = toDataType(dataType);
+    }
 
     virtual void toString(std::stringstream& stream) {
-        stream << Node::toString(type) << "(" << value << ")";
+        stream << Node::toString(dataType) << "('" << value << "')";
     }
+
+    virtual NodeType getType() { return NodeType::Literal; }
+    virtual std::vector<std::shared_ptr<Node>> getChildren() { return {}; }
 };
 
 }  // namespace AST

@@ -26,9 +26,10 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
+#include "parser/PrintVisitor.h"
+#include "parser/PtToAstVisitor.h"
 #include "preprocessor/Preprocessor.h"
-#include "transformer/PrintVisitor.h"
-#include "transformer/PtToAstVisitor.h"
+#include "transformer/ImplicitReturn.h"
 
 Mlang::Mlang() {}
 
@@ -91,8 +92,23 @@ void Mlang::executeString(std::string theCode) {
         std::cout << "Abstract Syntax Tree:" << std::endl;
         PtToAstVisitor visitor;
         visitor.visit(tree);
-        std::cout << visitor.toString();
+        auto ast = visitor.getAST();
+        std::cout << ast->toString() << std::endl;
+
+        {
+            ImplicitReturn impRet;
+            impRet.process(ast);
+            std::cout << "Transformed AST:" << std::endl;
+            std::cout << ast->toString() << std::endl;
+        }
     }
+
+    // TODO: Add implicit 'ret' when assign(fntype / declfn, 1 expr)
+    // TODO: Infere types
+    // TODO: Implement operator precedence transformer
+    // TODO: Use return instead of stack in PtToAST
+    // TODO: Generate LLVM
+    // TODO: Have stdlib (+ - * / < > ==)
 
     /*
     // Run listener
