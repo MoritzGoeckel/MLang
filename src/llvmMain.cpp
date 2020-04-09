@@ -32,7 +32,7 @@ int main() {
     // ---------------------------- MODULE -----------------------------------
 
     // Create some module to put our function into it.
-    auto Owner = make_unique<Module>("test", Context);
+    auto Owner = std::make_unique<Module>("test", Context);
     Module *M = Owner.get();
 
     // Create the add1 function entry and insert this entry into module M.  The

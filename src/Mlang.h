@@ -8,6 +8,11 @@ class Mlang {
 
     ~Mlang();
 
+    enum class Signal{
+        Failure,
+        Success
+    };
+
     struct Settings {
         bool showTokens = false;
         bool showParseTree = false;
@@ -24,14 +29,14 @@ class Mlang {
      * Execute mlang source code
      * @param mlang source code
      */
-    void executeString(std::string theCode);
+    Signal executeString(std::string theCode);
 
     /**
      * Loads a source code file and executes it
      * @param path to the file
      * @return nothing
      */
-    void executeFile(std::string thePath);
+    Signal executeFile(std::string thePath);
 
     /**
      * Initializes Mlang globally

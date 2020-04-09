@@ -25,14 +25,14 @@ TEST(Mlang, ExecuteFiles) {
 
     Mlang mlang;
     // mlang.settings.showParseTree = true;
-    // mlang.settings.showPrettyParseTree = true;
+    mlang.settings.showPrettyParseTree = true;
     mlang.settings.showAbastractSyntaxTree = true;
     // mlang.settings.showFileContent = true;
 
     for (auto& str : files) {
-        mlang.executeFile("mfiles/" + str);
+        auto rs = mlang.executeFile("mfiles/" + str);
+        EXPECT_TRUE(rs == Mlang::Signal::Success);
         std::cout << std::endl;
-        // TODO: Error checking
     }
 }
 

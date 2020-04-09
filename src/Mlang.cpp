@@ -57,7 +57,7 @@ void Mlang::shutdown() {
     }
 }
 
-void Mlang::executeString(std::string theCode) {
+Mlang::Signal Mlang::executeString(std::string theCode) {
     Preprocessor::run(theCode);
 
     // ------------------- ANTLR ------------------
@@ -120,7 +120,7 @@ void Mlang::executeString(std::string theCode) {
     llvm::LLVMContext Context;
 
     // Create some module to put our function into it.
-    auto Owner = llvm::make_unique<llvm::Module>("test", Context);
+    auto Owner = std::make_unique<llvm::Module>("test", Context);
     llvm::Module *M = Owner.get();
 
     // Create the add1 function entry and insert this entry into module M.
@@ -200,9 +200,11 @@ void Mlang::executeString(std::string theCode) {
     }
 
     delete EE;
+
+    return Mlang::Signal::Success;
 }
 
-void Mlang::executeFile(std::string thePath) {
+Mlang::Signal Mlang::executeFile(std::string thePath) {
     std::ifstream stream(thePath);
     std::stringstream strBuffer;
     strBuffer << stream.rdbuf();
@@ -214,5 +216,11 @@ void Mlang::executeFile(std::string thePath) {
                   << fileContent << "<EOF>" << std::endl;
     }
 
-    executeString(fileContent);
+    if(!fileContent.empty()){
+        return executeString(fileContent);
+    }
+    else{
+        std::cout << "File empty: " << thePath << std::endl;
+        return Mlang::Signal::Failure;
+    }
 }
