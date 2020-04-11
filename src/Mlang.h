@@ -21,6 +21,7 @@ class Mlang {
         bool showResult = false;
         bool showPrettyParseTree = false;
         bool showAbastractSyntaxTree = false;
+        bool infereTypes = false;
     };
 
     Settings settings;

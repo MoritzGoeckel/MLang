@@ -101,6 +101,12 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
             std::cout << "Transformed AST:" << std::endl;
             std::cout << ast->toString() << std::endl;
         }
+
+        if (settings.infereTypes) {
+            ast->infereDataType();
+            std::cout << "Infered types:" << std::endl;
+            std::cout << ast->toString() << std::endl;
+        }
     }
 
     // TODO: Add implicit 'ret' when assign(fntype / declfn, 1 expr)

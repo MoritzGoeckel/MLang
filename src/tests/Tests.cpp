@@ -25,9 +25,10 @@ TEST(Mlang, ExecuteFiles) {
 
     Mlang mlang;
     // mlang.settings.showParseTree = true;
-    mlang.settings.showPrettyParseTree = true;
+    // mlang.settings.showPrettyParseTree = true;
     mlang.settings.showAbastractSyntaxTree = true;
-    // mlang.settings.showFileContent = true;
+    mlang.settings.showFileContent = true;
+    mlang.settings.infereTypes = true;
 
     for (auto& str : files) {
         auto rs = mlang.executeFile("mfiles/" + str);

@@ -1,4 +1,5 @@
- sudo apt upgrade cmake
+# Update cmake
+sudo apt upgrade cmake
 
 # Install llvm
 sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
@@ -8,7 +9,7 @@ sudo apt install clang
 # Install gtest
 sudo apt install build-essential
 
-## Maybe compile gtest
+## Compile gtest (optional)
 sudo apt-get install cmake libgtest-dev
 cd /usr/src/gtest
 sudo cmake CMakeLists.txt
@@ -35,7 +36,6 @@ cd ../lib
 sudo cp * /usr/local/lib
 sudo ldconfig
 
-# Delete the runtime folder
 # Get the antlr jar and set path in CMakeLists.txt
 cd /home/<user>/.local/lib
 wget https://www.antlr.org/download/antlr-4.8-complete.jar
@@ -50,6 +50,6 @@ make
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
 mkdir build
-cd build 
+cd build
 cmake -G ../llvm
 make
