@@ -36,6 +36,9 @@ class InfereIdentifierTypes {
             auto assign = std::dynamic_pointer_cast<AST::Assign>(node);
 
             // Determine right type
+            // TODO: If it is declfn we need to find types of params first to
+            // push them on stack before processing right side. We find the
+            // types of the parameters by looking at future calls
             process(assign->getRight());
             assign->getRight()->infereDataType();
 
@@ -61,6 +64,20 @@ class InfereIdentifierTypes {
                 // name -> [arg_types] -> type
                 // Need standard functions + - * / etc
                 // E.g. + -> [int, int] -> int
+                auto declfn =
+                    std::dynamic_pointer_cast<AST::Declfn>(assign->getLeft());
+                std::vector<DataType> paramTypes;
+                paramTypes.resize(declfn->getParameters().size());
+                for (auto& ident : declfn->getParameters()) {
+                    paramTypes.push_back(ident->getDataType());
+                }
+
+                auto retType = assign->getRight()->getReturnType();
+                // TODO: Identify not only by name, but also by parameter types
+                // Else overloading is not possible
+                stack.back().emplace(declfn->getIdentifier()->getName(),
+                                     DataType(paramTypes, retType));
+
             } else if (assign->getLeft()->getType() ==
                        AST::NodeType::Identifier) {
                 process(assign->getLeft());
@@ -105,8 +122,22 @@ class InfereIdentifierTypes {
             }
             auto name = call->getIdentifier()->getName();
 
-            // TODO: Use parameter types and name to determine type
-            // hintDataType(/* type */); TODO
+            DataType type = DataType::Primitive::Unknown;
+            for (auto rIt = stack.rbegin(); rIt != stack.rend(); ++rIt) {
+                // TODO: Use parameter types AND name to determine type
+                // Not only name
+                if (rIt->find(name) != rIt->end()) {
+                    type = (*rIt)[name];
+                    break;
+                }
+            }
+
+            if (type != DataType::Primitive::Unknown) {
+                call->hintDataType(type);
+            } else {
+                // TODO: Emit messages
+                std::cout << "-- Undeclared variable " << name << std::endl;
+            }
         }
 
         // Any other node

@@ -26,17 +26,24 @@ class DataType {
     std::shared_ptr<const DataType> ret;
 
    public:
+    // Simple type constructors
     DataType(Primitive primitive) : isSimple(true), simple(primitive) {}
-
     DataType(const std::string& str)
         : isSimple(true), simple(toPrimitive(str)) {}
 
+    // Complex type constructor
+    DataType(std::vector<DataType> params, DataType ret)
+        : isSimple(false),
+          params(std::make_shared<const std::vector<DataType>>(params)),
+          ret(std::make_shared<const DataType>(ret)) {}
+
     DataType(const DataType& other)
-        : isSimple(other.isSimple), simple(other.simple) {}
+        : isSimple(other.isSimple),
+          simple(other.simple),
+          params(other.params),
+          ret(other.ret) {}
 
-    // TODO: Complex type constructors
-
-    DataType() : simple(Primitive::Unknown) {}
+    DataType() : isSimple(true), simple(Primitive::Unknown) {}
 
     void operator=(const DataType& other) {
         isSimple = other.isSimple;
@@ -60,7 +67,23 @@ class DataType {
         return other.getHashNum() < getHashNum();
     }
 
-    std::string toString() const { return toString(simple); }
+    std::string toString() const {
+        if (isSimple) {
+            return toString(simple);
+        } else {
+            std::stringstream stream;
+            if (params->size() > 1u) stream << "[";
+            for (auto it = params->begin(); it != params->end(); ++it) {
+                stream << it->toString();
+                if (std::next(it) != params->end()) {
+                    stream << ", ";
+                }
+            }
+            if (params->size() > 1u) stream << "]";
+            stream << " -> " << ret->toString();
+            return stream.str();
+        }
+    }
 
    public:
     static void removeNoneDataType(std::set<Primitive>& set,

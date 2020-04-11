@@ -51,6 +51,7 @@ class Node {
     }
     virtual DataType
     getReturnType() {  // TODO this should be in its own visitor
+        // TODO: Cache?
         std::set<DataType> types;
         for (auto& child : getChildren()) {
             if (child) {
@@ -342,6 +343,12 @@ class Declfn : public Node {
             this->parameters.push_back(std::static_pointer_cast<Identifier>(p));
         }
     }
+
+    std::vector<std::shared_ptr<Identifier>>& getParameters() {
+        return parameters;
+    }
+
+    std::shared_ptr<Identifier>& getIdentifier() { return name; }
 
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "declfn(";
