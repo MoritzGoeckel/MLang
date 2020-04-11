@@ -3,9 +3,9 @@
 #include <memory>
 #include <vector>
 
-namespace AST {
+#include "DataType.h"
 
-enum class DataType { Int, Float, String, Bool, Void, Unknown, Conflict, None };
+namespace AST {
 
 enum class NodeType {
     Identifier,
@@ -22,9 +22,11 @@ enum class NodeType {
 
 class Node {
    protected:
-    DataType dataType = DataType::Unknown;
+    DataType dataType;
 
    public:
+    Node() : dataType(DataType::Primitive::Unknown){};
+
     std::string toString() {
         std::stringstream stream;
         toString(stream);
@@ -45,7 +47,7 @@ class Node {
          *  Nodes that want to support that
          *  have to override
          */
-        throw;
+        throw;  // TODO: Emit messages
     }
     virtual DataType
     getReturnType() {  // TODO this should be in its own visitor
@@ -56,58 +58,22 @@ class Node {
                 types.insert(child->getReturnType());
             }
         }
-        removeNoneDataType(types);
+        DataType::removeNoneDataType(types);
 
         if (types.size() > 1u) {
-            return DataType::Conflict;
+            return DataType::Primitive::Conflict;
         } else if (types.empty()) {
-            return DataType::None;
+            return DataType::Primitive::None;
         } else {
             return *(types.begin());
         }
     }
 
     DataType getDataType() { return dataType; }
+
     std::string getDataTypeString() {
-        if (dataType == DataType::Unknown) return {};
-        return "[" + toString(dataType) + "]";
-    }
-
-    static std::string toString(DataType type) {
-        switch (type) {
-            case DataType::Int:
-                return "int";
-            case DataType::Float:
-                return "float";
-            case DataType::String:
-                return "string";
-            case DataType::Bool:
-                return "bool";
-            case DataType::Void:
-                return "void";
-            case DataType::Unknown:
-                return "unknown";
-            case DataType::Conflict:
-                return "conflict";
-            case DataType::None:
-                return "None";
-        }
-    }
-
-    static DataType toDataType(const std::string& str) {
-        if (str == "int") return DataType::Int;
-        if (str == "float") return DataType::Float;
-        if (str == "string") return DataType::String;
-        if (str == "bool") return DataType::Bool;
-        if (str == "void") return DataType::Void;
-        if (str == "conflict") return DataType::Conflict;
-        if (str == "none") return DataType::None;
-        return DataType::Unknown;
-    }
-
-    static void removeNoneDataType(std::set<DataType>& set,
-                                   DataType type = DataType::None) {
-        if (set.find(type) != set.end()) set.erase(type);
+        if (dataType == DataType::Primitive::Unknown) return {};
+        return "[" + dataType.toString() + "]";
     }
 
     template <typename T>
@@ -127,17 +93,32 @@ class Identifier : public Node {
 
    public:
     Identifier(const std::string& id) : id(id) {}
-    virtual void toString(std::stringstream& stream) {
+
+    std::string getName() { return id; }
+
+    virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "'" << id << "'";
     }
 
-    virtual NodeType getType() { return NodeType::Identifier; }
-    virtual std::vector<std::shared_ptr<Node>> getChildren() { return {}; }
-
-    virtual void infereDataType() { /* TODO */
+    virtual NodeType getType() override { return NodeType::Identifier; }
+    virtual std::vector<std::shared_ptr<Node>> getChildren() override {
+        return {};
     }
 
-    virtual void hintDataType(DataType hint) { /* TODO */
+    virtual void infereDataType() override { /* TODO */
+    }
+
+    virtual void hintDataType(DataType hint) override {
+        if (dataType == DataType::Primitive::Unknown || dataType == hint)
+            dataType = hint;
+        else {
+            // TODO: Emit messages
+            std::cout << "-- Conflicting identifier type "
+                      << dataType.toString() << " / " << hint.toString()
+                      << std::endl;
+
+            dataType = DataType::Primitive::Conflict;
+        }
     }
 };
 
@@ -175,12 +156,12 @@ class Block : public Node {
             child->infereDataType();
             types.insert(child->getReturnType());
         }
-        removeNoneDataType(types);
+        DataType::removeNoneDataType(types);
 
         if (types.size() > 1u) {
-            dataType = DataType::Conflict;
+            dataType = DataType::Primitive::Conflict;
         } else if (types.empty()) {
-            dataType = DataType::Void;
+            dataType = DataType::Primitive::Void;
         } else {
             dataType = *(types.begin());
         }
@@ -197,6 +178,9 @@ class Call : public Node {
          std::vector<std::shared_ptr<Node>> arguments)
         : method(std::static_pointer_cast<Identifier>(method)),
           arguments(arguments) {}
+
+    std::vector<std::shared_ptr<Node>>& getArguments() { return arguments; }
+    std::shared_ptr<Identifier>& getIdentifier() { return method; }
 
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "call(";
@@ -220,7 +204,20 @@ class Call : public Node {
         return vec;
     }
 
-    virtual void infereDataType() override { /* TODO */
+    virtual void infereDataType() override {
+        // Not possible at this point. Is done in a tree walker
+    }
+
+    virtual void hintDataType(DataType hint) override {
+        if (dataType == DataType::Primitive::Unknown || dataType == hint)
+            dataType = hint;
+        else {
+            // TODO: Emit messages
+            std::cout << "-- Conflicting call type " << dataType.toString()
+                      << " / " << hint.toString() << std::endl;
+
+            dataType = DataType::Primitive::Conflict;
+        }
     }
 };
 
@@ -251,12 +248,12 @@ class Ret : public Node {
             expr->infereDataType();
             dataType = expr->getDataType();
         } else {
-            dataType = DataType::Void;
+            dataType = DataType::Primitive::Void;
         }
     }
 
     virtual DataType getReturnType() override {
-        if (dataType == DataType::Unknown) infereDataType();
+        if (dataType == DataType::Primitive::Unknown) infereDataType();
         return dataType;
     }
 };
@@ -293,9 +290,9 @@ class Assign : public Node {
         dataType = right->getDataType();
         left->infereDataType();
         if (left->getDataType() != dataType &&
-            left->getDataType() != DataType::None) {
+            left->getDataType() != DataType::Primitive::None) {
             // TODO: Maybe some implicit conversions
-            dataType = DataType::Conflict;
+            dataType = DataType::Primitive::Conflict;
         } else {
             left->hintDataType(dataType);
         }
@@ -303,12 +300,14 @@ class Assign : public Node {
 };
 
 class Declvar : public Node {
-   public:
+   public:  // TODO: Private
     std::shared_ptr<Identifier> name;
 
    public:
     Declvar(std::shared_ptr<Node> name)
         : name(std::static_pointer_cast<Identifier>(name)) {}
+
+    std::shared_ptr<Identifier> getIdentifier() { return name; }
 
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "declvar(";
@@ -322,7 +321,7 @@ class Declvar : public Node {
         return {name};
     }
 
-    virtual void infereDataType() override { dataType = DataType::None; }
+    virtual void infereDataType() override { dataType = name->getDataType(); }
 
     virtual void hintDataType(DataType hint) override {
         dataType = hint;
@@ -371,7 +370,7 @@ class Declfn : public Node {
 
     virtual void infereDataType() override {
         // TODO parameters?
-        dataType = DataType::None;
+        dataType = DataType::Primitive::None;
     }
 
     virtual void hintDataType(DataType hint) override {
@@ -415,7 +414,7 @@ class If : public Node {
     }
 
     virtual void infereDataType() override {
-        dataType = DataType::None;
+        dataType = DataType::Primitive::None;
         condition->infereDataType();
         bodyPositive->infereDataType();
         if (bodyNegative) bodyNegative->infereDataType();
@@ -445,7 +444,7 @@ class While : public Node {
     }
 
     virtual void infereDataType() override {
-        dataType = DataType::None;
+        dataType = DataType::Primitive::None;
         condition->infereDataType();
         body->infereDataType();
     }
@@ -460,12 +459,12 @@ class Literal : public Node {
         this->dataType = dataType;
     }
 
-    Literal(const std::string& value, std::string& dataType) : value(value) {
-        this->dataType = toDataType(dataType);
+    Literal(const std::string& value, std::string& dataTypeStr) : value(value) {
+        this->dataType = dataTypeStr;
     }
 
     virtual void toString(std::stringstream& stream) override {
-        stream << Node::toString(dataType) << "('" << value << "')";
+        stream << dataType.toString() << "('" << value << "')";
     }
 
     virtual NodeType getType() override { return NodeType::Literal; }

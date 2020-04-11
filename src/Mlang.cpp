@@ -30,6 +30,7 @@
 #include "parser/PtToAstVisitor.h"
 #include "preprocessor/Preprocessor.h"
 #include "transformer/ImplicitReturn.h"
+#include "transformer/InfereIdentifierTypes.h"
 
 Mlang::Mlang() {}
 
@@ -103,13 +104,25 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
         }
 
         if (settings.infereTypes) {
+            // General types
             ast->infereDataType();
+
+            // Identifier types
+            InfereIdentifierTypes identTypesWalker;
+            identTypesWalker.process(ast);
+
+            // Re run general types
+            ast->infereDataType();
+
+            // Function types (params)
+            // TODO
+
+            // Output
             std::cout << "Infered types:" << std::endl;
             std::cout << ast->toString() << std::endl;
         }
     }
 
-    // TODO: Add implicit 'ret' when assign(fntype / declfn, 1 expr)
     // TODO: Infere types
     // TODO: Implement operator precedence transformer
     // TODO: Use return instead of stack in PtToAST
@@ -222,10 +235,9 @@ Mlang::Signal Mlang::executeFile(std::string thePath) {
                   << fileContent << "<EOF>" << std::endl;
     }
 
-    if(!fileContent.empty()){
+    if (!fileContent.empty()) {
         return executeString(fileContent);
-    }
-    else{
+    } else {
         std::cout << "File empty: " << thePath << std::endl;
         return Mlang::Signal::Failure;
     }

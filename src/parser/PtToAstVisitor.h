@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 
+#include "../ast/DataType.h"
 #include "../ast/Node.h"
 
 using namespace MGrammar;
@@ -176,15 +177,15 @@ class PtToAstVisitor : public MGrammarBaseVisitor {
 
     virtual antlrcpp::Any visitLiteral(
         MGrammarParser::LiteralContext *ctx) override {
-        AST::DataType type;
+        DataType::Primitive type;
         if (ctx->type_float())
-            type = AST::DataType::Float;
+            type = DataType::Primitive::Float;
         else if (ctx->type_int())
-            type = AST::DataType::Int;
+            type = DataType::Primitive::Int;
         else if (ctx->type_bool())
-            type = AST::DataType::Bool;
+            type = DataType::Primitive::Bool;
         else if (ctx->type_string())
-            type = AST::DataType::String;
+            type = DataType::Primitive::String;
         else
             throw "Unknown type";
 
