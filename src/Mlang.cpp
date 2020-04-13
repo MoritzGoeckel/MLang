@@ -96,62 +96,58 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
         PtToAstVisitor visitor;
         visitor.visit(tree);
         auto ast = visitor.getAST();
-        // std::cout << ast->toString() << std::endl;
 
         {
             ImplicitReturn impRet;
             impRet.process(ast);
-            // std::cout << "Transformed AST:" << std::endl;
-            // std::cout << ast->toString() << std::endl;
         }
 
         if (settings.infereTypes) {
-            // TODO: Repeat some times, how often?
-            for (size_t i = 0; i < 3; ++i) {
-                // General types
-                ast->infereDataType();
+            HasUnknownTypes validator;
+            size_t lastUnresolved = 0xfffffffff;
 
-                // std::cout << "After general types run" << std::endl;
-                // std::cout << ast->toString() << std::endl;
-
+            while (true) {
                 // Identifier types
                 InfereIdentifierTypes identTypesWalker;
                 identTypesWalker.process(ast);
 
-                // std::cout << "After identifier types run" << std::endl;
-                // std::cout << ast->toString() << std::endl;
-
-                // Function types (params)
+                // Function types / params
                 InfereParameterTypes paramTypesWalker;
                 paramTypesWalker.process(ast);
 
-                // std::cout << "After function types run" << std::endl;
-                // std::cout << ast->toString() << std::endl;
+                validator.process(ast);
+                if (validator.hasTypeConflicts() ||
+                    validator.isAllTypesResolved() ||
+                    validator.getNumUnresolved() >= lastUnresolved) {
+                    // Conflicts occurred, all types are resolved or number of
+                    // resolved types did not increase -> Stop
+                    break;
+                } else {
+                    lastUnresolved = validator.getNumUnresolved();
+                    validator.reset();
+                }
             }
 
             // TODO: Output messages from last run
 
-            HasUnknownTypes validateWalker;
-            validateWalker.process(ast);
-
             // Output
-            std::cout << "Infered types:" << std::endl;
             std::cout << ast->toString() << std::endl;
 
-            if (validateWalker.isAllTypesResolved()) {
+            if (validator.isAllTypesResolved()) {
                 std::cout << "All types resolved" << std::endl;
             } else {
                 std::cout << "Unresolved types: "
-                          << validateWalker.getNumberOfUnresolvedNodes() << "!"
-                          << std::endl;
+                          << validator.getNumUnresolved() << "!" << std::endl;
+
+                return Mlang::Signal::Failure;
             }
         }
     }
 
-    // TODO: Implement operator precedence transformer
-    // TODO: Use return instead of stack in PtToAST
     // TODO: Generate LLVM
     // TODO: Have stdlib (+ - * / < > ==)
+    // TODO: Implement operator precedence transformer
+    // TODO: Use return instead of stack in PtToAST
 
     /*
     // Run listener

@@ -19,13 +19,18 @@ class HasUnknownTypes : TreeWalker {
    public:
     HasUnknownTypes() : unresolvedNodes(0u), typeConflicts(0u) {}
 
+    void reset() {
+        unresolvedNodes = 0u;
+        typeConflicts = 0u;
+    }
+
     bool isAllTypesResolved() {
         return unresolvedNodes == 0u && typeConflicts == 0u;
     }
     bool hasTypeConflicts() { return typeConflicts != 0u; }
 
-    size_t getNumberOfUnresolvedNodes() { return unresolvedNodes; }
-    size_t getNumberOfTypeConflicts() { return typeConflicts; }
+    size_t getNumUnresolved() { return unresolvedNodes; }
+    size_t getNumConflicts() { return typeConflicts; }
 
     std::shared_ptr<AST::Node> process(std::shared_ptr<AST::Node> node) {
         if (node->getDataType() == DataType::Primitive::Unknown) {

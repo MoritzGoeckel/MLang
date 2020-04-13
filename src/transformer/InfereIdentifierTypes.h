@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <iostream>
 #include <memory>
 
@@ -54,13 +55,13 @@ class InfereIdentifierTypes : TreeWalker {
             if (assign->getLeft()->getType() == AST::NodeType::Declvar) {
                 // Evaluate right side first
                 process(assign->getRight());
-                assign->getRight()->infereDataType();
 
                 // Use right side type for the left side type
                 auto declvar =
                     std::dynamic_pointer_cast<AST::Declvar>(assign->getLeft());
                 auto rightType = assign->getRight()->getDataType();
-                declvar->hintDataType(rightType);
+                declvar->getIdentifier()->setDataType(
+                    rightType, [this](auto& s) { addMessage(s); });
 
                 auto name = declvar->getIdentifier()->getName();
                 if (stack.back().find(name) != stack.back().end()) {
@@ -87,8 +88,8 @@ class InfereIdentifierTypes : TreeWalker {
 
                 // Evaluate right side
                 process(assign->getRight());
-                assign->getRight()->infereDataType();
-                auto retType = assign->getRight()->getReturnType();
+                auto retType = assign->getRight()->getReturnType(
+                    [this](auto& s) { addMessage(s); });
 
                 // Pop stack with parameters after evaluating right side
                 stack.pop_back();
@@ -102,7 +103,8 @@ class InfereIdentifierTypes : TreeWalker {
                                      return t == DataType::Primitive::Unknown;
                                  })) {
                     auto determinedFnType = DataType(paramTypes, retType);
-                    declfn->getIdentifier()->hintDataType(determinedFnType);
+                    declfn->getIdentifier()->setDataType(
+                        determinedFnType, [this](auto& s) { addMessage(s); });
                     stack.back().emplace(declfn->getIdentifier()->getName(),
                                          DataType(paramTypes, retType));
                 }
@@ -132,7 +134,8 @@ class InfereIdentifierTypes : TreeWalker {
             }
 
             if (type != DataType::Primitive::Unknown) {
-                identifier->hintDataType(type);
+                identifier->setDataType(type,
+                                        [this](auto& s) { addMessage(s); });
             } else {
                 addMessage("Undeclared variable: " + name);
             }
@@ -161,7 +164,8 @@ class InfereIdentifierTypes : TreeWalker {
             }
 
             if (type != DataType::Primitive::Unknown) {
-                call->hintDataType(type);
+                call->getIdentifier()->setDataType(
+                    type, [this](auto& s) { addMessage(s); });
             } else {
                 addMessage("Undeclared variable: " + name);
             }

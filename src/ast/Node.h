@@ -22,6 +22,7 @@ enum class NodeType {
 
 class Node {
    protected:
+    using AddMsgFn = std::function<void(const std::string&)>;
     DataType dataType;
 
    public:
@@ -39,25 +40,11 @@ class Node {
     virtual NodeType getType() = 0;
     virtual std::vector<std::shared_ptr<Node>> getChildren() = 0;
 
-    virtual void infereDataType() = 0;
-    virtual void hintDataType(DataType hint) {
-        /*
-         *  Should throw for most nodes.
-         *  Is only valid for var / fn decl
-         *  Nodes that want to support that
-         *  have to override
-         */
-        throw;  // TODO: Emit messages
-    }
-    virtual DataType
-    getReturnType() {  // TODO this should be in its own visitor, same for the
-                       // "infereType" functions
-        // TODO: Cache?
+    virtual DataType getReturnType(AddMsgFn addMessage) {
         std::set<DataType> types;
         for (auto& child : getChildren()) {
             if (child) {
-                child->infereDataType();
-                types.insert(child->getReturnType());
+                types.insert(child->getReturnType(addMessage));
             }
         }
         DataType::removeNone(types);
@@ -67,7 +54,9 @@ class Node {
 
         if (types.size() > 1u) {
             return DataType::Primitive::Conflict;
-            // TODO: Message out
+            std::string msg("Conflicting return types: ");
+            for (auto& t : types) msg += t.toString() + " ";
+            addMessage(msg);
         } else if (types.empty()) {
             return DataType::Primitive::None;
         } else {
@@ -113,18 +102,13 @@ class Identifier : public Node {
         return {};
     }
 
-    virtual void infereDataType() override { /* TODO */
-    }
-
-    virtual void hintDataType(DataType hint) override {
-        if (dataType == DataType::Primitive::Unknown || dataType == hint)
-            dataType = hint;
+    void setDataType(DataType type, AddMsgFn addMessage) {
+        if (dataType == DataType::Primitive::Unknown || dataType == type)
+            dataType = type;
         else {
-            // TODO: Emit messages
-            std::cout << "-- Conflicting type " << dataType.toString() << " / "
-                      << hint.toString() << std::endl;
-
             dataType = DataType::Primitive::Conflict;
+            addMessage("Conflicting types: set " + dataType.toString() +
+                       " to " + type.toString());
         }
     }
 };
@@ -161,11 +145,10 @@ class Block : public Node {
         return DataType::Primitive::None;
     }
 
-    virtual DataType getReturnType() override {
+    virtual DataType getReturnType(AddMsgFn addMessage) override {
         std::set<DataType> types;
         for (auto& child : children) {
-            child->infereDataType();
-            types.insert(child->getReturnType());
+            types.insert(child->getReturnType(addMessage));
         }
         DataType::removeNone(types);
 
@@ -173,18 +156,14 @@ class Block : public Node {
             return DataType::Primitive::Unknown;
 
         if (types.size() > 1u) {
-            // TODO: Message out
+            std::string msg("Conflicting return types: ");
+            for (auto& t : types) msg += t.toString() + " ";
+            addMessage(msg);
             return DataType::Primitive::Conflict;
         } else if (types.empty()) {
             return DataType::Primitive::Void;
         } else {
             return *(types.begin());
-        }
-    }
-
-    virtual void infereDataType() override {
-        for (auto& child : children) {
-            child->infereDataType();
         }
     }
 };
@@ -225,19 +204,11 @@ class Call : public Node {
         return vec;
     }
 
-    virtual void infereDataType() override {
-        // Not possible at this point. Is done in a tree walker
-    }
-
     virtual DataType getDataType() override {
         if (getIdentifier()->getDataType() != DataType::Primitive::Unknown)
             return *(getIdentifier()->getDataType().getReturn());
         else
             return DataType::Primitive::Unknown;
-    }
-
-    virtual void hintDataType(DataType hint) override {
-        getIdentifier()->hintDataType(hint);
     }
 };
 
@@ -263,14 +234,12 @@ class Ret : public Node {
 
     std::shared_ptr<Node> getExpr() { return expr; }
 
-    virtual void infereDataType() override {}
     virtual DataType getDataType() override {
         return DataType::Primitive::None;
     }
 
-    virtual DataType getReturnType() override {
+    virtual DataType getReturnType(AddMsgFn addMessage) override {
         if (expr) {
-            expr->infereDataType();
             return expr->getDataType();
         } else {
             return DataType::Primitive::Void;
@@ -305,28 +274,11 @@ class Assign : public Node {
     std::shared_ptr<Node> getRight() { return right; }
     void setRight(std::shared_ptr<Node> node) { right = node; }
 
-    virtual void infereDataType() override {
-        right->infereDataType();
-        dataType = right->getDataType();
-        left->infereDataType();
-        if (left->getDataType() != dataType &&
-            left->getDataType() != DataType::Primitive::None) {
-            // TODO: Maybe some implicit conversions
-
-            if (left->getDataType() == DataType::Primitive::Unknown ||
-                right->getDataType() == DataType::Primitive::Unknown)
-                return;
-
-            // TODO: Message out
-            dataType = DataType::Primitive::Conflict;
-        } else {
-            left->hintDataType(dataType);
-        }
-    }
+    virtual DataType getDataType() override { return right->getDataType(); }
 };
 
 class Declvar : public Node {
-   public:  // TODO: Private
+   private:
     std::shared_ptr<Identifier> name;
 
    public:
@@ -349,15 +301,6 @@ class Declvar : public Node {
 
     virtual DataType getDataType() override {
         return DataType::Primitive::None;
-    }
-
-    virtual void infereDataType() override {
-        // dataType = name->getDataType();
-    }
-
-    virtual void hintDataType(DataType hint) override {
-        // dataType = hint;
-        name->hintDataType(hint);
     }
 };
 
@@ -409,17 +352,6 @@ class Declfn : public Node {
     virtual DataType getDataType() override {
         return DataType::Primitive::None;
     }
-
-    virtual void infereDataType() override {
-        // TODO parameters?
-        // dataType = DataType::Primitive::None;
-    }
-
-    virtual void hintDataType(DataType hint) override {
-        // TODO: Sure? What about its a function ...
-        // dataType = hint;
-        if (hint != DataType::Primitive::None) name->hintDataType(hint);
-    }
 };
 
 class If : public Node {
@@ -455,11 +387,8 @@ class If : public Node {
         return {condition, bodyPositive, bodyNegative};
     }
 
-    virtual void infereDataType() override {
-        dataType = DataType::Primitive::None;
-        condition->infereDataType();
-        bodyPositive->infereDataType();
-        if (bodyNegative) bodyNegative->infereDataType();
+    virtual DataType getDataType() override {
+        return DataType::Primitive::None;
     }
 };
 
@@ -485,10 +414,8 @@ class While : public Node {
         return {condition, body};
     }
 
-    virtual void infereDataType() override {
-        dataType = DataType::Primitive::None;
-        condition->infereDataType();
-        body->infereDataType();
+    virtual DataType getDataType() override {
+        return DataType::Primitive::None;
     }
 };
 
@@ -512,9 +439,6 @@ class Literal : public Node {
     virtual NodeType getType() override { return NodeType::Literal; }
     virtual std::vector<std::shared_ptr<Node>> getChildren() override {
         return {};
-    }
-
-    virtual void infereDataType() override { /* already set in constructor */
     }
 };
 

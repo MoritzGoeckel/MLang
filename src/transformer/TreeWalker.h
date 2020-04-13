@@ -32,7 +32,6 @@ class TreeWalker {
 
    protected:
     void addMessage(const Message& msg) { messages.emplace_back(msg); }
-
     void followChildren(std::shared_ptr<AST::Node>& node) {
         for (auto child : node->getChildren()) {
             if (!child) continue;

@@ -92,7 +92,8 @@ class InfereParameterTypes : TreeWalker {
                 const auto& type = arguments[i]->getDataType();
                 if (type != DataType::Primitive::Unknown &&
                     type != DataType::Primitive::Conflict) {
-                    parameters->at(i)->hintDataType(type);
+                    parameters->at(i)->setDataType(
+                        type, [this](auto& s) { addMessage(s); });
                 }
             }
         }
