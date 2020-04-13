@@ -50,7 +50,8 @@ class Node {
         throw;  // TODO: Emit messages
     }
     virtual DataType
-    getReturnType() {  // TODO this should be in its own visitor
+    getReturnType() {  // TODO this should be in its own visitor, same for the
+                       // "infereType" functions
         // TODO: Cache?
         std::set<DataType> types;
         for (auto& child : getChildren()) {
@@ -59,10 +60,14 @@ class Node {
                 types.insert(child->getReturnType());
             }
         }
-        DataType::removeNoneDataType(types);
+        DataType::removeNone(types);
+
+        if (DataType::containsUnknown(types))
+            return DataType::Primitive::Unknown;
 
         if (types.size() > 1u) {
             return DataType::Primitive::Conflict;
+            // TODO: Message out
         } else if (types.empty()) {
             return DataType::Primitive::None;
         } else {
@@ -70,11 +75,13 @@ class Node {
         }
     }
 
-    DataType getDataType() { return dataType; }
+    virtual DataType getDataType() { return dataType; }
 
     std::string getDataTypeString() {
-        if (dataType == DataType::Primitive::Unknown) return {};
-        return "[" + dataType.toString() + "]";
+        auto type = getDataType();
+        if (type == DataType::Primitive::Unknown) return "[U]";
+        if (type == DataType::Primitive::None) return {};
+        return "[" + type.toString() + "]";
     }
 
     template <typename T>
@@ -114,9 +121,8 @@ class Identifier : public Node {
             dataType = hint;
         else {
             // TODO: Emit messages
-            std::cout << "-- Conflicting identifier type "
-                      << dataType.toString() << " / " << hint.toString()
-                      << std::endl;
+            std::cout << "-- Conflicting type " << dataType.toString() << " / "
+                      << hint.toString() << std::endl;
 
             dataType = DataType::Primitive::Conflict;
         }
@@ -140,7 +146,7 @@ class Block : public Node {
 
     virtual std::vector<std::shared_ptr<Node>> getChildren() override {
         std::vector<std::shared_ptr<Node>> vec;
-        vec.resize(children.size());
+        vec.reserve(children.size());
         for (auto& c : children) {
             vec.emplace_back(c);
         }
@@ -151,20 +157,34 @@ class Block : public Node {
         children = nodes;
     }
 
-    virtual void infereDataType() override {
+    virtual DataType getDataType() override {
+        return DataType::Primitive::None;
+    }
+
+    virtual DataType getReturnType() override {
         std::set<DataType> types;
         for (auto& child : children) {
             child->infereDataType();
             types.insert(child->getReturnType());
         }
-        DataType::removeNoneDataType(types);
+        DataType::removeNone(types);
+
+        if (DataType::containsUnknown(types))
+            return DataType::Primitive::Unknown;
 
         if (types.size() > 1u) {
-            dataType = DataType::Primitive::Conflict;
+            // TODO: Message out
+            return DataType::Primitive::Conflict;
         } else if (types.empty()) {
-            dataType = DataType::Primitive::Void;
+            return DataType::Primitive::Void;
         } else {
-            dataType = *(types.begin());
+            return *(types.begin());
+        }
+    }
+
+    virtual void infereDataType() override {
+        for (auto& child : children) {
+            child->infereDataType();
         }
     }
 };
@@ -197,7 +217,7 @@ class Call : public Node {
 
     virtual std::vector<std::shared_ptr<Node>> getChildren() override {
         std::vector<std::shared_ptr<Node>> vec;
-        vec.resize(arguments.size() + 1);
+        vec.reserve(arguments.size() + 1);
         vec.emplace_back(method);
         for (auto& a : arguments) {
             vec.emplace_back(a);
@@ -209,16 +229,15 @@ class Call : public Node {
         // Not possible at this point. Is done in a tree walker
     }
 
-    virtual void hintDataType(DataType hint) override {
-        if (dataType == DataType::Primitive::Unknown || dataType == hint)
-            dataType = hint;
-        else {
-            // TODO: Emit messages
-            std::cout << "-- Conflicting call type " << dataType.toString()
-                      << " / " << hint.toString() << std::endl;
+    virtual DataType getDataType() override {
+        if (getIdentifier()->getDataType() != DataType::Primitive::Unknown)
+            return *(getIdentifier()->getDataType().getReturn());
+        else
+            return DataType::Primitive::Unknown;
+    }
 
-            dataType = DataType::Primitive::Conflict;
-        }
+    virtual void hintDataType(DataType hint) override {
+        getIdentifier()->hintDataType(hint);
     }
 };
 
@@ -244,18 +263,18 @@ class Ret : public Node {
 
     std::shared_ptr<Node> getExpr() { return expr; }
 
-    virtual void infereDataType() override {
-        if (expr) {
-            expr->infereDataType();
-            dataType = expr->getDataType();
-        } else {
-            dataType = DataType::Primitive::Void;
-        }
+    virtual void infereDataType() override {}
+    virtual DataType getDataType() override {
+        return DataType::Primitive::None;
     }
 
     virtual DataType getReturnType() override {
-        if (dataType == DataType::Primitive::Unknown) infereDataType();
-        return dataType;
+        if (expr) {
+            expr->infereDataType();
+            return expr->getDataType();
+        } else {
+            return DataType::Primitive::Void;
+        }
     }
 };
 
@@ -293,6 +312,12 @@ class Assign : public Node {
         if (left->getDataType() != dataType &&
             left->getDataType() != DataType::Primitive::None) {
             // TODO: Maybe some implicit conversions
+
+            if (left->getDataType() == DataType::Primitive::Unknown ||
+                right->getDataType() == DataType::Primitive::Unknown)
+                return;
+
+            // TODO: Message out
             dataType = DataType::Primitive::Conflict;
         } else {
             left->hintDataType(dataType);
@@ -322,10 +347,16 @@ class Declvar : public Node {
         return {name};
     }
 
-    virtual void infereDataType() override { dataType = name->getDataType(); }
+    virtual DataType getDataType() override {
+        return DataType::Primitive::None;
+    }
+
+    virtual void infereDataType() override {
+        // dataType = name->getDataType();
+    }
 
     virtual void hintDataType(DataType hint) override {
-        dataType = hint;
+        // dataType = hint;
         name->hintDataType(hint);
     }
 };
@@ -367,7 +398,7 @@ class Declfn : public Node {
 
     virtual std::vector<std::shared_ptr<Node>> getChildren() override {
         std::vector<std::shared_ptr<Node>> vec;
-        vec.resize(parameters.size() + 1);
+        vec.reserve(parameters.size() + 1);
         vec.emplace_back(name);
         for (auto& p : parameters) {
             vec.emplace_back(p);
@@ -375,15 +406,19 @@ class Declfn : public Node {
         return vec;
     }
 
+    virtual DataType getDataType() override {
+        return DataType::Primitive::None;
+    }
+
     virtual void infereDataType() override {
         // TODO parameters?
-        dataType = DataType::Primitive::None;
+        // dataType = DataType::Primitive::None;
     }
 
     virtual void hintDataType(DataType hint) override {
         // TODO: Sure? What about its a function ...
-        dataType = hint;
-        name->hintDataType(hint);
+        // dataType = hint;
+        if (hint != DataType::Primitive::None) name->hintDataType(hint);
     }
 };
 

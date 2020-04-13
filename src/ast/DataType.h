@@ -67,6 +67,8 @@ class DataType {
         return other.getHashNum() < getHashNum();
     }
 
+    std::shared_ptr<const DataType> getReturn() { return ret; }
+
     std::string toString() const {
         if (isSimple) {
             return toString(simple);
@@ -86,14 +88,22 @@ class DataType {
     }
 
    public:
-    static void removeNoneDataType(std::set<Primitive>& set,
-                                   Primitive type = Primitive::None) {
+    static void removeNone(std::set<Primitive>& set,
+                           Primitive type = Primitive::None) {
         if (set.find(type) != set.end()) set.erase(type);
     }
 
-    static void removeNoneDataType(std::set<DataType>& set,
-                                   Primitive type = Primitive::None) {
+    static void removeNone(std::set<DataType>& set,
+                           Primitive type = Primitive::None) {
         if (set.find(type) != set.end()) set.erase(type);
+    }
+
+    template <typename T>
+    static bool containsUnknown(const T& container) {
+        return std::any_of(container.begin(), container.end(),
+                           [](const DataType& t) {
+                               return t == DataType::Primitive::Unknown;
+                           });
     }
 
     static std::string toString(Primitive type) {

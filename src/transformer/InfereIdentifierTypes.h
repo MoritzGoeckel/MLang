@@ -22,13 +22,35 @@ class InfereIdentifierTypes {
     }
 
    public:
-    InfereIdentifierTypes() { stack.push_back({}); }
+    InfereIdentifierTypes() {
+        stack.push_back({});
+
+#define DEF_BUILD_IN(NAME, TYPE)                                               \
+    stack.back().emplace(                                                      \
+        NAME, DataType({DataType::Primitive::TYPE, DataType::Primitive::TYPE}, \
+                       DataType::Primitive::TYPE))
+
+        // Add std function types in first stack frame
+        DEF_BUILD_IN("-", Int);
+        DEF_BUILD_IN("+", Int);
+        DEF_BUILD_IN("/", Int);
+        DEF_BUILD_IN("*", Int);
+        DEF_BUILD_IN("<", Int);
+        DEF_BUILD_IN(">", Int);
+        DEF_BUILD_IN(">=", Int);
+        DEF_BUILD_IN("<=", Int);
+        DEF_BUILD_IN("||", Bool);
+        DEF_BUILD_IN("&&", Bool);
+
+        stack.push_back({});
+    }
 
     std::shared_ptr<AST::Node> process(std::shared_ptr<AST::Node> node) {
         // Block
         if (node->getType() == AST::NodeType::Block) {
             stack.push_back({});
             followChildren(node);
+            stack.pop_back();
         }
 
         // Assignment
@@ -39,11 +61,15 @@ class InfereIdentifierTypes {
             // TODO: If it is declfn we need to find types of params first to
             // push them on stack before processing right side. We find the
             // types of the parameters by looking at future calls
-            process(assign->getRight());
-            assign->getRight()->infereDataType();
+            // process(assign->getRight());
+            // assign->getRight()->infereDataType();
 
             // Assign left type
             if (assign->getLeft()->getType() == AST::NodeType::Declvar) {
+                // Right side can be evaluated first
+                process(assign->getRight());
+                assign->getRight()->infereDataType();
+
                 // Variable declaration, use right side type
                 auto declvar =
                     std::dynamic_pointer_cast<AST::Declvar>(assign->getLeft());
@@ -67,19 +93,42 @@ class InfereIdentifierTypes {
                 auto declfn =
                     std::dynamic_pointer_cast<AST::Declfn>(assign->getLeft());
                 std::vector<DataType> paramTypes;
-                paramTypes.resize(declfn->getParameters().size());
+                paramTypes.reserve(declfn->getParameters().size());
+
+                // Push params to stack
+                stack.push_back({});
+
                 for (auto& ident : declfn->getParameters()) {
                     paramTypes.push_back(ident->getDataType());
+                    stack.back().emplace(ident->getName(),
+                                         ident->getDataType());
                 }
 
+                // Evaluate right side
+                process(assign->getRight());
+                assign->getRight()->infereDataType();
                 auto retType = assign->getRight()->getReturnType();
-                // TODO: Identify not only by name, but also by parameter types
-                // Else overloading is not possible
-                stack.back().emplace(declfn->getIdentifier()->getName(),
-                                     DataType(paramTypes, retType));
+
+                // Pop stack with parameters after evaluating right side
+                stack.pop_back();
+
+                // TODO: Identify not only by name, but also by parameter
+                // types Else overloading is not possible
+
+                // Only fill if parameter types are certain
+                if (std::none_of(paramTypes.begin(), paramTypes.end(),
+                                 [](DataType& t) {
+                                     return t == DataType::Primitive::Unknown;
+                                 })) {
+                    auto determinedFnType = DataType(paramTypes, retType);
+                    declfn->getIdentifier()->hintDataType(determinedFnType);
+                    stack.back().emplace(declfn->getIdentifier()->getName(),
+                                         DataType(paramTypes, retType));
+                }
 
             } else if (assign->getLeft()->getType() ==
                        AST::NodeType::Identifier) {
+                process(assign->getRight());
                 process(assign->getLeft());
             } else {
                 // TODO: Emit messages

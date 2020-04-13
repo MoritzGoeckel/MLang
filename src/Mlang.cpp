@@ -29,8 +29,10 @@
 #include "parser/PrintVisitor.h"
 #include "parser/PtToAstVisitor.h"
 #include "preprocessor/Preprocessor.h"
+#include "transformer/HasUnknownTypes.h"
 #include "transformer/ImplicitReturn.h"
 #include "transformer/InfereIdentifierTypes.h"
+#include "transformer/InfereParameterTypes.h"
 
 Mlang::Mlang() {}
 
@@ -94,32 +96,55 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
         PtToAstVisitor visitor;
         visitor.visit(tree);
         auto ast = visitor.getAST();
-        std::cout << ast->toString() << std::endl;
+        // std::cout << ast->toString() << std::endl;
 
         {
             ImplicitReturn impRet;
             impRet.process(ast);
-            std::cout << "Transformed AST:" << std::endl;
-            std::cout << ast->toString() << std::endl;
+            // std::cout << "Transformed AST:" << std::endl;
+            // std::cout << ast->toString() << std::endl;
         }
 
         if (settings.infereTypes) {
-            // General types
-            ast->infereDataType();
+            // TODO: Repeat some times, how often?
+            for (size_t i = 0; i < 3; ++i) {
+                // General types
+                ast->infereDataType();
 
-            // Identifier types
-            InfereIdentifierTypes identTypesWalker;
-            identTypesWalker.process(ast);
+                // std::cout << "After general types run" << std::endl;
+                // std::cout << ast->toString() << std::endl;
 
-            // Re run general types
-            ast->infereDataType();
+                // Identifier types
+                InfereIdentifierTypes identTypesWalker;
+                identTypesWalker.process(ast);
 
-            // Function types (params)
-            // TODO
+                // std::cout << "After identifier types run" << std::endl;
+                // std::cout << ast->toString() << std::endl;
+
+                // Function types (params)
+                InfereParameterTypes paramTypesWalker;
+                paramTypesWalker.process(ast);
+
+                // std::cout << "After function types run" << std::endl;
+                // std::cout << ast->toString() << std::endl;
+            }
+
+            // TODO: Output messages from last run
+
+            HasUnknownTypes validateWalker;
+            validateWalker.process(ast);
 
             // Output
             std::cout << "Infered types:" << std::endl;
             std::cout << ast->toString() << std::endl;
+
+            if (validateWalker.isAllTypesResolved()) {
+                std::cout << "All types resolved" << std::endl;
+            } else {
+                std::cout << "Unresolved types: "
+                          << validateWalker.getNumberOfUnresolvedNodes() << "!"
+                          << std::endl;
+            }
         }
     }
 
