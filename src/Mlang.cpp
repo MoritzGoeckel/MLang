@@ -148,7 +148,6 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
         }
     }
 
-    // TODO: Infere types
     // TODO: Implement operator precedence transformer
     // TODO: Use return instead of stack in PtToAST
     // TODO: Generate LLVM

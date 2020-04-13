@@ -5,25 +5,20 @@
 
 #include "../ast/DataType.h"
 #include "../ast/Node.h"
+#include "TreeWalker.h"
 
 /*
- * TODO documentation
+ * TreeWalker that inferes the types of function parameters. This is done by
+ * scanning for function calls. May emit false error messages for build-in
+ * functions.
  */
-class InfereParameterTypes {
+class InfereParameterTypes : TreeWalker {
    private:
     // TODO: Should support overloading
     // Stack of (fn ids -> parameters)
     std::vector<
         std::map<std::string, std::vector<std::shared_ptr<AST::Identifier>>>>
         stack;
-
-    // TODO: Maybe put in super class for TreeWalkers
-    void followChildren(std::shared_ptr<AST::Node>& node) {
-        for (auto child : node->getChildren()) {
-            if (!child) continue;
-            process(child);
-        }
-    }
 
    public:
     InfereParameterTypes() { stack.push_back({}); }
@@ -58,7 +53,9 @@ class InfereParameterTypes {
             auto& arguments = call->getArguments();
             std::vector<std::shared_ptr<AST::Identifier>>* parameters = nullptr;
 
-            // Stop if identifier already has types
+            // Stop if identifier already has types. This may happen when the
+            // code already got infered or if we are looking at build-in
+            // functions
             if (call->getIdentifier()->getDataType() !=
                 DataType::Primitive::Unknown) {
                 // Type already determined
@@ -75,20 +72,17 @@ class InfereParameterTypes {
             }
 
             if (!parameters) {
-                // TODO: Emit messages
-                std::cout << "-- Undeclared function " << name << std::endl;
-                // TODO: This gives false warnings for build-in functions
-
+                // May give false warnings for build-in functions
+                addMessage("Undeclared function " + name);
                 followChildren(node);
                 return node;
             }
 
             if (parameters->size() != arguments.size()) {
-                // TODO: Emit messages
-                std::cout
-                    << "-- Function call with unexpected number of arguments "
-                    << name << " declared: " << parameters->size()
-                    << " provided: " << arguments.size() << std::endl;
+                addMessage(
+                    "Function call with unexpected number of arguments " +
+                    name + " declared: " + std::to_string(parameters->size()) +
+                    " provided: " + std::to_string(arguments.size()));
 
                 followChildren(node);
                 return node;

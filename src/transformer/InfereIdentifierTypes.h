@@ -5,21 +5,14 @@
 
 #include "../ast/DataType.h"
 #include "../ast/Node.h"
+#include "TreeWalker.h"
 
 /*
- * TODO documentation
+ * TreeWalker to infere types of identifiers throughout the different scopes
  */
-class InfereIdentifierTypes {
+class InfereIdentifierTypes : TreeWalker {
    private:
     std::vector<std::map<std::string, DataType>> stack;
-
-    // TODO: Maybe put in super class for TreeWalkers
-    void followChildren(std::shared_ptr<AST::Node>& node) {
-        for (auto child : node->getChildren()) {
-            if (!child) continue;
-            process(child);
-        }
-    }
 
    public:
     InfereIdentifierTypes() {
@@ -57,20 +50,13 @@ class InfereIdentifierTypes {
         else if (node->getType() == AST::NodeType::Assign) {
             auto assign = std::dynamic_pointer_cast<AST::Assign>(node);
 
-            // Determine right type
-            // TODO: If it is declfn we need to find types of params first to
-            // push them on stack before processing right side. We find the
-            // types of the parameters by looking at future calls
-            // process(assign->getRight());
-            // assign->getRight()->infereDataType();
-
-            // Assign left type
+            // Assignment with variable declaration left
             if (assign->getLeft()->getType() == AST::NodeType::Declvar) {
-                // Right side can be evaluated first
+                // Evaluate right side first
                 process(assign->getRight());
                 assign->getRight()->infereDataType();
 
-                // Variable declaration, use right side type
+                // Use right side type for the left side type
                 auto declvar =
                     std::dynamic_pointer_cast<AST::Declvar>(assign->getLeft());
                 auto rightType = assign->getRight()->getDataType();
@@ -78,18 +64,13 @@ class InfereIdentifierTypes {
 
                 auto name = declvar->getIdentifier()->getName();
                 if (stack.back().find(name) != stack.back().end()) {
-                    // TODO: Emit messages
-                    std::cout << "-- Variable already declared " << name
-                              << std::endl;
+                    addMessage("Variable already declared: " + name);
                 }
                 stack.back().emplace(name, rightType);
+            }
 
-            } else if (assign->getLeft()->getType() == AST::NodeType::Declfn) {
-                // TODO function declaration, use right return type
-                // PUSH function type to stack
-                // name -> [arg_types] -> type
-                // Need standard functions + - * / etc
-                // E.g. + -> [int, int] -> int
+            // Assignment with function declaration left
+            else if (assign->getLeft()->getType() == AST::NodeType::Declfn) {
                 auto declfn =
                     std::dynamic_pointer_cast<AST::Declfn>(assign->getLeft());
                 std::vector<DataType> paramTypes;
@@ -131,9 +112,8 @@ class InfereIdentifierTypes {
                 process(assign->getRight());
                 process(assign->getLeft());
             } else {
-                // TODO: Emit messages
-                std::cout << "-- Assigning to other than declvar, declfn or "
-                          << "identifier" << std::endl;
+                addMessage(
+                    "Assigning to other than declvar, declfn or identifier");
             }
         }
 
@@ -154,8 +134,7 @@ class InfereIdentifierTypes {
             if (type != DataType::Primitive::Unknown) {
                 identifier->hintDataType(type);
             } else {
-                // TODO: Emit messages
-                std::cout << "-- Undeclared variable " << name << std::endl;
+                addMessage("Undeclared variable: " + name);
             }
         }
 
@@ -184,8 +163,7 @@ class InfereIdentifierTypes {
             if (type != DataType::Primitive::Unknown) {
                 call->hintDataType(type);
             } else {
-                // TODO: Emit messages
-                std::cout << "-- Undeclared variable " << name << std::endl;
+                addMessage("Undeclared variable: " + name);
             }
         }
 
