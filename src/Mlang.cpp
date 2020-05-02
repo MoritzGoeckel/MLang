@@ -33,6 +33,8 @@
 #include "transformer/ImplicitReturn.h"
 #include "transformer/InfereIdentifierTypes.h"
 #include "transformer/InfereParameterTypes.h"
+#include "transformer/InstantiateFunctions.h"
+#include "transformer/LLVMEmitter.h"
 
 Mlang::Mlang() {}
 
@@ -92,7 +94,6 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
     }
 
     if (settings.showAbastractSyntaxTree) {
-        std::cout << "Abstract Syntax Tree:" << std::endl;
         PtToAstVisitor visitor;
         visitor.visit(tree);
         auto ast = visitor.getAST();
@@ -128,19 +129,26 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
                 }
             }
 
-            // TODO: Output messages from last run
-
-            // Output
-            std::cout << ast->toString() << std::endl;
-
-            if (validator.isAllTypesResolved()) {
-                std::cout << "All types resolved" << std::endl;
-            } else {
+            if (!validator.isAllTypesResolved()) {
+                // TODO: Output messages from last run
                 std::cout << "Unresolved types: "
                           << validator.getNumUnresolved() << "!" << std::endl;
 
                 return Mlang::Signal::Failure;
             }
+
+            {
+                InstantiateFunctions instantiator(ast);
+                auto fns = instantiator.getFunctions();
+                for (auto &fn : fns) {
+                    std::cout << fn.first << std::endl;
+                    std::cout << fn.second->AST::Node::toString() << std::endl;
+                    std::cout << std::endl;
+                }
+            }
+
+            // LLVMEmitter emitter;
+            // emitter.process(ast);
         }
     }
 
@@ -252,7 +260,7 @@ Mlang::Signal Mlang::executeFile(std::string thePath) {
 
     if (settings.showFileContent) {
         std::cout << "File: " << thePath << std::endl
-                  << fileContent << "<EOF>" << std::endl;
+                  << fileContent << std::endl;
     }
 
     if (!fileContent.empty()) {

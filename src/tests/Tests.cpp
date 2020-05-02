@@ -22,7 +22,9 @@ TEST(Mlang, ExecuteFiles) {
          "006_method_declaration.m", "007_method_declaration_brackets.m",
          "008_method_decl_multiline.m", "009_comment.m", "010_if.m",
          "011_if_else.m", "012_while.m", "013_if_else_no_brackets.m",
-         "014_simple_fns.m"});
+         "014_simple_fns.m" /*, "015_recursion.m"*/});
+
+    // TODO: 015_recursion.m is still broken
 
     Mlang mlang;
     // mlang.settings.showParseTree = true;

@@ -73,8 +73,10 @@ class DataType {
         if (isSimple) {
             return toString(simple);
         } else {
+            // Complex
             std::stringstream stream;
             if (params->size() > 1u) stream << "[";
+            if (params->empty()) stream << "[]";
             for (auto it = params->begin(); it != params->end(); ++it) {
                 stream << it->toString();
                 if (std::next(it) != params->end()) {

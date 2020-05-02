@@ -24,15 +24,22 @@ class InfereIdentifierTypes : TreeWalker {
         NAME, DataType({DataType::Primitive::TYPE, DataType::Primitive::TYPE}, \
                        DataType::Primitive::TYPE))
 
+#define DEF_BUILD_IN_2(NAME, TYPE, RTYPE)                                      \
+    stack.back().emplace(                                                      \
+        NAME, DataType({DataType::Primitive::TYPE, DataType::Primitive::TYPE}, \
+                       DataType::Primitive::RTYPE))
+
         // Add std function types in first stack frame
         DEF_BUILD_IN("-", Int);
         DEF_BUILD_IN("+", Int);
         DEF_BUILD_IN("/", Int);
         DEF_BUILD_IN("*", Int);
-        DEF_BUILD_IN("<", Int);
-        DEF_BUILD_IN(">", Int);
-        DEF_BUILD_IN(">=", Int);
-        DEF_BUILD_IN("<=", Int);
+
+        DEF_BUILD_IN_2("<", Int, Bool);
+        DEF_BUILD_IN_2(">", Int, Bool);
+        DEF_BUILD_IN_2(">=", Int, Bool);
+        DEF_BUILD_IN_2("<=", Int, Bool);
+
         DEF_BUILD_IN("||", Bool);
         DEF_BUILD_IN("&&", Bool);
 

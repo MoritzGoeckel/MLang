@@ -17,7 +17,9 @@ enum class NodeType {
     Declfn,
     If,
     While,
-    Literal
+    Literal,
+    Function,
+    FnPtr
 };
 
 class Node {
@@ -34,9 +36,8 @@ class Node {
         return stream.str();
     };
 
-    // virtual void emit() = 0;
-
     virtual void toString(std::stringstream& stream) = 0;
+
     virtual NodeType getType() = 0;
     virtual std::vector<std::shared_ptr<Node>> getChildren() = 0;
 
@@ -273,6 +274,7 @@ class Assign : public Node {
     std::shared_ptr<Node> getLeft() { return left; }
     std::shared_ptr<Node> getRight() { return right; }
     void setRight(std::shared_ptr<Node> node) { right = node; }
+    void setLeft(std::shared_ptr<Node> node) { left = node; }
 
     virtual DataType getDataType() override { return right->getDataType(); }
 };
@@ -317,6 +319,9 @@ class Declfn : public Node {
             this->parameters.push_back(std::static_pointer_cast<Identifier>(p));
         }
     }
+
+    Declfn(const std::string& name)
+        : name(std::make_shared<Identifier>(name)), parameters() {}
 
     std::vector<std::shared_ptr<Identifier>>& getParameters() {
         return parameters;
@@ -437,6 +442,51 @@ class Literal : public Node {
     }
 
     virtual NodeType getType() override { return NodeType::Literal; }
+    virtual std::vector<std::shared_ptr<Node>> getChildren() override {
+        return {};
+    }
+};
+
+class Function : public Node {
+   private:
+    std::shared_ptr<Declfn> head;
+    std::shared_ptr<Node> body;
+
+   public:
+    Function(std::shared_ptr<Declfn> head, std::shared_ptr<Node> body)
+        : head(head), body(body) {}
+
+    virtual void toString(std::stringstream& stream) override {
+        stream << "function(";
+        head->toString(stream);
+        stream << ", ";
+        body->toString(stream);
+        stream << ")";
+    }
+
+    virtual NodeType getType() override { return NodeType::Function; }
+    virtual std::vector<std::shared_ptr<Node>> getChildren() override {
+        return {head, body};
+    }
+    virtual DataType getDataType() override {
+        return DataType::Primitive::None;
+    }
+};
+
+class FnPtr : public Node {
+   private:
+    std::string id;
+
+   public:
+    FnPtr(const std::string& id, DataType dataType) : id(id) {
+        this->dataType = dataType;
+    }
+
+    virtual void toString(std::stringstream& stream) override {
+        stream << "fnptr(" << id << ", " << dataType.toString() << ")";
+    }
+
+    virtual NodeType getType() override { return NodeType::FnPtr; }
     virtual std::vector<std::shared_ptr<Node>> getChildren() override {
         return {};
     }
