@@ -27,11 +27,8 @@ TEST(Mlang, ExecuteFiles) {
     // TODO: 015_recursion.m is still broken
 
     Mlang mlang;
-    // mlang.settings.showParseTree = true;
-    // mlang.settings.showPrettyParseTree = true;
-    mlang.settings.showAbastractSyntaxTree = true;
     mlang.settings.showFileContent = true;
-    mlang.settings.infereTypes = true;
+    mlang.settings.showFunctions = true;
 
     for (auto& str : files) {
         auto rs = mlang.executeFile("mfiles/" + str);

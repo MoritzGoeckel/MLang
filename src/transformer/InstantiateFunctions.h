@@ -8,12 +8,12 @@
 #include "TreeWalker.h"
 
 /*
- * TODO
+ * TODO, doc
  * Search for assignments with declfns.
  * Instantiate fn body
  * Replace declfn with declvar. Name is same, value is unique name
  */
-class InstantiateFunctions : TreeWalker {
+class InstantiateFunctions : private TreeWalker {
    private:
     std::map<std::string, std::shared_ptr<AST::Function>> functions;
     size_t depth;
@@ -37,8 +37,7 @@ class InstantiateFunctions : TreeWalker {
         return functions;
     }
 
-    // Do not use directly!
-    // Use constructor instead
+   private:
     std::shared_ptr<AST::Node> process(std::shared_ptr<AST::Node> node) {
         depth++;
         followChildren(node);

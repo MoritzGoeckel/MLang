@@ -78,6 +78,7 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
         }
     }
 
+    // Generate parse tree
     MGrammar::MGrammarParser parser(&tokens);
     // const std::vector<std::string> &ruleNames = parser.getRuleNames();
     antlr4::tree::ParseTree *tree = parser.r();
@@ -93,64 +94,74 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
         std::cout << visitor.toString();
     }
 
-    if (settings.showAbastractSyntaxTree) {
-        PtToAstVisitor visitor;
-        visitor.visit(tree);
-        auto ast = visitor.getAST();
+    // Create ast
+    PtToAstVisitor visitor;
+    visitor.visit(tree);
+    auto ast = visitor.getAST();
 
-        {
-            ImplicitReturn impRet;
-            impRet.process(ast);
+    if (settings.showAbastractSyntaxTree) {
+        std::cout << ast->toString() << std::endl;
+    }
+
+    {
+        // Add implicit return
+        ImplicitReturn impRet;
+        impRet.process(ast);
+    }
+
+    {
+        // Infere types
+        HasUnknownTypes validator;
+        size_t lastUnresolved = 0xfffffffff;
+
+        while (true) {
+            // Identifier types
+            InfereIdentifierTypes identTypesWalker;
+            identTypesWalker.process(ast);
+
+            // Function types / params
+            InfereParameterTypes paramTypesWalker;
+            paramTypesWalker.process(ast);
+
+            validator.process(ast);
+            if (validator.hasTypeConflicts() ||
+                validator.isAllTypesResolved() ||
+                validator.getNumUnresolved() >= lastUnresolved) {
+                // Conflicts occurred, all types are resolved or number of
+                // resolved types did not increase -> Stop
+                break;
+            } else {
+                lastUnresolved = validator.getNumUnresolved();
+                validator.reset();
+            }
         }
 
-        if (settings.infereTypes) {
-            HasUnknownTypes validator;
-            size_t lastUnresolved = 0xfffffffff;
+        if (!validator.isAllTypesResolved()) {
+            // TODO: Output messages from last run
+            std::cout << "Unresolved types: " << validator.getNumUnresolved()
+                      << "!" << std::endl;
 
-            while (true) {
-                // Identifier types
-                InfereIdentifierTypes identTypesWalker;
-                identTypesWalker.process(ast);
+            return Mlang::Signal::Failure;
+        }
 
-                // Function types / params
-                InfereParameterTypes paramTypesWalker;
-                paramTypesWalker.process(ast);
-
-                validator.process(ast);
-                if (validator.hasTypeConflicts() ||
-                    validator.isAllTypesResolved() ||
-                    validator.getNumUnresolved() >= lastUnresolved) {
-                    // Conflicts occurred, all types are resolved or number of
-                    // resolved types did not increase -> Stop
-                    break;
-                } else {
-                    lastUnresolved = validator.getNumUnresolved();
-                    validator.reset();
-                }
-            }
-
-            if (!validator.isAllTypesResolved()) {
-                // TODO: Output messages from last run
-                std::cout << "Unresolved types: "
-                          << validator.getNumUnresolved() << "!" << std::endl;
-
-                return Mlang::Signal::Failure;
-            }
-
-            {
-                InstantiateFunctions instantiator(ast);
-                auto fns = instantiator.getFunctions();
-                for (auto &fn : fns) {
-                    std::cout << fn.first << std::endl;
-                    std::cout << fn.second->AST::Node::toString() << std::endl;
-                    std::cout << std::endl;
-                }
-            }
-
-            // LLVMEmitter emitter;
-            // emitter.process(ast);
+        if (settings.showInferedTypes) {
+            std::cout << ast->toString() << std::endl;
         }
     }
+
+    // Instantiate functions
+    InstantiateFunctions instantiator(ast);
+    // Do not use ast after this point
+    auto fns = instantiator.getFunctions();
+    if (settings.showFunctions) {
+        for (auto &fn : fns) {
+            std::cout << fn.first << std::endl;
+            std::cout << fn.second->AST::Node::toString() << std::endl;
+            std::cout << std::endl;
+        }
+    }
+
+    LLVMEmitter emitter(fns);
 
     // TODO: Generate LLVM
     // TODO: Have stdlib (+ - * / < > ==)

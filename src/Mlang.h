@@ -8,10 +8,7 @@ class Mlang {
 
     ~Mlang();
 
-    enum class Signal{
-        Failure,
-        Success
-    };
+    enum class Signal { Failure, Success };
 
     struct Settings {
         bool showTokens = false;
@@ -21,7 +18,8 @@ class Mlang {
         bool showResult = false;
         bool showPrettyParseTree = false;
         bool showAbastractSyntaxTree = false;
-        bool infereTypes = false;
+        bool showInferedTypes = false;
+        bool showFunctions = false;
     };
 
     Settings settings;
