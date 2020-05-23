@@ -30,42 +30,41 @@ class LLVMRunner {
    private:
     llvm::ExecutionEngine* engine;
     llvm::Function* main;
+    bool isBroken;
 
    public:
-    LLVMRunner(std::unique_ptr<llvm::Module> module) {
-        llvm::verifyModule(*module);  // Seems to not work? TODO
+    enum class Result { InvalidModule, Success };
+
+    LLVMRunner(std::unique_ptr<llvm::Module> module)
+        : engine(nullptr), main(nullptr), isBroken(false) {
+        isBroken = llvm::verifyModule(*module, &llvm::outs());
+        if (isBroken) {
+            return;
+        }
+
         main = module->getFunction("main");
+        engine = llvm::EngineBuilder(std::move(module)).create();
+    }
 
-        engine = llvm::EngineBuilder(std::move(module)).create();  // Move?
+    ~LLVMRunner() {
+        if (engine) delete engine;
+    }
 
-        if (!main) {
-            std::cout << "main is nullptr" << std::endl;
+    bool getIsBroken() { return isBroken; }
+
+    Result run() {
+        if (isBroken) {
+            return Result::InvalidModule;
         }
-
-        if (!engine) {
-            std::cout << "engine is nullptr" << std::endl;
-        }
-
-        // TODO, will run into segfaults if the function does not end with an
-        // return. Need implicit returns when handling void functions
 
         std::vector<llvm::GenericValue> emptyArgs;
         llvm::GenericValue gv = engine->runFunction(main, emptyArgs);
 
-        // llvm::outs() << *module;
         // TODO, maybe show other return types
         if (main->getReturnType()->isIntegerTy()) {
             llvm::outs() << "Result: " << gv.IntVal << '\n';
         }
-    }
 
-    ~LLVMRunner() { delete engine; }
-
-    void run() {
-        /*std::cout << "3" << std::endl;
-        std::vector<llvm::GenericValue> emptyArgs;
-        engine->runFunction(main, emptyArgs);  // llvm::GenericValue gv =
-        std::cout << "4" << std::endl;*/
-        // llvm::outs() << "Result: " << gv.IntVal << "\n"; // TODO
+        return Result::Success;
     }
 };

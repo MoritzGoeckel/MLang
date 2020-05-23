@@ -167,7 +167,9 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
     emitter.print();
 
     LLVMRunner runner(emitter.getModule());
-    runner.run();
+    if (runner.run() != LLVMRunner::Result::Success) {
+        return Mlang::Signal::Failure;
+    }
 
     // TODO: Generate LLVM
     // TODO: Have stdlib (+ - * / < > ==)
