@@ -28,3 +28,6 @@ This is the implementation fo a custom language called MLang. The language is bu
 # Getting started
 
 You can find an installation guide in [install.md](/install.md)
+
+https://llvm.org/doxygen/classllvm_1_1IRBuilderBase.html#a132a883efbc512ce6325d5f751bb3672
+https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl03.html

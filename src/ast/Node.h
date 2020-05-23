@@ -445,6 +445,11 @@ class Literal : public Node {
     virtual std::vector<std::shared_ptr<Node>> getChildren() override {
         return {};
     }
+
+    int getIntValue() { return std::stoi(value); }
+    int getFloatValue() { return std::stof(value); }
+    bool getBoolValue() { return value == "true"; }
+    std::string getStringValue() { return value; }
 };
 
 class Function : public Node {
@@ -455,6 +460,9 @@ class Function : public Node {
    public:
     Function(std::shared_ptr<Declfn> head, std::shared_ptr<Node> body)
         : head(head), body(body) {}
+
+    std::shared_ptr<Declfn> getHead() { return head; }
+    std::shared_ptr<Node> getBody() { return body; }
 
     virtual void toString(std::stringstream& stream) override {
         stream << "function(";
@@ -481,6 +489,8 @@ class FnPtr : public Node {
     FnPtr(const std::string& id, DataType dataType) : id(id) {
         this->dataType = dataType;
     }
+
+    std::string getId() const { return id; }
 
     virtual void toString(std::stringstream& stream) override {
         stream << "fnptr(" << id << ", " << dataType.toString() << ")";

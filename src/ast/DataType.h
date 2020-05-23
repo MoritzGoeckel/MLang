@@ -67,7 +67,15 @@ class DataType {
         return other.getHashNum() < getHashNum();
     }
 
-    std::shared_ptr<const DataType> getReturn() { return ret; }
+    std::shared_ptr<const DataType> getReturn() const { return ret; }
+    std::shared_ptr<const std::vector<DataType>> getParams() const {
+        return params;
+    }
+    bool getIsPrimitive() const { return isSimple; }
+    Primitive getPrimitive() const {
+        if (!isSimple) throw "Accessing simple type of complex type";
+        return simple;
+    }
 
     std::string toString() const {
         if (isSimple) {

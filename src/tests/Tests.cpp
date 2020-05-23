@@ -2,11 +2,13 @@
 #include <vector>
 
 #include "../Mlang.h"
+#include "../exceptions/Exceptions.h"
 #include "gtest/gtest.h"
 
 TEST(Mlang, ExecuteStringSimple) {
     Mlang mlang;
-    mlang.executeString("let i = 10;");
+    mlang.executeString(
+        "let i = 10; ret i;");  // TODO: need implicit void return
     // EXPECT_EQ(15, 1);
 }
 
@@ -31,9 +33,14 @@ TEST(Mlang, ExecuteFiles) {
     mlang.settings.showFunctions = true;
 
     for (auto& str : files) {
-        auto rs = mlang.executeFile("mfiles/" + str);
-        EXPECT_TRUE(rs == Mlang::Signal::Success);
-        std::cout << std::endl;
+        try {
+            auto rs = mlang.executeFile("mfiles/" + str);
+            EXPECT_TRUE(rs == Mlang::Signal::Success);
+            std::cout << std::endl;
+        } catch (MException e) {
+            std::cout << e.show(true) << std::endl;
+            FAIL();
+        }
     }
 }
 
