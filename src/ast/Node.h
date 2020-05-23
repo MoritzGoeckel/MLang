@@ -372,6 +372,10 @@ class If : public Node {
           bodyPositive(bodyPositive),
           bodyNegative(bodyNegative) {}
 
+    std::shared_ptr<Node> getCondition() { return condition; }
+    std::shared_ptr<Node> getPositive() { return bodyPositive; }
+    std::shared_ptr<Node> getNegative() { return bodyNegative; }
+
     virtual void toString(std::stringstream& stream) override {
         stream << "if(";
         condition->toString(stream);

@@ -92,6 +92,14 @@ class LLVMEmitter {
             auto name = params[i]->getName();
 
             // Declare
+            auto type = convertType(params[i]->getDataType());
+            if (!params[i]->getDataType().getIsPrimitive()) {
+                // Need to convert function types to pointers for the alloca
+                // but not for anything else. In other places (call, store
+                // and load) we still need the non-pointer type
+                type = type->getPointerTo();
+            }
+
             auto *alloc = builder.CreateAlloca(
                 convertType(params[i]->getDataType()), nullptr, name);
 
@@ -104,6 +112,12 @@ class LLVMEmitter {
         }
         process(ast->getBody(), builder);
         stack.pop_back();
+
+        if (type.getReturn()->getIsPrimitive() &&
+            type.getReturn()->getPrimitive() == DataType::Primitive::None) {
+            // TODO Should be void?
+            builder.CreateRetVoid();
+        }
 
         llvmFunctions[name] = fn;
         return fn;  // Fishy... why ptr? What about shared_ptr?
@@ -151,8 +165,7 @@ class LLVMEmitter {
         return out;
     }
 
-    std::shared_ptr<AST::Node> process(std::shared_ptr<AST::Node> node,
-                                       llvm::IRBuilder<> &builder) {
+    void process(std::shared_ptr<AST::Node> node, llvm::IRBuilder<> &builder) {
         if (node->getType() == AST::NodeType::Block) {
             stack.push_back({});
             followChildren(node, builder);
@@ -185,9 +198,15 @@ class LLVMEmitter {
                     std::dynamic_pointer_cast<AST::Declvar>(assign->getLeft());
                 name = declvar->getIdentifier()->getName();
 
-                auto *alloc = builder.CreateAlloca(
-                    convertType(declvar->getIdentifier()->getDataType()),
-                    nullptr, name);
+                auto type = declvar->getIdentifier()->getDataType();
+                auto llvmType = convertType(type);
+                if (!type.getIsPrimitive()) {
+                    // Need to convert function types to pointers for the alloca
+                    // but not for anything else. In other places (call, store
+                    // and load) we still need the non-pointer type
+                    llvmType = llvmType->getPointerTo();
+                }
+                auto *alloc = builder.CreateAlloca(llvmType, nullptr, name);
 
                 // Push to stack
                 if (stack.back().find(name) != stack.back().end()) {
@@ -212,17 +231,61 @@ class LLVMEmitter {
             if (!alloc) throwConstraintViolated("Varaible not found on stack");
             builder.CreateStore(value, alloc, /*isVolatile=*/false);
 
+        } else if (node->getType() == AST::NodeType::If) {
+            auto ifNode = std::dynamic_pointer_cast<AST::If>(node);
+
+            // llvm::IRBuilder<> builder(block);
+            llvm::Function *fn = builder.GetInsertBlock()->getParent();
+            auto hostBlock = builder.GetInsertBlock();
+
+            // Create trueBlock
+            auto *thenBlock = llvm::BasicBlock::Create(*context, "thenBlock");
+            auto *elseBlock = llvm::BasicBlock::Create(*context, "elseBlock");
+            auto *mergeBlock = llvm::BasicBlock::Create(*context, "mergeBlock");
+            bool needMergeBlock = false;
+
+            builder.SetInsertPoint(thenBlock);
+            process(ifNode->getPositive(), builder);
+            if (!thenBlock->getTerminator()) {
+                // Emit branch if no return exists
+                builder.CreateBr(mergeBlock);
+                needMergeBlock = true;
+            }
+
+            // TODO: Could optimize some branches if no else exists
+            builder.SetInsertPoint(elseBlock);
+            if (ifNode->getNegative()) {
+                process(ifNode->getNegative(), builder);
+            }
+            if (!elseBlock->getTerminator()) {
+                // Emit branch if no return exists
+                builder.CreateBr(mergeBlock);
+                needMergeBlock = true;
+            }
+
+            builder.SetInsertPoint(hostBlock);
+            llvm::Value *condition = getValue(ifNode->getCondition(), builder);
+            builder.CreateCondBr(condition, thenBlock, elseBlock);
+
+            fn->getBasicBlockList().push_back(thenBlock);
+            fn->getBasicBlockList().push_back(elseBlock);
+            if (needMergeBlock) {
+                fn->getBasicBlockList().push_back(mergeBlock);
+                builder.SetInsertPoint(mergeBlock);  // Cont in the last block
+                // TODO wierd stuff happens if there comes more unreachable code
+            }
+
+        } else if (node->getType() == AST::NodeType::While) {
+            throwTodo("While not implemented yet");  // TODO while
         } else {
             // followChildren(node, builder);
+            throwTodo("Unexpected / not implemented element");
         }
-
-        return node;
     }
 
-    // identifier -> CreateLoad
-    // string builder.CreateGlobalStringPtr("value = %d\n");
+    // string builder.CreateGlobalStringPtr("value = %d\n"); // TODO
 
-    llvm::Value *getValue(std::shared_ptr<AST::Node> &node,
+    llvm::Value *getValue(const std::shared_ptr<AST::Node> &node,
                           llvm::IRBuilder<> &builder) {
         if (node->getType() == AST::NodeType::Call) {
             auto call = std::dynamic_pointer_cast<AST::Call>(node);
@@ -236,7 +299,7 @@ class LLVMEmitter {
             }
 
             if (args.size() == 2u) {
-                // Build-in functions
+                // Buildin functions
                 // TODO: Check types, FAdd / FMul / Neg
                 // TODO: Less / Equal / etc
                 if (name == "+") {
@@ -248,9 +311,13 @@ class LLVMEmitter {
                 } else if (name == "/") {
                     return builder.CreateSDiv(args[0], args[1], "sdivtmp");
                 } else if (name == "&&") {
-                    return builder.CreateAnd(args[0], args[1], "sdivtmp");
+                    return builder.CreateAnd(args[0], args[1], "andtmp");
                 } else if (name == "||") {
-                    return builder.CreateOr(args[0], args[1], "sdivtmp");
+                    return builder.CreateOr(args[0], args[1], "ortmp");
+                } else if (name == "<") {
+                    return builder.CreateICmpSLT(args[0], args[1], "lttmp");
+                } else if (name == ">") {
+                    return builder.CreateICmpSGT(args[0], args[1], "gttmp");
                 }
             }
 
@@ -264,9 +331,15 @@ class LLVMEmitter {
                     break;
                 }
             }
+
+            // TODO: Ugly
             if (!alloc)
-                throwConstraintViolated("Varaible not found on stack / fnptr");
-            auto value = builder.CreateLoad(alloc);  // ->getPointerTo(); TODO
+                throwConstraintViolated(
+                    std::string(std::string("Varaible not found on stack: ") +
+                                name)
+                        .c_str());
+
+            auto value = builder.CreateLoad(alloc);
 
             // Create call
             return builder.CreateCall(

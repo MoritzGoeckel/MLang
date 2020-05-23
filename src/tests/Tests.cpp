@@ -27,6 +27,7 @@ TEST(Mlang, ExecuteFiles) {
          "014_simple_fns.m" /*, "015_recursion.m"*/});
 
     // TODO: 015_recursion.m is still broken
+    // TODO: implement while in llvm
 
     Mlang mlang;
     mlang.settings.showFileContent = true;
@@ -35,7 +36,7 @@ TEST(Mlang, ExecuteFiles) {
     for (auto& str : files) {
         try {
             auto rs = mlang.executeFile("mfiles/" + str);
-            EXPECT_TRUE(rs == Mlang::Signal::Success);
+            ASSERT_TRUE(rs == Mlang::Signal::Success);
             std::cout << std::endl;
         } catch (MException e) {
             std::cout << e.show(true) << std::endl;
