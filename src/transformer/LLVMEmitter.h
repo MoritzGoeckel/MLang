@@ -38,13 +38,15 @@ class LLVMEmitter {
 
     std::map<std::string, llvm::Function *> llvmFunctions;
 
-    // Alloca allaocates on the stack
+    // Alloca allocates on the stack
     std::vector<std::map<std::string, llvm::AllocaInst *>> stack;
+
+    size_t lastId;
 
    public:
     LLVMEmitter(
         const std::map<std::string, std::shared_ptr<AST::Function>> &functions)
-        : context(), module(), functions(functions) {
+        : context(), module(), functions(functions), lastId(0u) {
         context = std::make_unique<llvm::LLVMContext>();
         module = std::make_unique<llvm::Module>("test", *context);
     }
@@ -69,6 +71,13 @@ class LLVMEmitter {
     }
 
    private:
+    std::string createUnique(const char *str) {
+        return std::string(str) + "_" + std::to_string(lastId++);
+    }
+    std::string createUnique(std::string str) {
+        return createUnique(str.c_str());
+    }
+
     llvm::Function *instantiateFn(const std::string &name,
                                   std::shared_ptr<AST::Function> ast) {
         const auto &type = ast->getHead()->getIdentifier()->getDataType();
@@ -80,7 +89,7 @@ class LLVMEmitter {
             llvm::Function::ExternalLinkage, name, *module);
 
         llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(*context, name + "Block", fn);
+            llvm::BasicBlock::Create(*context, createUnique(name), fn);
 
         llvm::IRBuilder<> builder(block);
 
@@ -239,9 +248,12 @@ class LLVMEmitter {
             auto hostBlock = builder.GetInsertBlock();
 
             // Create trueBlock
-            auto *thenBlock = llvm::BasicBlock::Create(*context, "thenBlock");
-            auto *elseBlock = llvm::BasicBlock::Create(*context, "elseBlock");
-            auto *mergeBlock = llvm::BasicBlock::Create(*context, "mergeBlock");
+            auto *thenBlock =
+                llvm::BasicBlock::Create(*context, createUnique("then"));
+            auto *elseBlock =
+                llvm::BasicBlock::Create(*context, createUnique("else"));
+            auto *mergeBlock =
+                llvm::BasicBlock::Create(*context, createUnique("merge"));
             bool needMergeBlock = false;
 
             builder.SetInsertPoint(thenBlock);
@@ -276,7 +288,35 @@ class LLVMEmitter {
             }
 
         } else if (node->getType() == AST::NodeType::While) {
-            throwTodo("While not implemented yet");  // TODO while
+            auto whileNode = std::dynamic_pointer_cast<AST::While>(node);
+
+            llvm::Function *fn = builder.GetInsertBlock()->getParent();
+            auto hostBlock = builder.GetInsertBlock();
+
+            auto *conditionBlock =
+                llvm::BasicBlock::Create(*context, createUnique("condition"));
+            auto *bodyBlock =
+                llvm::BasicBlock::Create(*context, createUnique("body"));
+            auto *afterBlock =
+                llvm::BasicBlock::Create(*context, createUnique("after"));
+
+            builder.CreateBr(conditionBlock);
+            builder.SetInsertPoint(conditionBlock);
+
+            llvm::Value *condition =
+                getValue(whileNode->getCondition(), builder);
+            builder.CreateCondBr(condition, bodyBlock, afterBlock);
+
+            builder.SetInsertPoint(bodyBlock);
+            process(whileNode->getBody(), builder);
+            builder.CreateBr(conditionBlock);
+
+            builder.SetInsertPoint(afterBlock);
+
+            fn->getBasicBlockList().push_back(conditionBlock);
+            fn->getBasicBlockList().push_back(bodyBlock);
+            fn->getBasicBlockList().push_back(afterBlock);
+
         } else {
             // followChildren(node, builder);
             throwTodo("Unexpected / not implemented element");

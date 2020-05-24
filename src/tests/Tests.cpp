@@ -7,9 +7,7 @@
 
 TEST(Mlang, ExecuteStringSimple) {
     Mlang mlang;
-    mlang.executeString(
-        "let i = 10; ret i;");  // TODO: need implicit void return
-    // EXPECT_EQ(15, 1);
+    mlang.executeString("let i = 10;");
 }
 
 TEST(Mlang, ExecuteSimple) {
@@ -27,7 +25,6 @@ TEST(Mlang, ExecuteFiles) {
          "014_simple_fns.m" /*, "015_recursion.m"*/});
 
     // TODO: 015_recursion.m is still broken
-    // TODO: implement while in llvm
 
     Mlang mlang;
     mlang.settings.showFileContent = true;

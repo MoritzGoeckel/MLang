@@ -145,6 +145,14 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
             return Mlang::Signal::Failure;
         }
 
+        if (validator.hasTypeConflicts()) {
+            // TODO: Output messages from last run
+            std::cout << "Conflicting types: " << validator.getNumConflicts()
+                      << "!" << std::endl;
+
+            return Mlang::Signal::Failure;
+        }
+
         if (settings.showInferedTypes) {
             std::cout << ast->toString() << std::endl;
         }
@@ -171,10 +179,10 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
         return Mlang::Signal::Failure;
     }
 
-    // TODO: Generate LLVM
     // TODO: Have stdlib (+ - * / < > ==)
     // TODO: Implement operator precedence transformer
     // TODO: Use return instead of stack in PtToAST
+    // TODO: Use optimization passes
 
     return Mlang::Signal::Success;
 }

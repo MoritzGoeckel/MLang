@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "../exceptions/Exceptions.h"
 #include "DataType.h"
 
 namespace AST {
@@ -57,6 +58,7 @@ class Node {
             return DataType::Primitive::Conflict;
             std::string msg("Conflicting return types: ");
             for (auto& t : types) msg += t.toString() + " ";
+            throwConstraintViolated(msg.c_str());  // TODO
             addMessage(msg);
         } else if (types.empty()) {
             return DataType::Primitive::None;
@@ -159,10 +161,11 @@ class Block : public Node {
         if (types.size() > 1u) {
             std::string msg("Conflicting return types: ");
             for (auto& t : types) msg += t.toString() + " ";
+            throwConstraintViolated(msg.c_str());  // TODO
             addMessage(msg);
             return DataType::Primitive::Conflict;
         } else if (types.empty()) {
-            return DataType::Primitive::Void;
+            return DataType::Primitive::None;
         } else {
             return *(types.begin());
         }
@@ -409,6 +412,9 @@ class While : public Node {
    public:
     While(std::shared_ptr<Node> condition, std::shared_ptr<Node> body)
         : condition(condition), body(body) {}
+
+    std::shared_ptr<Node> getCondition() { return condition; }
+    std::shared_ptr<Node> getBody() { return body; }
 
     virtual void toString(std::stringstream& stream) override {
         stream << "while(";
