@@ -24,7 +24,7 @@ I build this language solely for fun and educational purposes, so maybe you shou
 
 ## Example code
 
-For more examples refere to the [mfiles](/mfiles/) folder
+For more examples refer to the [mfiles](/mfiles/) folder
 
 ```
 # Loops
