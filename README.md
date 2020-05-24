@@ -1,29 +1,28 @@
 # MLang
 
-This is the implementation fo a custom language called MLang. The language is build on top of ANTLR4 as the front-end and targets LLVM JIT as the backend. The project is tested with the google test framework. The language is strictly typed with complete type inference.
+This is the implementation fo a custom language called MLang. The language is build on top of ANTLR4 as the front-end and targets LLVM JIT as the backend. The language is strictly typed with complete type inference. The project is tested with the google test framework.
 
-I build this language solely for fun and education, so maybe you should not use this in production 🐴
+I build this language solely for fun and educational purposes, so maybe you should not use this in production 🐴
 
-# Features
+## Features
 
 - [x] Arithmetic
+- [x] Type inference
+- [x] Functions
 - [x] Boolean operations
-- [ ] Printing
 - [x] Branching (if)
 - [x] Loops (while)
 - [x] Strictly typed
 - [x] Integer type
 - [x] Boolean type
-- [ ] String type
 - [x] Float type
-- [x] Function type
+- [ ] String type
 - [ ] Closures
-- [x] Type inference
+- [ ] Printing
 - [ ] Structs
-- [x] Functions
 - [ ] Operator precedence
 
-# Example code
+## Example code
 
 For more examples refere to the [mfiles](/mfiles/) folder
 
@@ -69,19 +68,12 @@ if(x < 3){
 ret false;
 ```
 
-# Dependencies
+## Dependencies
 
 - Antlr4
 - LLVM
 - GTest
 
-# Getting started
+## Getting started
 
 You can find an installation guide in [install.md](/install.md)
-
-# Some useful links
-
-https://llvm.org/doxygen/classllvm_1_1IRBuilderBase.html#a132a883efbc512ce6325d5f751bb3672
-https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl03.html
-https://gist.github.com/robstewart57/b11353feb69dc1a6dc30
-http://lists.llvm.org/pipermail/llvm-dev/2015-March/083809.html
