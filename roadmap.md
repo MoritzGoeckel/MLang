@@ -1,7 +1,5 @@
 # Roadmap
 
-- Create TreeWalker to emit LLVM for JIT
-
 - Fix recursion example. Get return type of non recursive
   return and use as override. Ignore recursive return.
 
