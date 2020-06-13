@@ -51,7 +51,7 @@ ret f(11);
 ```
 
 ```
-# Multi line functions
+# Multi-line functions
 let f(x) = {
     let y = x + 2;
     ret y + 3;
