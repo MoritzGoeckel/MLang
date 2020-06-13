@@ -1,18 +1,18 @@
 # MLang
 
-MLang is a strictly typed programming language with full type inference that compiles to LLVM. The language is build on top of ANTLR4 as the front-end and targets LLVM JIT as the backend. The project is tested with the google test framework.
+MLang is my strictly typed programming language with full type inference that compiles to LLVM. The language is build on top of ANTLR4 as the front-end and targets LLVM JIT as the backend. The project is tested with the google test framework.
 
-I build this language solely for fun and educational purposes, so maybe you should not use this in production 🐴
+This is language is build solely for fun and educational purposes, so maybe you should not use this in production 🐴
 
 ## Features
 
-- [x] Arithmetic
 - [x] Type inference
+- [x] Strictly typed
 - [x] Functions
+- [x] Arithmetic operations
 - [x] Boolean operations
 - [x] Branching (if)
 - [x] Loops (while)
-- [x] Strictly typed
 - [x] Integer type
 - [x] Boolean type
 - [x] Float type
