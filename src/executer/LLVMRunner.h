@@ -35,6 +35,7 @@ class LLVMRunner {
    public:
     enum class Result { InvalidModule, Success };
 
+    // TODO: Maybe make it a move constructor?
     LLVMRunner(std::unique_ptr<llvm::Module> module)
         : engine(nullptr), main(nullptr), isBroken(false) {
         isBroken = llvm::verifyModule(*module, &llvm::outs());

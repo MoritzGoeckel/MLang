@@ -1,6 +1,6 @@
-#import <iostream>
-#import <sstream>
-#import <string>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 using namespace MGrammar;
 

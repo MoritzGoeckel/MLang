@@ -174,7 +174,8 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
     emitter.run();
     emitter.print();
 
-    LLVMRunner runner(emitter.getModule());
+    auto mod = emitter.getModule();
+    LLVMRunner runner(std::move(mod));
     if (runner.run() != LLVMRunner::Result::Success) {
         return Mlang::Signal::Failure;
     }

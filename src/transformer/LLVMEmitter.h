@@ -86,7 +86,7 @@ class LLVMEmitter {
             llvm::FunctionType::get(convertType(*type.getReturn()),
                                     convertType(*type.getParams()),
                                     false /*isVararg*/),
-            llvm::Function::ExternalLinkage, name, *module);
+            llvm::Function::ExternalLinkage, name, module.get());
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(*context, createUnique(name), fn);
@@ -249,11 +249,11 @@ class LLVMEmitter {
 
             // Create trueBlock
             auto *thenBlock =
-                llvm::BasicBlock::Create(*context, createUnique("then"));
+                llvm::BasicBlock::Create(*context, createUnique("then"), fn);
             auto *elseBlock =
-                llvm::BasicBlock::Create(*context, createUnique("else"));
+                llvm::BasicBlock::Create(*context, createUnique("else"), fn);
             auto *mergeBlock =
-                llvm::BasicBlock::Create(*context, createUnique("merge"));
+                llvm::BasicBlock::Create(*context, createUnique("merge"), fn);
             bool needMergeBlock = false;
 
             builder.SetInsertPoint(thenBlock);
@@ -294,11 +294,11 @@ class LLVMEmitter {
             auto hostBlock = builder.GetInsertBlock();
 
             auto *conditionBlock =
-                llvm::BasicBlock::Create(*context, createUnique("condition"));
+                llvm::BasicBlock::Create(*context, createUnique("condition"), fn);
             auto *bodyBlock =
-                llvm::BasicBlock::Create(*context, createUnique("body"));
+                llvm::BasicBlock::Create(*context, createUnique("body"), fn);
             auto *afterBlock =
-                llvm::BasicBlock::Create(*context, createUnique("after"));
+                llvm::BasicBlock::Create(*context, createUnique("after"), fn);
 
             builder.CreateBr(conditionBlock);
             builder.SetInsertPoint(conditionBlock);
@@ -447,66 +447,5 @@ class LLVMEmitter {
             if (!child) continue;
             process(child, builder);
         }
-    }
-
-    void test() {
-        // Create the add1 function entry and insert this entry into module
-        // M. The function will have a return type of "int" and take an
-        // argument of "int".
-        llvm::Function *Add1F = llvm::Function::Create(
-            llvm::FunctionType::get(llvm::Type::getInt32Ty(*context),
-                                    {llvm::Type::getInt32Ty(*context)}, false),
-            llvm::Function::ExternalLinkage, "add1", *module);
-
-        // Add a basic block to the function. As before, it automatically
-        // inserts because of the last argument.
-        llvm::BasicBlock *BB =
-            llvm::BasicBlock::Create(*context, "EntryBlock", Add1F);
-
-        // Create a basic block builder with default parameters.  The
-        // builder will automatically append instructions to the basic block
-        // `BB'.
-        llvm::IRBuilder<> builder(BB);
-
-        // Get pointers to the constant `1'.
-        llvm::Value *One = builder.getInt32(1);
-
-        // Get pointers to the integer argument of the add1 function...
-        assert(Add1F->arg_begin() !=
-               Add1F->arg_end());  // Make sure there's an arg
-        llvm::Argument *ArgX = &*Add1F->arg_begin();  // Get the arg
-        ArgX->setName("AnArg");  // Give it a nice symbolic name for fun.
-
-        // Create the add instruction, inserting it into the end of BB.
-        llvm::Value *Add = builder.CreateAdd(One, ArgX);
-
-        // Create the return instruction and add it to the basic block
-        builder.CreateRet(Add);
-
-        // Now, function add1 is ready.
-
-        // Now we're going to create function `foo', which returns an int
-        // and takes no arguments.
-        llvm::Function *FooF = llvm::Function::Create(
-            llvm::FunctionType::get(llvm::Type::getInt32Ty(*context), {},
-                                    false),
-            llvm::Function::ExternalLinkage, "foo", *module);
-
-        // Add a basic block to the FooF function.
-        BB = llvm::BasicBlock::Create(*context, "EntryBlock", FooF);
-
-        // Tell the basic block builder to attach itself to the new basic
-        // block
-        builder.SetInsertPoint(BB);
-
-        // Get pointer to the constant `10'.
-        llvm::Value *Ten = builder.getInt32(10);
-
-        // Pass Ten to the call to Add1F
-        llvm::CallInst *Add1CallRes = builder.CreateCall(Add1F, Ten);
-        Add1CallRes->setTailCall(true);
-
-        // Create the return instruction and add it to the basic block.
-        builder.CreateRet(Add1CallRes);
     }
 };
