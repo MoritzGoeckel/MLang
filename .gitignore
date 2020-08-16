@@ -11,3 +11,6 @@ gen
 *.swo
 *.swn
 compile_commands.json
+Release/*
+out/*
+.vs/*
