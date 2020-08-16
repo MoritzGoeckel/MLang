@@ -247,6 +247,9 @@ class LLVMEmitter {
             llvm::Function *fn = builder.GetInsertBlock()->getParent();
             auto hostBlock = builder.GetInsertBlock();
 
+            // TODO for windows:
+            // setting fn as parent for the bb corrupts the heap. Need fix!
+
             // Create trueBlock
             auto *thenBlock =
                 llvm::BasicBlock::Create(*context, createUnique("then"), fn);
@@ -293,8 +296,11 @@ class LLVMEmitter {
             llvm::Function *fn = builder.GetInsertBlock()->getParent();
             auto hostBlock = builder.GetInsertBlock();
 
-            auto *conditionBlock =
-                llvm::BasicBlock::Create(*context, createUnique("condition"), fn);
+            // TODO for windows:
+            // setting fn as parent for the bb corrupts the heap. Need fix!
+
+            auto *conditionBlock = llvm::BasicBlock::Create(
+                *context, createUnique("condition"), fn);
             auto *bodyBlock =
                 llvm::BasicBlock::Create(*context, createUnique("body"), fn);
             auto *afterBlock =
