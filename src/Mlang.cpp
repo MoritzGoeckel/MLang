@@ -9,6 +9,7 @@
 #include "MGrammarBaseVisitor.h"
 #include "MGrammarLexer.h"
 #include "MGrammarParser.h"
+#include "antlr4-runtime.h"
 #include "executer/LLVMRunner.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
@@ -67,7 +68,7 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
     Preprocessor::run(theCode);
 
     // ------------------- ANTLR ------------------
-    antlr4::ANTLRInputStream input(theCode);
+    antlr4::ANTLRInputStream input(theCode.c_str(), theCode.size());
     MGrammar::MGrammarLexer lexer(&input);
     antlr4::CommonTokenStream tokens(&lexer);
 
