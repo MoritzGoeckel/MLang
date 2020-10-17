@@ -249,19 +249,18 @@ class LLVMEmitter {
 
             // Create trueBlock
             auto *thenBlock =
-                llvm::BasicBlock::Create(*context, createUnique("then"));
+                llvm::BasicBlock::Create(*context, createUnique("then"), fn);
             auto *elseBlock =
-                llvm::BasicBlock::Create(*context, createUnique("else"));
-            auto *mergeBlock =
-                llvm::BasicBlock::Create(*context, createUnique("merge"));
-            bool needMergeBlock = false;
+                llvm::BasicBlock::Create(*context, createUnique("else"), fn);
+            llvm::BasicBlock *mergeBlock = nullptr;
 
             builder.SetInsertPoint(thenBlock);
             process(ifNode->getPositive(), builder);
             if (!thenBlock->getTerminator()) {
                 // Emit branch if no return exists
+                mergeBlock = llvm::BasicBlock::Create(
+                    *context, createUnique("merge"), fn);
                 builder.CreateBr(mergeBlock);
-                needMergeBlock = true;
             }
 
             // TODO: Could optimize some branches if no else exists
@@ -271,20 +270,22 @@ class LLVMEmitter {
             }
             if (!elseBlock->getTerminator()) {
                 // Emit branch if no return exists
+                if (!mergeBlock) {
+                    mergeBlock = llvm::BasicBlock::Create(
+                        *context, createUnique("merge"), fn);
+                }
                 builder.CreateBr(mergeBlock);
-                needMergeBlock = true;
             }
 
             builder.SetInsertPoint(hostBlock);
             llvm::Value *condition = getValue(ifNode->getCondition(), builder);
             builder.CreateCondBr(condition, thenBlock, elseBlock);
 
-            fn->getBasicBlockList().push_back(thenBlock);
-            fn->getBasicBlockList().push_back(elseBlock);
-            if (needMergeBlock) {
-                fn->getBasicBlockList().push_back(mergeBlock);
-                builder.SetInsertPoint(mergeBlock);  // Cont in the last block
-                // TODO wierd stuff happens if there comes more unreachable code
+            if (mergeBlock) {
+                builder.SetInsertPoint(mergeBlock);
+            } else {
+                // TODO: No more code should follow here. It would be
+                // unreachable. Assert that.
             }
 
         } else if (node->getType() == AST::NodeType::While) {
@@ -293,12 +294,12 @@ class LLVMEmitter {
             llvm::Function *fn = builder.GetInsertBlock()->getParent();
             auto hostBlock = builder.GetInsertBlock();
 
-            auto *conditionBlock =
-                llvm::BasicBlock::Create(*context, createUnique("condition"));
+            auto *conditionBlock = llvm::BasicBlock::Create(
+                *context, createUnique("condition"), fn);
             auto *bodyBlock =
-                llvm::BasicBlock::Create(*context, createUnique("body"));
+                llvm::BasicBlock::Create(*context, createUnique("body"), fn);
             auto *afterBlock =
-                llvm::BasicBlock::Create(*context, createUnique("after"));
+                llvm::BasicBlock::Create(*context, createUnique("after"), fn);
 
             builder.CreateBr(conditionBlock);
             builder.SetInsertPoint(conditionBlock);
@@ -312,10 +313,6 @@ class LLVMEmitter {
             builder.CreateBr(conditionBlock);
 
             builder.SetInsertPoint(afterBlock);
-
-            fn->getBasicBlockList().push_back(conditionBlock);
-            fn->getBasicBlockList().push_back(bodyBlock);
-            fn->getBasicBlockList().push_back(afterBlock);
 
         } else {
             // followChildren(node, builder);
