@@ -18,7 +18,7 @@ class Message {
    public:
     Message(const std::string& msg) : msg(msg) {}
     Message(const char* msg) : msg(msg) {}
-    std::string toString() { return msg; }
+    std::string toString();
 };
 
 /*
@@ -31,20 +31,15 @@ class TreeWalker {
     std::vector<Message> messages;
 
    protected:
-    void addMessage(const Message& msg) { messages.emplace_back(msg); }
-    void followChildren(std::shared_ptr<AST::Node>& node) {
-        for (auto child : node->getChildren()) {
-            if (!child) continue;
-            process(child);
-        }
-    }
+    void addMessage(const Message& msg);
+    void followChildren(std::shared_ptr<AST::Node>& node);
 
    public:
     // Standardized entry for TreeWalkers
     virtual std::shared_ptr<AST::Node> process(
         std::shared_ptr<AST::Node> node) = 0;
 
-    virtual std::vector<Message> getMessages() { return messages; }
+    virtual std::vector<Message> getMessages();
 
-    virtual bool hasMessages() { return !getMessages().empty(); }
+    virtual bool hasMessages();
 };
