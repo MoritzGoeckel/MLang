@@ -51,6 +51,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(tests
   src/tests/Tests.cpp
   src/Mlang.cpp
+  src/executer/LLVMRunner.cpp
+  src/parser/PrintVisitor.cpp
+  src/parser/PtToAstVisitor.cpp
+  src/transformer/LLVMEmitter.cpp
+  src/transformer/HasUnknownTypes.cpp
+  src/transformer/ImplicitReturn.cpp
+  src/transformer/InfereIdentifierTypes.cpp
+  src/transformer/InfereParameterTypes.cpp
+  src/transformer/InstantiateFunctions.cpp
+  src/transformer/TreeWalker.cpp
+  src/preprocessor/Preprocessor.cpp
+  src/exceptions/Exceptions.cpp
+  src/ast/DataType.cpp
   ${ANTLR_MGrammar_CXX_OUTPUTS}
 )
 target_link_libraries(tests

@@ -10,6 +10,7 @@ gen
 *.swp
 *.swo
 *.swn
+*.swm
 compile_commands.json
 Release/*
 out/*
