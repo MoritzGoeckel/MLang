@@ -26,13 +26,15 @@ TEST(Mlang, ExecuteFiles) {
 
     // TODO: 015_recursion.m is still broken
 
+    std::string basePath("");
+
     Mlang mlang;
     mlang.settings.showFileContent = true;
     mlang.settings.showFunctions = true;
 
     for (auto& str : files) {
         try {
-            auto rs = mlang.executeFile("mfiles/" + str);
+            auto rs = mlang.executeFile(basePath + "mfiles/" + str);
             ASSERT_TRUE(rs == Mlang::Signal::Success);
             std::cout << std::endl;
         } catch (MException e) {
