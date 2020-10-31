@@ -7,6 +7,45 @@
     <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\Mlang.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\executer\LLVMRunner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\parser\PrintVisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\parser\PtToAstVisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\transformer\LLVMEmitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\transformer\HasUnknownTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\transformer\ImplicitReturn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\transformer\InfereIdentifierTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\transformer\InfereParameterTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\transformer\InstantiateFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\transformer\TreeWalker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\preprocessor\Preprocessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\exceptions\Exceptions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Moritz\Desktop\MLang\src\ast\DataType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\Moritz\Desktop\MLang\gen\MGrammarLexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
