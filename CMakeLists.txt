@@ -42,6 +42,8 @@ include_directories(${ANTLR4_INCLUDE_DIRS})
 #set(ANTLR_EXECUTABLE /usr/local/bin/antlr-4.8-complete.jar) # TODO! on windows
 set(ANTLR_EXECUTABLE D:/Software/java-libs/antlr-4.8-complete.jar)
 
+set(Java_JAVA_EXECUTABLE java)
+
 find_package(ANTLR REQUIRED)
 
 antlr_target(MGrammar MGrammar.g4
