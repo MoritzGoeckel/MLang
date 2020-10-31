@@ -1,5 +1,7 @@
 #include "InfereIdentifierTypes.h"
 
+#include <algorithm>
+
 InfereIdentifierTypes::InfereIdentifierTypes() {
     stack.push_back({});
 
