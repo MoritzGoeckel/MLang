@@ -28,6 +28,7 @@ LLVMRunner::Result LLVMRunner::run() {
     // TODO, maybe show other return types
     if (main->getReturnType()->isIntegerTy()) {
         llvm::outs() << "Result: " << gv.IntVal << '\n';
+        // TODO: Return result instead of printing
     }
 
     return LLVMRunner::Result::Success;

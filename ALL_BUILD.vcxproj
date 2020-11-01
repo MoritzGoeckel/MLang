@@ -170,17 +170,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\Moritz\Desktop\MLang\exec.vcxproj">
-      <Project>{CC206DB0-BDC1-3788-BD64-00A41E0285C2}</Project>
-      <Name>exec</Name>
+    <ProjectReference Include="C:\Users\Moritz\Desktop\MLang\ExecuteFile.vcxproj">
+      <Project>{DE1BB11B-921A-35B8-85DD-BB34CC77E21F}</Project>
+      <Name>ExecuteFile</Name>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\Moritz\Desktop\MLang\execLlvm.vcxproj">
-      <Project>{56C5E99E-C771-31C5-8BBB-207A03B15172}</Project>
-      <Name>execLlvm</Name>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\Moritz\Desktop\MLang\tests.vcxproj">
-      <Project>{36BBB1D4-1778-31B3-875C-FEC07FB65911}</Project>
-      <Name>tests</Name>
+    <ProjectReference Include="C:\Users\Moritz\Desktop\MLang\Tests.vcxproj">
+      <Project>{0521C8B8-B04A-32A9-953C-7F5E7B8406A3}</Project>
+      <Name>Tests</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
