@@ -14,12 +14,12 @@ class Mlang {
         bool showTokens = false;
         bool showParseTree = false;
         bool showFileContent = false;
-        bool showModule = false;
         bool showResult = false;
         bool showPrettyParseTree = false;
         bool showAbastractSyntaxTree = false;
         bool showInferedTypes = false;
         bool showFunctions = false;
+        bool showOptimizedModule = false;
     };
 
     Settings settings;

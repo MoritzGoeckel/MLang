@@ -173,7 +173,10 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
 
     LLVMEmitter emitter(fns);
     emitter.run();
-    emitter.print();
+
+    if (settings.showOptimizedModule) {
+        emitter.print();
+    }
 
     auto mod = emitter.getModule();
     LLVMRunner runner(std::move(mod));
