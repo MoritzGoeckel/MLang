@@ -1,1 +1,1 @@
-./bin/tests
+./bin/Tests
