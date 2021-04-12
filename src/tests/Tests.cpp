@@ -17,14 +17,13 @@ TEST(Mlang, ExecuteSimple) {
 
 TEST(Mlang, ExecuteFiles) {
     std::vector<std::string> files(
-        {"001_addition.m", "002_addition_infix.m", "003_var_declaration.m",
-         "004_var_declaration_addition.m", "005_mutiple_vars.m",
-         "006_method_declaration.m", "007_method_declaration_brackets.m",
-         "008_method_decl_multiline.m", "009_comment.m", "010_if.m",
-         "011_if_else.m", "012_while.m", "013_if_else_no_brackets.m",
-         "014_simple_fns.m" /*, "015_recursion.m"*/});
+        {"addition.m", "addition_infix.m", "var_declaration.m",
+         "var_declaration_addition.m", "mutiple_vars.m", "method_declaration.m",
+         "method_declaration_brackets.m", "method_decl_multiline.m",
+         "comment.m", "if.m", "if_else.m", "while.m", "if_else_no_brackets.m",
+         "simple_fns.m" /*, "recursion.m"*/});
 
-    // TODO: 015_recursion.m is still broken
+    // TODO: recursion.m is still broken
 
     std::string basePath("");
 
