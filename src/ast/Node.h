@@ -178,7 +178,7 @@ class Call : public Node {
     std::vector<std::shared_ptr<Node>> arguments;
 
    public:
-    Call(std::shared_ptr<Node> method,
+    Call(std::shared_ptr<Node> method,  // TODO identifier?
          std::vector<std::shared_ptr<Node>> arguments)
         : method(std::static_pointer_cast<Identifier>(method)),
           arguments(arguments) {}
@@ -287,7 +287,7 @@ class Declvar : public Node {
     std::shared_ptr<Identifier> name;
 
    public:
-    Declvar(std::shared_ptr<Node> name)
+    Declvar(std::shared_ptr<Node> name)  // TODO identifier
         : name(std::static_pointer_cast<Identifier>(name)) {}
 
     std::shared_ptr<Identifier> getIdentifier() { return name; }
@@ -315,7 +315,7 @@ class Declfn : public Node {
     std::vector<std::shared_ptr<Identifier>> parameters;
 
    public:
-    Declfn(std::shared_ptr<Node> name,
+    Declfn(std::shared_ptr<Node> name,  // TODO ident
            std::vector<std::shared_ptr<Node>> parameters)
         : name(std::static_pointer_cast<Identifier>(name)), parameters() {
         for (auto& p : parameters) {

@@ -7,8 +7,9 @@
 namespace CharCategories {
 
 bool isParen(char c) {
-    return c == '[' || c == ']' || c == '{' || c == '}' || c == '(' ||
-           c == ')' || c == '<' || c == '>';
+    return c == '[' || c == ']' || c == '{' || c == '}' || c == '(' || c == ')';
+    // Attention! < and > are not parenthesis
+    //|| c == '<' || c == '>';
 }
 bool isNumeric(char c) { return c >= '0' && c <= '9'; }
 bool isAlphabetic(char c) {
@@ -39,15 +40,20 @@ class Token {
         Number,
         Parenthesis,
         StatementTerminator,
+        Comma,
         // Keywords
         Let,
         Ret,
         If,
         Else,
         While,
-        Assignment
+        Assignment,
+        True,
+        False
     };
     // TODO: String literal
+
+    Token() : type(Type::None), content("") {}
 
     Token(const std::string& content) : type(Type::None), content(content) {
         determineType();
@@ -58,13 +64,44 @@ class Token {
         determineType();
     }
 
-    const std::string& getString() const { return content; }
+    const std::string& getContent() const { return content; }
+
+    char getChar() {
+        if (getContent().size() == 1u)
+            return getContent()[0];
+        else
+            return static_cast<char>(0u);
+    }
     Type getType() const { return type; }
+
+    bool isTrivialContent() const {
+        switch (type) {
+            case Type::None:
+            case Type::StatementTerminator:
+            case Type::Let:
+            case Type::Ret:
+            case Type::While:
+            case Type::If:
+            case Type::Else:
+            case Type::Assignment:
+            case Type::Comma:
+            case Type::True:
+            case Type::False:
+                return true;
+            default:
+                return false;
+        }
+    }
 
    private:
     bool handleIsKeyword() {
         if (content == "=") {
             type = Type::Assignment;
+            return true;
+        }
+
+        if (content == ",") {
+            type = Type::Comma;
             return true;
         }
 
@@ -86,6 +123,16 @@ class Token {
 
         if (content == "ret") {
             type = Type::Ret;
+            return true;
+        }
+
+        if (content == "true") {
+            type = Type::True;
+            return true;
+        }
+
+        if (content == "false") {
+            type = Type::False;
             return true;
         }
 
@@ -165,6 +212,12 @@ std::string to_string(Token::Type theType) {
             return "Else";
         case Token::Type::Assignment:
             return "Assignment";
+        case Token::Type::Comma:
+            return "Comma";
+        case Token::Type::True:
+            return "True";
+        case Token::Type::False:
+            return "False";
     }
 }
 
@@ -173,8 +226,10 @@ std::ostream& operator<<(std::ostream& theStream, Token::Type theType) {
 }
 
 std::ostream& operator<<(std::ostream& theStream, const Token& theToken) {
-    return theStream << "{" << theToken.getString() << "|" << theToken.getType()
-                     << "}";
+    theStream << theToken.getType();
+    if (!theToken.isTrivialContent())
+        theStream << "(" << theToken.getContent() << ")";
+    return theStream;
 }
 
 class Tokenizer {

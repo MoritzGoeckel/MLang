@@ -5,6 +5,7 @@
 
 #include "../Mlang.h"
 #include "../exceptions/Exceptions.h"
+#include "../parser/Parser.h"
 #include "../parser/Tokenizer.h"
 #include "gtest/gtest.h"
 
@@ -28,6 +29,41 @@ TEST(Mlang, Tokenizer) {
 
     std::string basePath("");
 
+    const bool show = false;
+
+    for (auto& str : files) {
+        std::string path = basePath + "mfiles/" + str;
+
+        std::ifstream stream(path);
+        std::stringstream strBuffer;
+        strBuffer << stream.rdbuf();
+        auto fileContent = strBuffer.str();
+
+        Tokenizer tokenizer(fileContent);
+
+        if constexpr (show) {
+            std::cout << fileContent << std::endl;
+            for (auto& t : tokenizer.getTokens()) {
+                std::cout << " " << t;
+            }
+            std::cout << std::endl;
+            std::cout << "---------------" << std::endl;
+        }
+    }
+
+    // TODO: Have some baseline to compare to
+}
+
+TEST(Mlang, Parser) {
+    std::vector<std::string> files(
+        {"addition.m", "addition_infix.m", "var_declaration.m",
+         "var_declaration_addition.m", "mutiple_vars.m", "method_declaration.m",
+         "method_declaration_brackets.m", "method_decl_multiline.m",
+         "comment.m", "if.m", "if_else.m", "while.m", "if_else_no_brackets.m",
+         "simple_fns.m"});
+
+    std::string basePath("");
+
     for (auto& str : files) {
         std::string path = basePath + "mfiles/" + str;
 
@@ -38,12 +74,23 @@ TEST(Mlang, Tokenizer) {
 
         std::cout << fileContent << std::endl;
         Tokenizer ts(fileContent);
-        for (auto& t : ts.getTokens()) {
+        auto tokens = ts.getTokens();
+        for (auto& t : tokens) {
             std::cout << " " << t;
         }
         std::cout << std::endl;
+
+        Parser ps(std::move(tokens));
+
+        // TODO: print parser
+        std::cout << "Parse " << (ps.getAst() ? "Succeeded" : "Failed");
+        ASSERT_TRUE(ps.getAst());
+
+        std::cout << std::endl;
         std::cout << "---------------" << std::endl;
     }
+
+    // TODO: Have some baseline to compare to
 }
 
 TEST(Mlang, ExecuteFiles) {
@@ -66,7 +113,8 @@ TEST(Mlang, ExecuteFiles) {
         try {
             auto rs = mlang.executeFile(basePath + "mfiles/" + str);
             ASSERT_TRUE(rs == Mlang::Signal::Success);
-            std::cout << std::endl;
+            if (mlang.settings.showFileContent || mlang.settings.showFunctions)
+                std::cout << std::endl;
         } catch (MException e) {
             std::cout << e.show(true) << std::endl;
             FAIL();
