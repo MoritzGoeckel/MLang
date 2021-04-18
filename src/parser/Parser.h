@@ -116,7 +116,7 @@ class Parser {
 
     // Combine isNext and consume
 
-    Token consume() { return tokens[++idx]; }
+    Token consume() { return tokens[idx++]; }
     bool consume(char c) { return tokens[idx++].getChar() == c; }
     bool consume(Token::Type expectedType) {
         return tokens[idx++].getType() == expectedType;
