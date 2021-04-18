@@ -12,10 +12,8 @@ class Mlang {
 
     struct Settings {
         bool showTokens = false;
-        bool showParseTree = false;
         bool showFileContent = false;
         bool showResult = false;
-        bool showPrettyParseTree = false;
         bool showAbastractSyntaxTree = false;
         bool showInferedTypes = false;
         bool showFunctions = false;
@@ -48,6 +46,4 @@ class Mlang {
      * Call only once. Do not use Mlang object after calling shutdwon()
      */
     static void shutdown();
-
-    // private:
 };

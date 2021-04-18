@@ -19,10 +19,8 @@ int main(int argc, char** argv) {
     Mlang mlang;
 
     mlang.settings.showTokens = false;
-    mlang.settings.showParseTree = false;
     mlang.settings.showFileContent = false;
     mlang.settings.showResult = false;
-    mlang.settings.showPrettyParseTree = false;
     mlang.settings.showAbastractSyntaxTree = false;
     mlang.settings.showInferedTypes = false;
     mlang.settings.showFunctions = false;

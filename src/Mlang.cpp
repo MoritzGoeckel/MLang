@@ -1,21 +1,10 @@
 #include "Mlang.h"
 
-#define NEW_PARSER
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-#ifndef NEW_PARSER
-#include "MGrammarBaseListener.h"
-#include "MGrammarBaseVisitor.h"
-#include "MGrammarLexer.h"
-#include "MGrammarParser.h"
-#include "parser/PtToAstVisitor.h"
-#endif
-
-#include "antlr4-runtime.h"
 #include "executer/LLVMRunner.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
@@ -35,7 +24,6 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 #include "parser/Parser.h"
-#include "parser/PrintVisitor.h"
 #include "parser/Tokenizer.h"
 #include "preprocessor/Preprocessor.h"
 #include "transformer/HasUnknownTypes.h"
@@ -72,7 +60,6 @@ void Mlang::shutdown() {
 }
 
 Mlang::Signal Mlang::executeString(std::string theCode) {
-#ifdef NEW_PARSER
     Tokenizer tokenizer(theCode);
 
     auto tokens = tokenizer.getTokens();
@@ -83,48 +70,8 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
         std::cout << std::endl;
     }
 
-    // TODO showParseTree \ showPrettyParseTree are no longer available with the
-    // new parser
-
     Parser parser(std::move(tokens));
     auto ast = parser.getAst();
-#else
-    Preprocessor::run(theCode);
-
-    // ------------------- ANTLR ------------------
-    antlr4::ANTLRInputStream input(theCode.c_str(), theCode.size());
-    MGrammar::MGrammarLexer lexer(&input);
-    antlr4::CommonTokenStream tokens(&lexer);
-
-    tokens.fill();
-
-    if (settings.showTokens) {
-        for (auto token : tokens.getTokens()) {
-            std::cout << token->toString() << std::endl;
-        }
-    }
-
-    // Generate parse tree
-    MGrammar::MGrammarParser parser(&tokens);
-    // const std::vector<std::string> &ruleNames = parser.getRuleNames();
-    antlr4::tree::ParseTree *tree = parser.r();
-
-    if (settings.showParseTree) {
-        std::cout << tree->toStringTree(&parser) << std::endl << std::endl;
-    }
-
-    if (settings.showPrettyParseTree) {
-        std::cout << "Pretty Parse Tree:" << std::endl;
-        PrintVisitor visitor;
-        visitor.visit(tree);
-        std::cout << visitor.toString();
-    }
-
-    // Create ast
-    PtToAstVisitor visitor;
-    visitor.visit(tree);
-    auto ast = visitor.getAST();
-#endif
 
     if (settings.showAbastractSyntaxTree) {
         std::cout << ast->toString() << std::endl;

@@ -465,8 +465,6 @@ class Parser {
     size_t idx;
 };
 
-// TODO: Infix calls. Operator precedence
-
 // Grammar for reference
 /*
 file                        : statements*

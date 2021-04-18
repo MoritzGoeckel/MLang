@@ -1,6 +1,6 @@
 # MLang
 
-MLang is my strictly typed programming language with full type inference that compiles to LLVM. The language is build on top of ANTLR4 as the front-end and targets LLVM JIT as the backend. The project is tested with the google test framework. This is a multiplatform project targeting both Linux and Windows.
+MLang is my strictly typed programming language with full type inference that compiles to LLVM. The language uses a custom recursive descent parser as the front-end and targets LLVM JIT as the backend. The project is tested with the google test framework. This is a multiplatform project targeting both Linux and Windows.
 
 This language is build solely for fun and educational purposes, so maybe you should not use this in production 🐴
 
