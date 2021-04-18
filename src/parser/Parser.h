@@ -107,18 +107,26 @@ class Parser {
         return tokens[idx + offset];
     }
     Token::Type lookAhead_t(size_t offset) {
+        if (idx + offset >= tokens.size()) return Token::Type::None;
         return tokens[idx + offset].getType();
     }
 
     Token nextToken() { return lookAhead(0u); }
     bool isNext(Token::Type type) { return lookAhead_t(0) == type; }
-    bool isNext(char c) { return tokens[idx].getChar() == c; }
+    bool isNext(char c) {
+        if (idx == tokens.size()) return false;
+        return tokens[idx].getChar() == c;
+    }
 
     // Combine isNext and consume
 
     Token consume() { return tokens[idx++]; }
-    bool consume(char c) { return tokens[idx++].getChar() == c; }
+    bool consume(char c) {
+        if (idx == tokens.size()) return false;
+        return tokens[idx++].getChar() == c;
+    }
     bool consume(Token::Type expectedType) {
+        if (idx == tokens.size()) return false;
         return tokens[idx++].getType() == expectedType;
     }
 
