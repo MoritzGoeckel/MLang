@@ -4,26 +4,28 @@
 #include <string>
 #include <vector>
 
+// TODO remove inline, create cpp
+
 namespace CharCategories {
 
-bool isParen(char c) {
+inline bool isParen(char c) {
     return c == '[' || c == ']' || c == '{' || c == '}' || c == '(' || c == ')';
     // Attention! < and > are not parenthesis
     //|| c == '<' || c == '>';
 }
-bool isNumeric(char c) { return c >= '0' && c <= '9'; }
-bool isAlphabetic(char c) {
+inline bool isNumeric(char c) { return c >= '0' && c <= '9'; }
+inline bool isAlphabetic(char c) {
     return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
-bool isAlphanumeric(char c) { return isNumeric(c) || isAlphabetic(c); }
-bool isSpecial(char c) {
+inline bool isAlphanumeric(char c) { return isNumeric(c) || isAlphabetic(c); }
+inline bool isSpecial(char c) {
     if (isParen(c)) return false;
     return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') ||
            (c >= '[' && c <= '_') || (c >= '{' && c <= '~');
 }
-bool isCommentStart(char c) { return c == '#'; }
-bool isCommentTerminator(char c) { return c == '\n'; }
-bool isStatementTerminator(char c) {
+inline bool isCommentStart(char c) { return c == '#'; }
+inline bool isCommentTerminator(char c) { return c == '\n'; }
+inline bool isStatementTerminator(char c) {
     return c == ';'; /* TODO maybe also new line */
 }
 
@@ -186,7 +188,7 @@ class Token {
     std::string content;
 };
 
-std::string to_string(Token::Type theType) {
+inline std::string to_string(Token::Type theType) {
     switch (theType) {
         case Token::Type::Identifier:
             return "Identifier";
@@ -221,11 +223,12 @@ std::string to_string(Token::Type theType) {
     }
 }
 
-std::ostream& operator<<(std::ostream& theStream, Token::Type theType) {
+inline std::ostream& operator<<(std::ostream& theStream, Token::Type theType) {
     return theStream << to_string(theType);
 }
 
-std::ostream& operator<<(std::ostream& theStream, const Token& theToken) {
+inline std::ostream& operator<<(std::ostream& theStream,
+                                const Token& theToken) {
     theStream << theToken.getType();
     if (!theToken.isTrivialContent())
         theStream << "(" << theToken.getContent() << ")";
@@ -301,3 +304,4 @@ class Tokenizer {
     bool isAlphanumericBuffer;
     bool inComment;
 };
+
