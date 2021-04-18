@@ -6,8 +6,6 @@
 #include "../ast/Node.h"
 #include "Tokenizer.h"
 
-// https://github.com/MoritzGoeckel/BytecodeCompiler/blob/master/Source/Interpreter/Parser.cpp
-
 class Parser {
    public:
     Parser(std::vector<Token>&& tokens)
@@ -235,8 +233,7 @@ class Parser {
     std::shared_ptr<AST::Ret> ret() {
         if (!consume(Token::Type::Ret)) return nullptr;
 
-        if (isNext(Token::Type::StatementTerminator)) {
-            consume(Token::Type::StatementTerminator);
+        if (consume(Token::Type::StatementTerminator)) {
             return std::make_shared<AST::Ret>();
         }
 
@@ -281,7 +278,7 @@ class Parser {
             auto expr = expression();
             if (!expr) return false;
             theList.push_back(expr);
-        } while (isNext(Token::Type::Comma) && consume(Token::Type::Comma));
+        } while (consume(Token::Type::Comma));
         return true;
     }
 
@@ -295,7 +292,7 @@ class Parser {
             } else {
                 return false;
             }
-        } while (isNext(Token::Type::Comma) && consume(Token::Type::Comma));
+        } while (consume(Token::Type::Comma));
         return true;
     }
 
@@ -425,8 +422,7 @@ class Parser {
         auto positive = statement();
         decltype(statement()) negative{nullptr};
 
-        if (isNext(Token::Type::Else)) {
-            consume(Token::Type::Else);
+        if (consume(Token::Type::Else)) {
             if (!speculate(&Parser::statement, Rule::Statement)) return nullptr;
             negative = statement();
         }
@@ -449,14 +445,12 @@ class Parser {
     }
 
     std::shared_ptr<AST::Literal> boolean() {
-        if (isNext(Token::Type::True)) {
-            consume(Token::Type::True);
+        if (consume(Token::Type::True)) {
             return std::make_shared<AST::Literal>("true",
                                                   DataType::Primitive::Bool);
         }
 
-        if (isNext(Token::Type::False)) {
-            consume(Token::Type::False);
+        if (consume(Token::Type::False)) {
             return std::make_shared<AST::Literal>("false",
                                                   DataType::Primitive::Bool);
         }
