@@ -16,7 +16,7 @@ TEST(Mlang, ExecuteStringSimple) {
 
 TEST(Mlang, ExecuteSimple) {
     Mlang mlang;
-    mlang.executeFile("mfiles/001_addition.m");
+    mlang.executeFile("mfiles/addition.m");
 }
 
 TEST(Mlang, Tokenizer) {
@@ -72,22 +72,21 @@ TEST(Mlang, Parser) {
         strBuffer << stream.rdbuf();
         auto fileContent = strBuffer.str();
 
-        std::cout << fileContent << std::endl;
-        Tokenizer ts(fileContent);
-        auto tokens = ts.getTokens();
-        for (auto& t : tokens) {
-            std::cout << " " << t;
+        Tokenizer tokenizer(fileContent);
+        auto tokens = tokenizer.getTokens();
+
+        Parser parser(tokens);
+        auto rootNode = parser.getAst();
+
+        if (!rootNode) {
+            std::cout << fileContent << std::endl;
+            for (auto& t : tokens) {
+                std::cout << " " << t;
+            }
+            std::cout << std::endl;
+            std::cout << "Parse failed!" << std::endl;
         }
-        std::cout << std::endl;
-
-        Parser ps(std::move(tokens));
-
-        // TODO: print parser
-        std::cout << "Parse " << (ps.getAst() ? "Succeeded" : "Failed");
-        ASSERT_TRUE(ps.getAst());
-
-        std::cout << std::endl;
-        std::cout << "---------------" << std::endl;
+        ASSERT_TRUE(rootNode);
     }
 
     // TODO: Have some baseline to compare to
