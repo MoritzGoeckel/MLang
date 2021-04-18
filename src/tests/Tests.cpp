@@ -9,9 +9,9 @@
 #include "../parser/Tokenizer.h"
 #include "gtest/gtest.h"
 
-class MLang : public ::testing::Test {
+class MLangTest : public ::testing::Test {
    public:
-    MLang() : basePath("") {}
+    MLangTest() : basePath(""), mlang() {}
 
     std::vector<std::string> getFileContents() {
         std::vector<std::string> contents;
@@ -51,23 +51,26 @@ class MLang : public ::testing::Test {
     }
 
    protected:
-    void SetUp() override {}
+    void SetUp() override {
+        mlang.settings.showFileContent = false;
+        mlang.settings.showFunctions = false;
+        mlang.settings.showTokens = false;
+        mlang.settings.showInferedTypes = false;
+        mlang.settings.showAbastractSyntaxTree = false;
+    }
 
    private:
     std::string basePath;
+
+   public:
+    Mlang mlang;
 };
 
-TEST_F(MLang, ExecuteStringSimple) {
-    Mlang mlang;
-    mlang.executeString("let i = 10;");
-}
+TEST_F(MLangTest, ExecuteStringSimple) { mlang.executeString("let i = 10;"); }
 
-TEST_F(MLang, ExecuteSimple) {
-    Mlang mlang;
-    mlang.executeFile("mfiles/addition.m");
-}
+TEST_F(MLangTest, ExecuteSimple) { mlang.executeFile("mfiles/addition.m"); }
 
-TEST_F(MLang, Tokenizer) {
+TEST_F(MLangTest, Tokenizer) {
     const bool show = false;
 
     for (auto& fileContent : getFileContents()) {
@@ -86,7 +89,9 @@ TEST_F(MLang, Tokenizer) {
     // TODO: Have some baseline to compare to
 }
 
-TEST_F(MLang, Parser) {
+TEST_F(MLangTest, Parser) {
+    const bool show = false;
+
     for (auto& fileContent : getFileContents()) {
         Tokenizer tokenizer(fileContent);
         auto tokens = tokenizer.getTokens();
@@ -94,26 +99,28 @@ TEST_F(MLang, Parser) {
         Parser parser(tokens);
         auto rootNode = parser.getAst();
 
-        if (!rootNode) {
+        if (!rootNode || show) {
             std::cout << fileContent << std::endl;
             for (auto& t : tokens) {
                 std::cout << " " << t;
             }
             std::cout << std::endl;
-            std::cout << "Parse failed!" << std::endl;
+            std::cout << "Parse " << (rootNode ? "succeeded" : "failed")
+                      << std::endl;
         }
         ASSERT_TRUE(rootNode);
+
+        if constexpr (show) {
+            std::cout << rootNode->toString() << std::endl;
+            std::cout << "------------------------------------" << std::endl;
+        }
     }
 
     // TODO: Have some baseline to compare to
 }
 
-TEST_F(MLang, ExecuteFiles) {
+TEST_F(MLangTest, ExecuteFiles) {
     // "recursion.m" TODO: recursion.m is still broken
-
-    Mlang mlang;
-    mlang.settings.showFileContent = false;
-    mlang.settings.showFunctions = false;
 
     for (auto& filename : getFullFilenames()) {
         try {
