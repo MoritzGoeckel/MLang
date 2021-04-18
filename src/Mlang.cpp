@@ -1,14 +1,20 @@
 #include "Mlang.h"
 
+#define NEW_PARSER
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 
+#ifndef NEW_PARSER
 #include "MGrammarBaseListener.h"
 #include "MGrammarBaseVisitor.h"
 #include "MGrammarLexer.h"
 #include "MGrammarParser.h"
+#include "parser/PtToAstVisitor.h"
+#endif
+
 #include "antlr4-runtime.h"
 #include "executer/LLVMRunner.h"
 #include "llvm/ADT/STLExtras.h"
@@ -28,8 +34,9 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
+#include "parser/Parser.h"
 #include "parser/PrintVisitor.h"
-#include "parser/PtToAstVisitor.h"
+#include "parser/Tokenizer.h"
 #include "preprocessor/Preprocessor.h"
 #include "transformer/HasUnknownTypes.h"
 #include "transformer/ImplicitReturn.h"
@@ -65,6 +72,23 @@ void Mlang::shutdown() {
 }
 
 Mlang::Signal Mlang::executeString(std::string theCode) {
+#ifdef NEW_PARSER
+    Tokenizer tokenizer(theCode);
+
+    auto tokens = tokenizer.getTokens();
+    if (settings.showTokens) {
+        for (auto token : tokens) {
+            std::cout << token << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // TODO showParseTree \ showPrettyParseTree are no longer available with the
+    // new parser
+
+    Parser parser(std::move(tokens));
+    auto ast = parser.getAst();
+#else
     Preprocessor::run(theCode);
 
     // ------------------- ANTLR ------------------
@@ -100,6 +124,7 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
     PtToAstVisitor visitor;
     visitor.visit(tree);
     auto ast = visitor.getAST();
+#endif
 
     if (settings.showAbastractSyntaxTree) {
         std::cout << ast->toString() << std::endl;
