@@ -118,7 +118,7 @@ class Parser {
         return tokens[idx].getChar() == c;
     }
 
-    // Combine isNext and consume
+    // TODO Combine isNext and consume
 
     Token consume() { return tokens[idx++]; }
     bool consume(char c) {
@@ -230,9 +230,7 @@ class Parser {
             return std::make_shared<AST::Ret>();
         }
 
-        if (!speculate(&Parser::expression, Rule::Expression)) {
-            return nullptr;
-        }
+        if (!speculate(&Parser::expression, Rule::Expression)) return nullptr;
         auto expr = expression();
         if (!expr) return nullptr;
 
@@ -441,12 +439,17 @@ class Parser {
     }
 
     std::shared_ptr<AST::Literal> boolean() {
-        if (consume(Token::Type::True))
+        if (isNext(Token::Type::True)) {
+            consume(Token::Type::True);
             return std::make_shared<AST::Literal>("true",
                                                   DataType::Primitive::Bool);
-        if (consume(Token::Type::False))
+        }
+
+        if (isNext(Token::Type::False)) {
+            consume(Token::Type::False);
             return std::make_shared<AST::Literal>("false",
                                                   DataType::Primitive::Bool);
+        }
         return nullptr;
     }
 
