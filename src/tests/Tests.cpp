@@ -9,36 +9,68 @@
 #include "../parser/Tokenizer.h"
 #include "gtest/gtest.h"
 
-TEST(Mlang, ExecuteStringSimple) {
+class MLang : public ::testing::Test {
+   public:
+    MLang() : basePath("") {}
+
+    std::vector<std::string> getFileContents() {
+        std::vector<std::string> contents;
+
+        for (auto filename : getFullFilenames()) {
+            std::ifstream stream(filename);
+            std::stringstream strBuffer;
+            strBuffer << stream.rdbuf();
+            contents.push_back(strBuffer.str());
+        }
+        return contents;
+    }
+
+    std::vector<std::string> getFullFilenames() {
+        std::vector<std::string> output;
+        for (auto& filename : getFilenames()) {
+            output.push_back(basePath + "mfiles/" + filename);
+        }
+        return output;
+    }
+
+    std::vector<std::string> getFilenames() {
+        return {"addition.m",
+                "addition_infix.m",
+                "var_declaration.m",
+                "var_declaration_addition.m",
+                "mutiple_vars.m",
+                "method_declaration.m",
+                "method_declaration_brackets.m",
+                "method_decl_multiline.m",
+                "comment.m",
+                "if.m",
+                "if_else.m",
+                "while.m",
+                "if_else_no_brackets.m",
+                "simple_fns.m"};
+    }
+
+   protected:
+    void SetUp() override {}
+
+   private:
+    std::string basePath;
+};
+
+TEST_F(MLang, ExecuteStringSimple) {
     Mlang mlang;
     mlang.executeString("let i = 10;");
 }
 
-TEST(Mlang, ExecuteSimple) {
+TEST_F(MLang, ExecuteSimple) {
     Mlang mlang;
     mlang.executeFile("mfiles/addition.m");
 }
 
-TEST(Mlang, Tokenizer) {
-    std::vector<std::string> files(
-        {"addition.m", "addition_infix.m", "var_declaration.m",
-         "var_declaration_addition.m", "mutiple_vars.m", "method_declaration.m",
-         "method_declaration_brackets.m", "method_decl_multiline.m",
-         "comment.m", "if.m", "if_else.m", "while.m", "if_else_no_brackets.m",
-         "simple_fns.m"});
-
-    std::string basePath("");
-
+TEST_F(MLang, Tokenizer) {
     const bool show = false;
 
-    for (auto& str : files) {
-        std::string path = basePath + "mfiles/" + str;
-
-        std::ifstream stream(path);
-        std::stringstream strBuffer;
-        strBuffer << stream.rdbuf();
-        auto fileContent = strBuffer.str();
-
+    for (auto& fileContent : getFileContents()) {
         Tokenizer tokenizer(fileContent);
 
         if constexpr (show) {
@@ -54,24 +86,8 @@ TEST(Mlang, Tokenizer) {
     // TODO: Have some baseline to compare to
 }
 
-TEST(Mlang, Parser) {
-    std::vector<std::string> files(
-        {"addition.m", "addition_infix.m", "var_declaration.m",
-         "var_declaration_addition.m", "mutiple_vars.m", "method_declaration.m",
-         "method_declaration_brackets.m", "method_decl_multiline.m",
-         "comment.m", "if.m", "if_else.m", "while.m", "if_else_no_brackets.m",
-         "simple_fns.m"});
-
-    std::string basePath("");
-
-    for (auto& str : files) {
-        std::string path = basePath + "mfiles/" + str;
-
-        std::ifstream stream(path);
-        std::stringstream strBuffer;
-        strBuffer << stream.rdbuf();
-        auto fileContent = strBuffer.str();
-
+TEST_F(MLang, Parser) {
+    for (auto& fileContent : getFileContents()) {
         Tokenizer tokenizer(fileContent);
         auto tokens = tokenizer.getTokens();
 
@@ -92,25 +108,16 @@ TEST(Mlang, Parser) {
     // TODO: Have some baseline to compare to
 }
 
-TEST(Mlang, ExecuteFiles) {
-    std::vector<std::string> files(
-        {"addition.m", "addition_infix.m", "var_declaration.m",
-         "var_declaration_addition.m", "mutiple_vars.m", "method_declaration.m",
-         "method_declaration_brackets.m", "method_decl_multiline.m",
-         "comment.m", "if.m", "if_else.m", "while.m", "if_else_no_brackets.m",
-         "simple_fns.m" /*, "recursion.m"*/});
-
-    // TODO: recursion.m is still broken
-
-    std::string basePath("");
+TEST_F(MLang, ExecuteFiles) {
+    // "recursion.m" TODO: recursion.m is still broken
 
     Mlang mlang;
     mlang.settings.showFileContent = false;
     mlang.settings.showFunctions = false;
 
-    for (auto& str : files) {
+    for (auto& filename : getFullFilenames()) {
         try {
-            auto rs = mlang.executeFile(basePath + "mfiles/" + str);
+            auto rs = mlang.executeFile(filename);
             ASSERT_TRUE(rs == Mlang::Signal::Success);
             if (mlang.settings.showFileContent || mlang.settings.showFunctions)
                 std::cout << std::endl;
