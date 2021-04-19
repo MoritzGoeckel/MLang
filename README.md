@@ -74,7 +74,6 @@ ret false;
 
 ## Dependencies
 
-- Antlr4
 - LLVM
 - GTest
 
