@@ -1,1 +1,1 @@
-valgrind --leak-check=full --tool=memcheck bin/tests
+valgrind --leak-check=full --tool=memcheck bin/Tests
