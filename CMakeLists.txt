@@ -41,6 +41,7 @@ add_executable(Tests
   src/preprocessor/Preprocessor.cpp
   src/exceptions/Exceptions.cpp
   src/ast/DataType.cpp
+  src/parser/OperatorPrecedence.cpp
 )
 target_link_libraries(Tests
     gtest pthread)
@@ -59,6 +60,7 @@ add_executable(ExecuteFile
   src/preprocessor/Preprocessor.cpp
   src/exceptions/Exceptions.cpp
   src/ast/DataType.cpp
+  src/parser/OperatorPrecedence.cpp
 )
 target_link_libraries(ExecuteFile
     gtest pthread)

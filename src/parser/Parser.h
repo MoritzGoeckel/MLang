@@ -1,9 +1,11 @@
 #pragma once
 
+#include <deque>
 #include <map>
 #include <string>
 #include <vector>
 #include "../ast/Node.h"
+#include "OperatorPrecedence.h"
 #include "Tokenizer.h"
 
 class Parser {
@@ -324,25 +326,53 @@ class Parser {
     }
 
     std::shared_ptr<AST::Call> infixCall() {
-        std::vector<std::shared_ptr<AST::Node>> args;
+        // Create list of operands and operators
+        bool shouldBeExpression = true;
 
-        if (!speculate(&Parser::nrExpression, Rule::NrExpression))
+        std::deque<std::shared_ptr<AST::Identifier>> operators;
+        std::deque<std::shared_ptr<AST::Node>> operands;
+
+        while ((speculate(&Parser::nrExpression, Rule::NrExpression) &&
+                shouldBeExpression) ||
+               (speculate(&Parser::identifier, Rule::Identifier) &&
+                !shouldBeExpression)) {
+            if (shouldBeExpression) {
+                operands.push_back(nrExpression());
+            } else {
+                operators.push_back(identifier());
+            }
+            shouldBeExpression = !shouldBeExpression;
+        }
+
+        if (operands.size() < 2u || operators.empty() ||
+            operands.size() != operators.size() + 1u)
             return nullptr;
-        args.push_back(nrExpression());
 
-        if (!speculate(&Parser::identifier, Rule::Identifier)) return nullptr;
-        std::shared_ptr<AST::Identifier> method = identifier();
+        // Handle operator precedence
+        while (!operators.empty()) {
+            auto operandsIt = operands.begin();
+            auto operatorsIt = operators.begin();
+            auto lastOperatorIt = operators.end() - 1;
 
-        if (!speculate(&Parser::expression, Rule::Expression)) return nullptr;
-        args.push_back(expression());
+            while (operatorsIt != lastOperatorIt &&
+                   precedence(*operatorsIt) < precedence(*(operatorsIt + 1))) {
+                ++operandsIt;
+                ++operatorsIt;
+            }
 
-        return std::make_shared<AST::Call>(method, args);
-        // TODO operator precedence would be done here
+            auto reducedOperand = std::make_shared<AST::Call>(
+                *operatorsIt, std::vector<std::shared_ptr<AST::Node>>{
+                                  *operandsIt, *(operandsIt + 1)});
 
-        /*(
-        identifier();
-        expression();
-        )...*/
+            *operandsIt = reducedOperand;
+
+            operands.erase(operandsIt + 1);
+            operators.erase(operatorsIt);
+        }
+
+        if (operands.size() != 1u || !operators.empty()) return nullptr;
+
+        return std::dynamic_pointer_cast<AST::Call>(operands.front());
     }
 
     std::shared_ptr<AST::Assign> assignment() {
