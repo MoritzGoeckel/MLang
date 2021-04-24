@@ -67,72 +67,46 @@ class Parser {
     }
 
     void memorize(size_t index, Rule rule, CacheResult result);
-
     void mark();
-
     void reset();
 
     Token lookAhead(size_t offset);
     Token::Type lookAhead_t(size_t offset);
 
     Token nextToken();
-
     bool isNext(Token::Type type);
-
     bool isNext(char c);
 
     Token consume();
-
     bool consume(char c);
-
     bool consume(Token::Type expectedType);
 
     bool isDone();
 
+    bool argumentList(std::vector<std::shared_ptr<AST::Node>>& theList);
+    bool identifierList(std::vector<std::shared_ptr<AST::Node>>& theList);
+
     std::vector<std::shared_ptr<AST::Node>> statementList();
 
     std::shared_ptr<AST::Node> file();
-
     std::shared_ptr<AST::Node> statement();
-
     std::shared_ptr<AST::Node> expression();
-
     std::shared_ptr<AST::Node> parenthesizedExpression();
-
     std::shared_ptr<AST::Node> nrExpression();
-
     std::shared_ptr<AST::Ret> ret();
-
     std::shared_ptr<AST::Block> block();
-
     std::shared_ptr<AST::Call> call();
-
-    bool argumentList(std::vector<std::shared_ptr<AST::Node>>& theList);
-
-    bool identifierList(std::vector<std::shared_ptr<AST::Node>>& theList);
-
     std::shared_ptr<AST::Identifier> identifier();
-
     std::shared_ptr<AST::Literal> literal();
-
     std::shared_ptr<AST::Literal> integer();
-
     std::shared_ptr<AST::Call> infixCall();
-
     std::shared_ptr<AST::Assign> assignment();
-
     std::shared_ptr<AST::Node> assignmentLeft();
-
     std::shared_ptr<AST::Declvar> variableDecl();
-
     std::shared_ptr<AST::Declfn> functionDecl();
-
     std::shared_ptr<AST::Node> branching();
-
     std::shared_ptr<AST::If> branchingIf();
-
     std::shared_ptr<AST::While> branchingWhile();
-
     std::shared_ptr<AST::Literal> boolean();
 
     std::map<size_t /*idx*/, std::map<Rule, CacheResult>> cache;
