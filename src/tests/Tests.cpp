@@ -105,7 +105,7 @@ TEST_F(MLangTest, Parser) {
                 std::cout << " " << t;
             }
             std::cout << std::endl;
-            std::cout << "Parse " << (rootNode ? "succeeded" : "failed")
+            std::cout << "Parse " << (rootNode ? "succeeded" : "failed!")
                       << std::endl;
         }
         ASSERT_TRUE(rootNode);

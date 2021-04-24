@@ -73,6 +73,12 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
     Parser parser(std::move(tokens));
     auto ast = parser.getAst();
 
+    if (!ast) {
+        // TODO ouput parse error
+        std::cout << "Parse failed!" << std::endl;
+        return Mlang::Signal::Failure;
+    }
+
     if (settings.showAbastractSyntaxTree) {
         std::cout << ast->toString() << std::endl;
     }
