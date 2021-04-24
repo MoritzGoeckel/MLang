@@ -48,6 +48,8 @@ add_executable(Tests
   src/exceptions/Exceptions.cpp
   src/ast/DataType.cpp
   src/parser/OperatorPrecedence.cpp
+  src/parser/Parser.cpp
+  src/parser/Tokenizer.cpp
 )
 target_link_libraries(Tests
     gtest pthread)
@@ -67,6 +69,8 @@ add_executable(ExecuteFile
   src/exceptions/Exceptions.cpp
   src/ast/DataType.cpp
   src/parser/OperatorPrecedence.cpp
+  src/parser/Parser.cpp
+  src/parser/Tokenizer.cpp
 )
 target_link_libraries(ExecuteFile
     gtest pthread)
