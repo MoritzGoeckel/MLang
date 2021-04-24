@@ -22,7 +22,7 @@ You can download the executables for Windows and Linux in the [release section](
 - [ ] Closures
 - [ ] Printing
 - [ ] Structs
-- [ ] Operator precedence
+- [x] Operator precedence
 - [x] Linux support
 - [x] Windows support
 
@@ -70,6 +70,12 @@ if(x < 3){
     ret true;
 }
 ret false;
+```
+
+```
+# Operator precedence
+let x = 3 + 10 + 6 / 3 - 2 * 5;
+ret x; # is 5
 ```
 
 ## Dependencies
