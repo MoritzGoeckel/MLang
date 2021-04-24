@@ -25,6 +25,12 @@ include_directories(/usr/lib/llvm-10/include)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Custom targets
+
+add_custom_target(loc
+    COMMAND cloc src
+)
+
 # Defining executables
 
 add_executable(Tests
