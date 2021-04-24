@@ -17,19 +17,20 @@ LLVMRunner::~LLVMRunner() {
 
 bool LLVMRunner::getIsBroken() { return isBroken; }
 
-LLVMRunner::Result LLVMRunner::run() {
+Mlang::Result LLVMRunner::run() {
     if (isBroken) {
-        return LLVMRunner::Result::InvalidModule;
+        // TODO: Add error, invalid module
+        return Mlang::Result(Mlang::Result::Signal::Failure);
     }
 
     std::vector<llvm::GenericValue> emptyArgs;
     llvm::GenericValue gv = engine->runFunction(main, emptyArgs);
 
-    // TODO, maybe show other return types
     if (main->getReturnType()->isIntegerTy()) {
-        // llvm::outs() << "Result: " << gv.IntVal << '\n';
-        // TODO: Return result instead of printing
+        // llvm::outs() << gv.IntVal << '\n';
+        return Mlang::Result(Mlang::Result::Signal::Success,
+                             gv.IntVal.toString(10, true));
     }
 
-    return LLVMRunner::Result::Success;
+    return Mlang::Result(Mlang::Result::Signal::Success);
 }

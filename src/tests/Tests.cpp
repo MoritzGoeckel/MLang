@@ -85,8 +85,6 @@ TEST_F(MLangTest, Tokenizer) {
             std::cout << "---------------" << std::endl;
         }
     }
-
-    // TODO: Have some baseline to compare to
 }
 
 TEST_F(MLangTest, Parser) {
@@ -115,17 +113,36 @@ TEST_F(MLangTest, Parser) {
             std::cout << "------------------------------------" << std::endl;
         }
     }
-
-    // TODO: Have some baseline to compare to
 }
 
 TEST_F(MLangTest, ExecuteFiles) {
     // "recursion.m" TODO: recursion.m is still broken
 
-    for (auto& filename : getFullFilenames()) {
+    for (auto& code : getFileContents()) {
+        std::string expectedResult = "";
+        std::string tagPrefix = "# expect_result=";
+        if (!code.empty() && code.substr(0, tagPrefix.size()) == tagPrefix) {
+            // Parse first line of comments to get results
+            int i = tagPrefix.size();
+            while (i < code.size() && code[i] != ';') {
+                expectedResult += code[i++];
+            }
+        }
+        // LLVM encodes true=-1 and false=0
+        if (expectedResult == "true") expectedResult = "-1";
+        if (expectedResult == "false") expectedResult = "0";
+
         try {
-            auto rs = mlang.executeFile(filename);
-            ASSERT_TRUE(rs == Mlang::Signal::Success);
+            auto rs = mlang.executeString(code);
+            ASSERT_TRUE(rs == Mlang::Result::Signal::Success);
+
+            if (!expectedResult.empty()) {
+                ASSERT_EQ(expectedResult, rs.getString());
+            } else {
+                std::cout << "Warning: No expected result specified"
+                          << std::endl;
+            }
+
             if (mlang.settings.showFileContent || mlang.settings.showFunctions)
                 std::cout << std::endl;
         } catch (MException e) {

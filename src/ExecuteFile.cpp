@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     int exitCode = 0;
     try {
         auto rs = mlang.executeFile(scriptFile);
-        if (rs == Mlang::Signal::Success) {
+        if (rs == Mlang::Result::Signal::Success) {
             std::cout << "Execution succeeded" << std::endl;
             // TODO: Print result
         } else {

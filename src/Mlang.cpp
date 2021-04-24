@@ -59,7 +59,7 @@ void Mlang::shutdown() {
     }
 }
 
-Mlang::Signal Mlang::executeString(std::string theCode) {
+Mlang::Result Mlang::executeString(std::string theCode) {
     Tokenizer tokenizer(theCode);
 
     auto tokens = tokenizer.getTokens();
@@ -76,7 +76,7 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
     if (!ast) {
         // TODO ouput parse error
         std::cout << "Parse failed!" << std::endl;
-        return Mlang::Signal::Failure;
+        return Mlang::Result(Mlang::Result::Signal::Failure);
     }
 
     if (settings.showAbastractSyntaxTree) {
@@ -121,7 +121,7 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
             std::cout << "Unresolved types: " << validator.getNumUnresolved()
                       << "!" << std::endl;
 
-            return Mlang::Signal::Failure;
+            return Mlang::Result(Mlang::Result::Signal::Failure);
         }
 
         if (validator.hasTypeConflicts()) {
@@ -129,7 +129,7 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
             std::cout << "Conflicting types: " << validator.getNumConflicts()
                       << "!" << std::endl;
 
-            return Mlang::Signal::Failure;
+            return Mlang::Result(Mlang::Result::Signal::Failure);
         }
 
         if (settings.showInferedTypes) {
@@ -142,7 +142,7 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
     // Do not use ast after this point
     auto fns = instantiator.getFunctions();
     if (settings.showFunctions) {
-        for (auto &fn : fns) {
+        for (auto& fn : fns) {
             std::cout << fn.first << std::endl;
             std::cout << fn.second->AST::Node::toString() << std::endl;
             std::cout << std::endl;
@@ -158,19 +158,16 @@ Mlang::Signal Mlang::executeString(std::string theCode) {
 
     auto mod = emitter.getModule();
     LLVMRunner runner(std::move(mod));
-    if (runner.run() != LLVMRunner::Result::Success) {
-        return Mlang::Signal::Failure;
-    }
 
     // TODO: Have stdlib (+ - * / < > ==)
     // TODO: Implement operator precedence transformer
     // TODO: Use return instead of stack in PtToAST
     // TODO: Use optimization passes
 
-    return Mlang::Signal::Success;
+    return runner.run();
 }
 
-Mlang::Signal Mlang::executeFile(std::string thePath) {
+Mlang::Result Mlang::executeFile(std::string thePath) {
     std::ifstream stream(thePath);
     std::stringstream strBuffer;
     strBuffer << stream.rdbuf();
@@ -186,6 +183,16 @@ Mlang::Signal Mlang::executeFile(std::string thePath) {
         return executeString(fileContent);
     } else {
         std::cout << "File empty: " << thePath << std::endl;
-        return Mlang::Signal::Failure;
+        return Mlang::Result(Mlang::Result::Signal::Failure);
     }
 }
+
+Mlang::Result::Result(Mlang::Result::Signal signal, const std::string& content)
+    : signal(signal), content(content) {}
+
+Mlang::Result::Result(Mlang::Result::Signal signal)
+    : signal(signal), content("void") {}
+
+Mlang::Result::operator Result::Signal() const { return signal; }
+
+const std::string& Mlang::Result::getString() const { return content; }

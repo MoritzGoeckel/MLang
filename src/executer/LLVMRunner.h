@@ -22,7 +22,9 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "../Mlang.h"
 #include "../exceptions/Exceptions.h"
+
 #include "llvm/ExecutionEngine/Interpreter.h"
 //#include "llvm/ExecutionEngine/Jit.h"
 
@@ -33,12 +35,10 @@ class LLVMRunner {
     bool isBroken;
 
    public:
-    enum class Result { InvalidModule, Success };
-
     // TODO: Maybe make it a move constructor?
     LLVMRunner(std::unique_ptr<llvm::Module> module);
     ~LLVMRunner();
 
     bool getIsBroken();
-    Result run();
+    Mlang::Result run();
 };

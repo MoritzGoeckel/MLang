@@ -287,7 +287,7 @@ class Tokenizer {
         pushBuffer();
     }
 
-    std::vector<Token> getTokens() { return tokens; }
+    const std::vector<Token>& getTokens() { return tokens; }
 
    private:
     void pushBuffer() {

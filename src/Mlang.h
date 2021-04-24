@@ -8,7 +8,22 @@ class Mlang {
 
     ~Mlang();
 
-    enum class Signal { Failure, Success };
+    class Result {
+       public:
+        enum class Signal { Failure, Success };
+
+       private:
+        Signal signal;
+        std::string content;
+
+       public:
+        Result(Signal signal, const std::string& content);
+        Result(Signal signal);
+
+        operator Signal() const;
+
+        const std::string& getString() const;
+    };
 
     struct Settings {
         bool showTokens = false;
@@ -26,14 +41,14 @@ class Mlang {
      * Execute mlang source code
      * @param mlang source code
      */
-    Signal executeString(std::string theCode);
+    Result executeString(std::string theCode);
 
     /**
      * Loads a source code file and executes it
      * @param path to the file
      * @return nothing
      */
-    Signal executeFile(std::string thePath);
+    Result executeFile(std::string thePath);
 
     /**
      * Initializes Mlang globally
