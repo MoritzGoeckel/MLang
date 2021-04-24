@@ -19,8 +19,8 @@ bool LLVMRunner::getIsBroken() { return isBroken; }
 
 Mlang::Result LLVMRunner::run() {
     if (isBroken) {
-        // TODO: Add error, invalid module
-        return Mlang::Result(Mlang::Result::Signal::Failure);
+        return Mlang::Result(Mlang::Result::Signal::Failure)
+            .addError("LLVM: Module invalid");
     }
 
     std::vector<llvm::GenericValue> emptyArgs;

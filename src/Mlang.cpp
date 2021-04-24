@@ -76,7 +76,8 @@ Mlang::Result Mlang::executeString(std::string theCode) {
     if (!ast) {
         // TODO ouput parse error
         std::cout << "Parse failed!" << std::endl;
-        return Mlang::Result(Mlang::Result::Signal::Failure);
+        return Mlang::Result(Mlang::Result::Signal::Failure)
+            .addError("Parser: Parsing failed");
     }
 
     if (settings.showAbastractSyntaxTree) {
@@ -121,7 +122,8 @@ Mlang::Result Mlang::executeString(std::string theCode) {
             std::cout << "Unresolved types: " << validator.getNumUnresolved()
                       << "!" << std::endl;
 
-            return Mlang::Result(Mlang::Result::Signal::Failure);
+            return Mlang::Result(Mlang::Result::Signal::Failure)
+                .addError("Type inference: Could not resolve all types");
         }
 
         if (validator.hasTypeConflicts()) {
@@ -129,7 +131,8 @@ Mlang::Result Mlang::executeString(std::string theCode) {
             std::cout << "Conflicting types: " << validator.getNumConflicts()
                       << "!" << std::endl;
 
-            return Mlang::Result(Mlang::Result::Signal::Failure);
+            return Mlang::Result(Mlang::Result::Signal::Failure)
+                .addError("Type inference: Conflicting types");
         }
 
         if (settings.showInferedTypes) {
@@ -183,7 +186,8 @@ Mlang::Result Mlang::executeFile(std::string thePath) {
         return executeString(fileContent);
     } else {
         std::cout << "File empty: " << thePath << std::endl;
-        return Mlang::Result(Mlang::Result::Signal::Failure);
+        return Mlang::Result(Mlang::Result::Signal::Failure)
+            .addError("File reader: Specified file is empty");
     }
 }
 
@@ -196,3 +200,8 @@ Mlang::Result::Result(Mlang::Result::Signal signal)
 Mlang::Result::operator Result::Signal() const { return signal; }
 
 const std::string& Mlang::Result::getString() const { return content; }
+
+Mlang::Result& Mlang::Result::addError(const std::string& errorText) {
+    errors.push_back(errorText);
+    return *this;
+}

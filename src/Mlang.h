@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 class Mlang {
    public:
@@ -15,6 +16,7 @@ class Mlang {
        private:
         Signal signal;
         std::string content;
+        std::vector<std::string> errors;
 
        public:
         Result(Signal signal, const std::string& content);
@@ -23,6 +25,8 @@ class Mlang {
         operator Signal() const;
 
         const std::string& getString() const;
+
+        Result& addError(const std::string& errorText);
     };
 
     struct Settings {
