@@ -5,13 +5,3 @@
 
 - Enable function overloading (number / type of parameters)
 
-- Implement I/O build-in
-
-- Add arrays
-
-- Add structs
-
-- Add pointer
-
-- Add allocation and free
-

@@ -11,7 +11,7 @@ size_t ParseError::getIndex() { return idx; }
 std::string ParseError::getErrorMessage(const std::vector<Token>& tokens,
                                         const std::string& code) {
     // Show expected and found
-    std::string errorMsg = "Expected '" + expected + "' but found '" +
+    std::string errorMsg = "Expecting '" + expected + "' but found '" +
                            tokens[idx].getContent() + "'";
 
     // Show line number and column

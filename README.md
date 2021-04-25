@@ -19,12 +19,16 @@ You can download the executables for Windows and Linux in the [release section](
 - [x] Boolean type
 - [x] Float type
 - [ ] String type
-- [ ] Closures
-- [ ] Printing
-- [ ] Structs
 - [x] Operator precedence
 - [x] Linux support
 - [x] Windows support
+- [x] Error reporting
+- [ ] Closures
+- [ ] Printing
+- [ ] Structs
+- [ ] Arrays
+- [ ] Heap allocation
+- [ ] Pointers
 
 ## Example code
 
@@ -76,6 +80,21 @@ ret false;
 # Operator precedence
 let x = 3 + 10 + 6 / 3 - 2 * 5;
 ret x; # is 5
+```
+
+## Error reporting
+
+Following you find an example on how parsing errors are reported to the user:
+
+```
+Parsing failed:
+Expecting ';' but found 'ret' @3:17
+
+1:  let f(x) = {
+2:      let y = x + 2
+3:                  ^
+
+Consider adding a semicolon to the end of the statement
 ```
 
 ## Dependencies
