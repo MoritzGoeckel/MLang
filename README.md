@@ -104,4 +104,4 @@ Consider adding a semicolon to the end of the statement
 
 ## Getting started
 
-You can find an installation guide in [install.md](/install.md)
+You can find an installation guide in [INSTALL.md](/INSTALL.md)
