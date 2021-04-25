@@ -31,14 +31,15 @@ int main(int argc, char** argv) {
     try {
         auto rs = mlang.executeFile(scriptFile);
         if (rs == Mlang::Result::Signal::Success) {
-            std::cout << "Execution succeeded" << std::endl;
-            // TODO: Print result
+            std::cout << "Result: " << rs.getResult() << std::endl;
+            std::cout << "Execution succeeded!" << std::endl;
         } else {
-            // TODO: Whats the exception?
-            std::cerr << "Execution failed" << std::endl;
+            std::cerr << "Errors: " << rs.getErrorString() << std::endl;
+            std::cerr << "Execution failed!" << std::endl;
         }
     } catch (MException e) {
-        std::cerr << "Execution failed: " << e.show(true) << std::endl;
+        std::cerr << "Execution failed with exception: " << e.show(true)
+                  << std::endl;
         exitCode = 1;
     }
 

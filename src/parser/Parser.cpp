@@ -15,6 +15,11 @@ Parser::Parser(const std::vector<Token>& tokens)
 
 std::shared_ptr<AST::Node> Parser::getAst() { return itsAst; }
 
+std::string Parser::getError() {
+    if (itsAst) return "";
+    return itsError.second;
+}
+
 Parser::CacheResult Parser::checkCache(size_t index, Parser::Rule rule) {
     auto aFoundEntry = cache.find(index);
     if (aFoundEntry == cache.end()) {
@@ -79,6 +84,46 @@ bool Parser::consume(Token::Type expectedType) {
     }
 }
 
+#define doOrFailMessage(action, expected, failMsg) \
+    do {                                           \
+        if (!action) {                             \
+            report(expected, failMsg);             \
+            return nullptr;                        \
+        }                                          \
+    } while (0)
+
+#define doOrFail(action, expected) \
+    do {                           \
+        if (!action) {             \
+            report(expected, "");  \
+            return nullptr;        \
+        }                          \
+    } while (0)
+
+#define fail(failMsg)    \
+    do {                 \
+        report(failMsg); \
+        return nullptr;  \
+    } while (0)
+
+void Parser::report(std::string msg) {
+    if (idx < itsError.first) return;
+    itsError = std::make_pair(idx, msg);
+}
+
+void Parser::report(std::string expected, std::string msg) {
+    if (idx < itsError.first) return;
+
+    std::string errorMsg =
+        "Expected " + expected + " but found " + nextToken().getContent();
+    if (!msg.empty()) errorMsg += "\n" + msg;
+
+    // TODO remove
+    // errorMsg += " idx=" + std::to_string(idx);
+
+    itsError = std::make_pair(idx, errorMsg);
+}
+
 bool Parser::isDone() { return idx == tokens.size(); }
 
 std::vector<std::shared_ptr<AST::Node>> Parser::statementList() {
@@ -91,7 +136,7 @@ std::vector<std::shared_ptr<AST::Node>> Parser::statementList() {
 
 std::shared_ptr<AST::Node> Parser::file() {
     auto statements = statementList();
-    if (!isDone()) return nullptr;
+    doOrFailMessage(isDone(), "EOF", "Could not consume all tokens");
     return std::make_shared<AST::Block>(statements);
 }
 
@@ -110,11 +155,12 @@ std::shared_ptr<AST::Node> Parser::statement() {
 
     if (speculate(&Parser::expression, Parser::Rule::Expression)) {
         auto node = expression();
-        if (!consume(Token::Type::StatementTerminator)) return nullptr;
+        doOrFailMessage(consume(Token::Type::StatementTerminator), ";",
+                        "Missing semicolon");
         return node;
     }
 
-    return nullptr;
+    fail("Expecting ret, block, branching or an expression");
 }
 
 std::shared_ptr<AST::Node> Parser::expression() {
@@ -126,16 +172,15 @@ std::shared_ptr<AST::Node> Parser::expression() {
         return nrExpression();
     }
 
-    return nullptr;
+    fail("Expecting infix call or non-recursive expression");
 }
 
 std::shared_ptr<AST::Node> Parser::parenthesizedExpression() {
-    if (!consume('(')) return nullptr;
-    if (!speculate(&Parser::expression, Parser::Rule::Expression))
-        return nullptr;
+    doOrFail(consume('('), "(");
+    doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
+             "expression");
     auto expr = expression();
-    if (!expr) return nullptr;
-    if (!consume(')')) return nullptr;
+    doOrFail(consume(')'), ")");
     return expr;
 }
 
@@ -169,30 +214,29 @@ std::shared_ptr<AST::Node> Parser::nrExpression() {
     if (speculate(&Parser::identifier, Parser::Rule::Identifier)) {
         return identifier();
     }
-    return nullptr;
+
+    fail("Failed to parse a non recursive expression");
 }
 
 std::shared_ptr<AST::Ret> Parser::ret() {
-    if (!consume(Token::Type::Ret)) return nullptr;
+    doOrFail(consume(Token::Type::Ret), "ret");
 
     if (consume(Token::Type::StatementTerminator)) {
         return std::make_shared<AST::Ret>();
     }
 
-    if (!speculate(&Parser::expression, Parser::Rule::Expression))
-        return nullptr;
+    doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
+             "expression");
     auto expr = expression();
-    if (!expr) return nullptr;
-
-    if (!consume(Token::Type::StatementTerminator)) return nullptr;
+    doOrFail(consume(Token::Type::StatementTerminator), ";");
 
     return std::make_shared<AST::Ret>(expr);
 }
 
 std::shared_ptr<AST::Block> Parser::block() {
-    if (!consume('{')) return nullptr;
+    doOrFail(consume('{'), "{");
     auto statements = statementList();
-    if (!consume('}')) return nullptr;
+    doOrFail(consume('}'), "}");
     return std::make_shared<AST::Block>(statements);
 }
 
@@ -200,16 +244,13 @@ std::shared_ptr<AST::Call> Parser::call() {
     std::shared_ptr<AST::Identifier> method;
     std::vector<std::shared_ptr<AST::Node>> arguments;
 
-    if (!speculate(&Parser::identifier, Parser::Rule::Identifier)) {
-        return nullptr;
-    }
-
+    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
+             "identifier");
     method = identifier();
-    if (!method) return nullptr;
 
-    if (!consume('(')) return nullptr;
-    if (!argumentList(arguments)) return nullptr;
-    if (!consume(')')) return nullptr;
+    doOrFail(consume('('), "(");
+    doOrFail(argumentList(arguments), "list of arguments");
+    doOrFail(consume(')'), ")");
 
     return std::make_shared<AST::Call>(method, arguments);
 }
@@ -241,8 +282,8 @@ bool Parser::identifierList(std::vector<std::shared_ptr<AST::Node>>& theList) {
 }
 
 std::shared_ptr<AST::Identifier> Parser::identifier() {
-    if (!(isNext(Token::Type::Identifier) || isNext(Token::Type::Special)))
-        return nullptr;
+    doOrFail((isNext(Token::Type::Identifier) || isNext(Token::Type::Special)),
+             "identifier or special");
     auto token = consume();
     return std::make_shared<AST::Identifier>(token.getContent());
 }
@@ -256,11 +297,11 @@ std::shared_ptr<AST::Literal> Parser::literal() {
         return boolean();
     }
 
-    return nullptr;
+    fail("Failed to parse literal");
 }
 
 std::shared_ptr<AST::Literal> Parser::integer() {
-    if (!isNext(Token::Type::Number)) return nullptr;
+    doOrFail(isNext(Token::Type::Number), "number");
     auto token = consume();
 
     return std::make_shared<AST::Literal>(token.getContent(),
@@ -287,8 +328,13 @@ std::shared_ptr<AST::Call> Parser::infixCall() {
     }
 
     if (operands.size() < 2u || operators.empty() ||
-        operands.size() != operators.size() + 1u)
-        return nullptr;
+        operands.size() != operators.size() + 1u) {
+        fail(
+            "Unexpected number of operands and operators in infix "
+            "expression: " +
+            std::to_string(operands.size()) + " operands and " +
+            std::to_string(operators.size()) + " operators");
+    }
 
     // Handle operator precedence
     while (!operators.empty()) {
@@ -312,25 +358,30 @@ std::shared_ptr<AST::Call> Parser::infixCall() {
         operators.erase(operatorsIt);
     }
 
-    if (operands.size() != 1u || !operators.empty()) return nullptr;
+    if (operands.size() != 1u || !operators.empty()) {
+        fail("Infix expression could not be reduced: " +
+             std::to_string(operands.size()) + " operands and " +
+             std::to_string(operators.size()) + " operators");
+    }
 
     return std::dynamic_pointer_cast<AST::Call>(operands.front());
 }
 
 std::shared_ptr<AST::Assign> Parser::assignment() {
-    if (!speculate(&Parser::assignmentLeft, Parser::Rule::AssignmentLeft))
-        return nullptr;
+    doOrFail(speculate(&Parser::assignmentLeft, Parser::Rule::AssignmentLeft),
+             "left hand value");
     auto left = assignmentLeft();
 
-    if (!consume(Token::Type::Assignment)) return nullptr;
+    doOrFail(consume(Token::Type::Assignment), "=");
 
-    if (!speculate(&Parser::expression, Parser::Rule::Expression))
-        return nullptr;
+    doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
+             "expression");
     auto right = expression();
 
     return std::make_shared<AST::Assign>(left, right);
 }
 
+// TODO rename to left hand value
 std::shared_ptr<AST::Node> Parser::assignmentLeft() {
     if (speculate(&Parser::functionDecl, Parser::Rule::FunctionDecl)) {
         return functionDecl();
@@ -344,30 +395,30 @@ std::shared_ptr<AST::Node> Parser::assignmentLeft() {
         return identifier();
     }
 
-    return nullptr;
+    fail("Failed to parse left hand value");
 }
 
 std::shared_ptr<AST::Declvar> Parser::variableDecl() {
-    if (!consume(Token::Type::Let)) return nullptr;
-    if (!speculate(&Parser::identifier, Parser::Rule::Identifier))
-        return nullptr;
+    doOrFail(consume(Token::Type::Let), "let");
+    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
+             "identifier");
     return std::make_shared<AST::Declvar>(identifier());
 }
 
 std::shared_ptr<AST::Declfn> Parser::functionDecl() {
-    if (!consume(Token::Type::Let)) return nullptr;
-    if (!speculate(&Parser::identifier, Parser::Rule::Identifier))
-        return nullptr;
+    doOrFail(consume(Token::Type::Let), "let");
+    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
+             "identifier");
     auto method = identifier();
-    if (!consume('(')) return nullptr;
-    std::vector<std::shared_ptr<AST::Node>> params;
+    doOrFail(consume('('), "(");
 
+    std::vector<std::shared_ptr<AST::Node>> params;
     if (!isNext(')')) {
         // Identifier list is optional
-        if (!identifierList(params)) return nullptr;
+        doOrFail(identifierList(params), "list of identifiers");
     }
 
-    if (!consume(')')) return nullptr;
+    doOrFail(consume(')'), ")");
 
     return std::make_shared<AST::Declfn>(method, params);
 }
@@ -381,24 +432,26 @@ std::shared_ptr<AST::Node> Parser::branching() {
         return branchingWhile();
     }
 
-    return nullptr;
+    fail("Could not parse branching");
 }
 
 std::shared_ptr<AST::If> Parser::branchingIf() {
-    if (!consume(Token::Type::If)) return nullptr;
-    if (!consume('(')) return nullptr;
-    if (!speculate(&Parser::expression, Parser::Rule::Expression))
-        return nullptr;
+    doOrFail(consume(Token::Type::If), "if");
+    doOrFail(consume('('), "(");
+    doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
+             "expression");
     auto condition = expression();
-    if (!consume(')')) return nullptr;
+    doOrFail(consume(')'), ")");
 
-    if (!speculate(&Parser::statement, Parser::Rule::Statement)) return nullptr;
+    doOrFailMessage(speculate(&Parser::statement, Parser::Rule::Statement),
+                    "statement", "if needs to be followed by a statement");
     auto positive = statement();
     decltype(statement()) negative{nullptr};
 
     if (consume(Token::Type::Else)) {
-        if (!speculate(&Parser::statement, Parser::Rule::Statement))
-            return nullptr;
+        doOrFailMessage(speculate(&Parser::statement, Parser::Rule::Statement),
+                        "statement",
+                        "else needs to be followed by a statement");
         negative = statement();
     }
 
@@ -406,14 +459,15 @@ std::shared_ptr<AST::If> Parser::branchingIf() {
 }
 
 std::shared_ptr<AST::While> Parser::branchingWhile() {
-    if (!consume(Token::Type::While)) return nullptr;
-    if (!consume('(')) return nullptr;
-    if (!speculate(&Parser::expression, Parser::Rule::Expression))
-        return nullptr;
+    doOrFail(consume(Token::Type::While), "while");
+    doOrFail(consume('('), "(");
+    doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
+             "expression");
     auto condition = expression();
-    if (!consume(')')) return nullptr;
+    doOrFail(consume(')'), ")");
 
-    if (!speculate(&Parser::statement, Parser::Rule::Statement)) return nullptr;
+    doOrFailMessage(speculate(&Parser::statement, Parser::Rule::Statement),
+                    "statement", "while needs to be followed by a statement");
     auto body = statement();
 
     return std::make_shared<AST::While>(condition, body);
@@ -429,6 +483,7 @@ std::shared_ptr<AST::Literal> Parser::boolean() {
         return std::make_shared<AST::Literal>("false",
                                               DataType::Primitive::Bool);
     }
-    return nullptr;
+
+    fail("Could not parse boolean, expecting 'true' or 'false'");
 }
 

@@ -16,7 +16,7 @@ class Mlang {
        private:
         Signal signal;
         std::string content;
-        std::vector<std::string> errors;
+        std::vector<std::string> itsErrors;
 
        public:
         Result(Signal signal, const std::string& content);
@@ -24,9 +24,13 @@ class Mlang {
 
         operator Signal() const;
 
-        const std::string& getString() const;
+        const std::string& getResult() const;
 
         Result& addError(const std::string& errorText);
+
+        const std::vector<std::string>& getErrors() const;
+
+        std::string getErrorString() const;
     };
 
     struct Settings {

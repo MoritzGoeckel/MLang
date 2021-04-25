@@ -74,10 +74,10 @@ Mlang::Result Mlang::executeString(std::string theCode) {
     auto ast = parser.getAst();
 
     if (!ast) {
-        // TODO ouput parse error
         std::cout << "Parse failed!" << std::endl;
         return Mlang::Result(Mlang::Result::Signal::Failure)
-            .addError("Parser: Parsing failed");
+            .addError("Parser: Parsing failed")
+            .addError(parser.getError());
     }
 
     if (settings.showAbastractSyntaxTree) {
@@ -199,9 +199,20 @@ Mlang::Result::Result(Mlang::Result::Signal signal)
 
 Mlang::Result::operator Result::Signal() const { return signal; }
 
-const std::string& Mlang::Result::getString() const { return content; }
+const std::string& Mlang::Result::getResult() const { return content; }
 
 Mlang::Result& Mlang::Result::addError(const std::string& errorText) {
-    errors.push_back(errorText);
+    itsErrors.push_back(errorText);
     return *this;
 }
+
+const std::vector<std::string>& Mlang::Result::getErrors() const {
+    return itsErrors;
+}
+
+std::string Mlang::Result::getErrorString() const {
+    std::string aOutput;
+    for (const auto& aLine : itsErrors) aOutput += "\n" + aLine;
+    return aOutput;
+}
+
