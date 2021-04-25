@@ -30,7 +30,7 @@ You can download the executables for Windows and Linux in the [release section](
 - [ ] Heap allocation
 - [ ] Pointers
 
-## Example code
+## Examples
 
 For more examples refer to the [mfiles](/mfiles/) folder
 
@@ -84,7 +84,7 @@ ret x; # is 5
 
 ## Error reporting
 
-Following you find an example on how parsing errors are reported to the user:
+Following you find an example on how parsing errors are reported to the user
 
 ```
 Parsing failed:
