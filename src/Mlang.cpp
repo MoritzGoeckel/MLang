@@ -74,9 +74,8 @@ Mlang::Result Mlang::executeString(std::string theCode) {
     auto ast = parser.getAst();
 
     if (!ast) {
-        std::cout << "Parse failed!" << std::endl;
         return Mlang::Result(Mlang::Result::Signal::Failure)
-            .addError("Parser: Parsing failed")
+            .addError("Parsing failed:")
             .addError(parser.getError());
     }
 
@@ -118,21 +117,19 @@ Mlang::Result Mlang::executeString(std::string theCode) {
         }
 
         if (!validator.isAllTypesResolved()) {
-            // TODO: Output messages from last run
-            std::cout << "Unresolved types: " << validator.getNumUnresolved()
-                      << "!" << std::endl;
-
+            // TODO: Add messages from last run
             return Mlang::Result(Mlang::Result::Signal::Failure)
-                .addError("Type inference: Could not resolve all types");
+                .addError("Could not resolve " +
+                          std::to_string(validator.getNumUnresolved()) +
+                          " types");
         }
 
         if (validator.hasTypeConflicts()) {
             // TODO: Output messages from last run
-            std::cout << "Conflicting types: " << validator.getNumConflicts()
-                      << "!" << std::endl;
-
             return Mlang::Result(Mlang::Result::Signal::Failure)
-                .addError("Type inference: Conflicting types");
+                .addError("Found " +
+                          std::to_string(validator.getNumConflicts()) +
+                          " conflicting types");
         }
 
         if (settings.showInferedTypes) {
@@ -185,9 +182,8 @@ Mlang::Result Mlang::executeFile(std::string thePath) {
     if (!fileContent.empty()) {
         return executeString(fileContent);
     } else {
-        std::cout << "File empty: " << thePath << std::endl;
         return Mlang::Result(Mlang::Result::Signal::Failure)
-            .addError("File reader: Specified file is empty");
+            .addError("File at " + thePath + " is empty");
     }
 }
 
@@ -211,8 +207,8 @@ const std::vector<std::string>& Mlang::Result::getErrors() const {
 }
 
 std::string Mlang::Result::getErrorString() const {
-    std::string aOutput;
-    for (const auto& aLine : itsErrors) aOutput += "\n" + aLine;
+    std::string aOutput = "";
+    for (const auto& aLine : itsErrors) aOutput += '\n' + aLine;
     return aOutput;
 }
 

@@ -103,11 +103,12 @@ TEST_F(MLangTest, Parser) {
                 std::cout << " " << t;
             }
             std::cout << std::endl;
+
             std::cout << "Parse " << (rootNode ? "succeeded" : "failed!")
                       << std::endl;
 
             if (!rootNode) {
-                std::cout << "Error:" << parser.getError() << std::endl;
+                std::cout << parser.getError() << std::endl;
             }
         }
         ASSERT_TRUE(rootNode);
@@ -139,7 +140,7 @@ TEST_F(MLangTest, ExecuteFiles) {
         try {
             auto rs = mlang.executeString(code);
             if (rs != Mlang::Result::Signal::Success) {
-                std::cout << "Errors: " << rs.getErrorString() << std::endl;
+                std::cout << rs.getErrorString() << std::endl;
             }
 
             ASSERT_TRUE(rs == Mlang::Result::Signal::Success);

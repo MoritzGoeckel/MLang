@@ -6,7 +6,7 @@
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        std::cerr << "Expected 1 argument but got " << std::to_string(argc - 1)
+        std::cout << "Expected 1 argument but got " << std::to_string(argc - 1)
                   << std::endl;
         return 2;
     }
@@ -32,13 +32,11 @@ int main(int argc, char** argv) {
         auto rs = mlang.executeFile(scriptFile);
         if (rs == Mlang::Result::Signal::Success) {
             std::cout << "Result: " << rs.getResult() << std::endl;
-            std::cout << "Execution succeeded!" << std::endl;
         } else {
-            std::cerr << "Errors: " << rs.getErrorString() << std::endl;
-            std::cerr << "Execution failed!" << std::endl;
+            std::cout << rs.getErrorString() << std::endl;
         }
     } catch (MException e) {
-        std::cerr << "Execution failed with exception: " << e.show(true)
+        std::cout << "Execution failed with exception: " << e.show(true)
                   << std::endl;
         exitCode = 1;
     }

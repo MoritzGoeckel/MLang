@@ -111,15 +111,16 @@ bool Parser::consume(Token::Type expectedType) {
 
 void Parser::report(std::string msg) {
     if (idx < itsError.first) return;
-    itsError = std::make_pair(idx, msg);
+    itsError = std::make_pair(idx, "  " + msg);
 }
 
 void Parser::report(std::string expected, std::string msg) {
     if (idx < itsError.first) return;
 
-    std::string errorMsg =
-        "Expected " + expected + " but found " + nextToken().getContent();
-    if (!msg.empty()) errorMsg += "\n" + msg;
+    std::string errorMsg = "  Expected '" + expected + "' but found '" +
+                           nextToken().getContent() + "'";
+
+    if (!msg.empty()) errorMsg += "\n  " + msg;
 
     // TODO remove
     // errorMsg += " idx=" + std::to_string(idx);
@@ -158,8 +159,9 @@ std::shared_ptr<AST::Node> Parser::statement() {
 
     if (speculate(&Parser::expression, Parser::Rule::Expression)) {
         auto node = expression();
-        doOrFailMessage(consume(Token::Type::StatementTerminator), ";",
-                        "Missing semicolon");
+        doOrFailMessage(
+            consume(Token::Type::StatementTerminator), ";",
+            "Consider adding a semicolon to the end of the statement");
         return node;
     }
 
@@ -446,14 +448,14 @@ std::shared_ptr<AST::If> Parser::branchingIf() {
     consumeOrFail(')', ")");
 
     doOrFailMessage(speculate(&Parser::statement, Parser::Rule::Statement),
-                    "statement", "if needs to be followed by a statement");
+                    "statement", "'if' needs to be followed by a statement");
     auto positive = statement();
     decltype(statement()) negative{nullptr};
 
     if (consume(Token::Type::Else)) {
         doOrFailMessage(speculate(&Parser::statement, Parser::Rule::Statement),
                         "statement",
-                        "else needs to be followed by a statement");
+                        "'else' needs to be followed by a statement");
         negative = statement();
     }
 
@@ -469,7 +471,7 @@ std::shared_ptr<AST::While> Parser::branchingWhile() {
     consumeOrFail(')', ")");
 
     doOrFailMessage(speculate(&Parser::statement, Parser::Rule::Statement),
-                    "statement", "while needs to be followed by a statement");
+                    "statement", "'while' needs to be followed by a statement");
     auto body = statement();
 
     return std::make_shared<AST::While>(condition, body);
