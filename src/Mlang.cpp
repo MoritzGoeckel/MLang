@@ -76,7 +76,7 @@ Mlang::Result Mlang::executeString(std::string theCode) {
     if (!ast) {
         return Mlang::Result(Mlang::Result::Signal::Failure)
             .addError("Parsing failed:")
-            .addError(parser.getError());
+            .addError(parser.getError(theCode));
     }
 
     if (settings.showAbastractSyntaxTree) {

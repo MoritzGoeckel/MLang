@@ -27,15 +27,20 @@ bool isStatementTerminator(char c) {
 
 }  // namespace CharCategories
 
-Token::Token() : type(Token::Type::None), content("") {}
+// TODO Put token in its own file
 
-Token::Token(const std::string& content)
-    : type(Token::Type::None), content(content) {
+Token::Token() : type(Token::Type::None), content(""), column(0u), line(0u) {}
+
+Token::Token(const std::string& content, size_t line, size_t column)
+    : type(Token::Type::None), content(content), line(line), column(column) {
     determineType();
 }
 
-Token::Token(std::string&& content)
-    : type(Token::Type::None), content(std::move(content)) {
+Token::Token(std::string&& content, size_t line, size_t column)
+    : type(Token::Type::None),
+      content(std::move(content)),
+      line(line),
+      column(column) {
     determineType();
 }
 
@@ -47,6 +52,7 @@ char Token::getChar() {
     else
         return static_cast<char>(0u);
 }
+
 Token::Type Token::getType() const { return type; }
 
 bool Token::isTrivialContent() const {
@@ -156,6 +162,13 @@ void Token::determineType() {
     type = Token::Type::Identifier;
 }
 
+size_t Token::getLine() const {
+    // TODO Should not be type::none
+    return line;
+}
+
+size_t Token::getColumn() const { return column; }
+
 std::string to_string(Token::Type theType) {
     switch (theType) {
         case Token::Type::Identifier:
@@ -203,8 +216,22 @@ std::ostream& operator<<(std::ostream& theStream, const Token& theToken) {
 }
 
 Tokenizer::Tokenizer(const std::string& theInput)
-    : tokens(), buffer(), isAlphanumericBuffer(true), inComment(false) {
+    : tokens(),
+      buffer(),
+      isAlphanumericBuffer(true),
+      inComment(false),
+      line(0u),
+      column(0u),
+      bufferStartLine(0u),
+      bufferStartColumn(0u) {
     for (char c : theInput) {
+        if (c == '\n') {
+            ++line;
+            column = 0u;
+        } else {
+            ++column;
+        }
+
         if (CharCategories::isCommentStart(c)) {
             inComment = true;
             continue;
@@ -222,7 +249,7 @@ Tokenizer::Tokenizer(const std::string& theInput)
         // Parenthesis are their own tokens
         if (CharCategories::isParen(c)) {
             pushBuffer();
-            tokens.push_back(std::string(1, c));
+            tokens.emplace_back(std::string(1, c), line, column - 1u);
             continue;
         }
 
@@ -234,6 +261,8 @@ Tokenizer::Tokenizer(const std::string& theInput)
 
         // Its either special or alphanumeric. Push.
         if (buffer.empty()) {
+            bufferStartColumn = column;
+            bufferStartLine = line;
             addToBuffer(c);
             isAlphanumericBuffer = aAlphanumeric;
             continue;
@@ -256,7 +285,7 @@ const std::vector<Token>& Tokenizer::getTokens() const { return tokens; }
 
 void Tokenizer::pushBuffer() {
     if (!buffer.empty()) {
-        tokens.push_back(Token(buffer));
+        tokens.emplace_back(buffer, bufferStartLine, bufferStartColumn - 1u);
         buffer.clear();
     }
 }

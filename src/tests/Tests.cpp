@@ -108,7 +108,7 @@ TEST_F(MLangTest, Parser) {
                       << std::endl;
 
             if (!rootNode) {
-                std::cout << parser.getError() << std::endl;
+                std::cout << parser.getError(fileContent) << std::endl;
             }
         }
         ASSERT_TRUE(rootNode);

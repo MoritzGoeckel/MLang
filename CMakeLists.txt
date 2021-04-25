@@ -50,6 +50,7 @@ add_executable(Tests
   src/parser/OperatorPrecedence.cpp
   src/parser/Parser.cpp
   src/parser/Tokenizer.cpp
+  src/parser/ParseError.cpp
 )
 target_link_libraries(Tests
     gtest pthread)
@@ -71,6 +72,7 @@ add_executable(ExecuteFile
   src/parser/OperatorPrecedence.cpp
   src/parser/Parser.cpp
   src/parser/Tokenizer.cpp
+  src/parser/ParseError.cpp
 )
 target_link_libraries(ExecuteFile
     gtest pthread)

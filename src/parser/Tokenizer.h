@@ -41,13 +41,16 @@ class Token {
     // TODO: String literal
 
     Token();
-    Token(const std::string& content);
-    Token(std::string&& content);
+    Token(const std::string& content, size_t line, size_t column);
+    Token(std::string&& content, size_t line, size_t column);
 
     const std::string& getContent() const;
     char getChar();
     Type getType() const;
     bool isTrivialContent() const;
+
+    size_t getLine() const;
+    size_t getColumn() const;
 
    private:
     bool handleIsKeyword();
@@ -55,6 +58,8 @@ class Token {
 
     Type type;
     std::string content;
+    size_t line;
+    size_t column;
 };
 
 std::string to_string(Token::Type theType);
@@ -76,5 +81,11 @@ class Tokenizer {
     std::string buffer;
     bool isAlphanumericBuffer;
     bool inComment;
+
+    size_t line;
+    size_t column;
+
+    size_t bufferStartLine;
+    size_t bufferStartColumn;
 };
 

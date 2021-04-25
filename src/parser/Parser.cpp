@@ -15,9 +15,14 @@ Parser::Parser(const std::vector<Token>& tokens)
 
 std::shared_ptr<AST::Node> Parser::getAst() { return itsAst; }
 
+std::string Parser::getError(const std::string& sourceCode) {
+    if (itsAst) return "";
+    return itsError.getErrorMessage(tokens, sourceCode);
+}
+
 std::string Parser::getError() {
     if (itsAst) return "";
-    return itsError.second;
+    return itsError.getErrorMessage(tokens, "");
 }
 
 Parser::CacheResult Parser::checkCache(size_t index, Parser::Rule rule) {
@@ -110,22 +115,13 @@ bool Parser::consume(Token::Type expectedType) {
     } while (0)
 
 void Parser::report(std::string msg) {
-    if (idx < itsError.first) return;
-    itsError = std::make_pair(idx, "  " + msg);
+    if (idx < itsError.getIndex()) return;
+    itsError = ParseError(idx, "", msg);
 }
 
 void Parser::report(std::string expected, std::string msg) {
-    if (idx < itsError.first) return;
-
-    std::string errorMsg = "  Expected '" + expected + "' but found '" +
-                           nextToken().getContent() + "'";
-
-    if (!msg.empty()) errorMsg += "\n  " + msg;
-
-    // TODO remove
-    // errorMsg += " idx=" + std::to_string(idx);
-
-    itsError = std::make_pair(idx, errorMsg);
+    if (idx < itsError.getIndex()) return;
+    itsError = ParseError(idx, expected, msg);
 }
 
 bool Parser::isDone() { return idx == tokens.size(); }

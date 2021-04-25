@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "../ast/Node.h"
+#include "ParseError.h"
 #include "Tokenizer.h"
 
 class Parser {
@@ -12,7 +13,9 @@ class Parser {
     Parser(const std::vector<Token>& tokens);
 
     std::shared_ptr<AST::Node> getAst();
+
     std::string getError();
+    std::string getError(const std::string& sourceCode);
 
    private:
     enum class Rule {
@@ -116,7 +119,7 @@ class Parser {
     std::map<size_t /*idx*/, std::map<Rule, CacheResult>> cache;
 
     std::shared_ptr<AST::Node> itsAst;
-    std::pair<size_t /*idx*/, std::string /*msg*/> itsError;
+    ParseError itsError;
 
     std::vector<Token> tokens;
     std::vector<size_t> markers;
