@@ -100,6 +100,9 @@ bool Parser::consume(Token::Type expectedType) {
         }                          \
     } while (0)
 
+#define consumeOrFail(tokenType, expected) \
+    doOrFail(consume(tokenType), expected)
+
 #define fail(failMsg)    \
     do {                 \
         report(failMsg); \
@@ -176,11 +179,11 @@ std::shared_ptr<AST::Node> Parser::expression() {
 }
 
 std::shared_ptr<AST::Node> Parser::parenthesizedExpression() {
-    doOrFail(consume('('), "(");
+    consumeOrFail('(', "(");
     doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
              "expression");
     auto expr = expression();
-    doOrFail(consume(')'), ")");
+    consumeOrFail(')', ")");
     return expr;
 }
 
@@ -219,7 +222,7 @@ std::shared_ptr<AST::Node> Parser::nrExpression() {
 }
 
 std::shared_ptr<AST::Ret> Parser::ret() {
-    doOrFail(consume(Token::Type::Ret), "ret");
+    consumeOrFail(Token::Type::Ret, "ret");
 
     if (consume(Token::Type::StatementTerminator)) {
         return std::make_shared<AST::Ret>();
@@ -228,15 +231,15 @@ std::shared_ptr<AST::Ret> Parser::ret() {
     doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
              "expression");
     auto expr = expression();
-    doOrFail(consume(Token::Type::StatementTerminator), ";");
+    consumeOrFail(Token::Type::StatementTerminator, ";");
 
     return std::make_shared<AST::Ret>(expr);
 }
 
 std::shared_ptr<AST::Block> Parser::block() {
-    doOrFail(consume('{'), "{");
+    consumeOrFail('{', "{");
     auto statements = statementList();
-    doOrFail(consume('}'), "}");
+    consumeOrFail('}', "}");
     return std::make_shared<AST::Block>(statements);
 }
 
@@ -248,9 +251,9 @@ std::shared_ptr<AST::Call> Parser::call() {
              "identifier");
     method = identifier();
 
-    doOrFail(consume('('), "(");
+    consumeOrFail('(', "(");
     doOrFail(argumentList(arguments), "list of arguments");
-    doOrFail(consume(')'), ")");
+    consumeOrFail(')', ")");
 
     return std::make_shared<AST::Call>(method, arguments);
 }
@@ -368,11 +371,11 @@ std::shared_ptr<AST::Call> Parser::infixCall() {
 }
 
 std::shared_ptr<AST::Assign> Parser::assignment() {
-    doOrFail(speculate(&Parser::assignmentLeft, Parser::Rule::AssignmentLeft),
+    doOrFail(speculate(&Parser::leftHandValue, Parser::Rule::LeftHandValue),
              "left hand value");
-    auto left = assignmentLeft();
+    auto left = leftHandValue();
 
-    doOrFail(consume(Token::Type::Assignment), "=");
+    consumeOrFail(Token::Type::Assignment, "=");
 
     doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
              "expression");
@@ -381,8 +384,7 @@ std::shared_ptr<AST::Assign> Parser::assignment() {
     return std::make_shared<AST::Assign>(left, right);
 }
 
-// TODO rename to left hand value
-std::shared_ptr<AST::Node> Parser::assignmentLeft() {
+std::shared_ptr<AST::Node> Parser::leftHandValue() {
     if (speculate(&Parser::functionDecl, Parser::Rule::FunctionDecl)) {
         return functionDecl();
     }
@@ -399,18 +401,18 @@ std::shared_ptr<AST::Node> Parser::assignmentLeft() {
 }
 
 std::shared_ptr<AST::Declvar> Parser::variableDecl() {
-    doOrFail(consume(Token::Type::Let), "let");
+    consumeOrFail(Token::Type::Let, "let");
     doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
              "identifier");
     return std::make_shared<AST::Declvar>(identifier());
 }
 
 std::shared_ptr<AST::Declfn> Parser::functionDecl() {
-    doOrFail(consume(Token::Type::Let), "let");
+    consumeOrFail(Token::Type::Let, "let");
     doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
              "identifier");
     auto method = identifier();
-    doOrFail(consume('('), "(");
+    consumeOrFail('(', "(");
 
     std::vector<std::shared_ptr<AST::Node>> params;
     if (!isNext(')')) {
@@ -418,7 +420,7 @@ std::shared_ptr<AST::Declfn> Parser::functionDecl() {
         doOrFail(identifierList(params), "list of identifiers");
     }
 
-    doOrFail(consume(')'), ")");
+    consumeOrFail(')', ")");
 
     return std::make_shared<AST::Declfn>(method, params);
 }
@@ -436,12 +438,12 @@ std::shared_ptr<AST::Node> Parser::branching() {
 }
 
 std::shared_ptr<AST::If> Parser::branchingIf() {
-    doOrFail(consume(Token::Type::If), "if");
-    doOrFail(consume('('), "(");
+    consumeOrFail(Token::Type::If, "if");
+    consumeOrFail('(', "(");
     doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
              "expression");
     auto condition = expression();
-    doOrFail(consume(')'), ")");
+    consumeOrFail(')', ")");
 
     doOrFailMessage(speculate(&Parser::statement, Parser::Rule::Statement),
                     "statement", "if needs to be followed by a statement");
@@ -459,12 +461,12 @@ std::shared_ptr<AST::If> Parser::branchingIf() {
 }
 
 std::shared_ptr<AST::While> Parser::branchingWhile() {
-    doOrFail(consume(Token::Type::While), "while");
-    doOrFail(consume('('), "(");
+    consumeOrFail(Token::Type::While, "while");
+    consumeOrFail('(', "(");
     doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
              "expression");
     auto condition = expression();
-    doOrFail(consume(')'), ")");
+    consumeOrFail(')', ")");
 
     doOrFailMessage(speculate(&Parser::statement, Parser::Rule::Statement),
                     "statement", "while needs to be followed by a statement");

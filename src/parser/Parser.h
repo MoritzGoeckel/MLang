@@ -29,7 +29,7 @@ class Parser {
         Identifier,
         Integer,
         Boolean,
-        AssignmentLeft,
+        LeftHandValue,
         VariableDecl,
         FunctionDecl,
         Branching,
@@ -105,7 +105,7 @@ class Parser {
     std::shared_ptr<AST::Literal> integer();
     std::shared_ptr<AST::Call> infixCall();
     std::shared_ptr<AST::Assign> assignment();
-    std::shared_ptr<AST::Node> assignmentLeft();
+    std::shared_ptr<AST::Node> leftHandValue();
     std::shared_ptr<AST::Declvar> variableDecl();
     std::shared_ptr<AST::Declfn> functionDecl();
     std::shared_ptr<AST::Node> branching();
