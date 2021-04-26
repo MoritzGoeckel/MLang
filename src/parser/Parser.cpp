@@ -286,13 +286,13 @@ bool Parser::argumentList(std::vector<std::shared_ptr<AST::Node>>& theList) {
     return true;
 }
 
-// TODO: Identifier as args
-bool Parser::identifierList(std::vector<std::shared_ptr<AST::Node>>& theList) {
+bool Parser::identifierList(
+    std::vector<std::shared_ptr<AST::Identifier>>& theList) {
     do {
         if (speculate(&Parser::identifier, Parser::Rule::Identifier)) {
             auto ident = identifier();
             if (!ident) return false;
-            theList.push_back(ident);  // TODO move
+            theList.emplace_back(std::move(ident));
         } else {
             return false;
         }
@@ -434,7 +434,7 @@ std::shared_ptr<AST::Declfn> Parser::functionDecl() {
     auto method = identifier();
     consumeOrFail('(', "(");
 
-    std::vector<std::shared_ptr<AST::Node>> params;
+    std::vector<std::shared_ptr<AST::Identifier>> params;
     if (!isNext(')')) {
         // Identifier list is optional
         doOrFail(identifierList(params), "list of identifiers");

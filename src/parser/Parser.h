@@ -95,7 +95,7 @@ class Parser {
     bool isDone();
 
     bool argumentList(std::vector<std::shared_ptr<AST::Node>>& theList);
-    bool identifierList(std::vector<std::shared_ptr<AST::Node>>& theList);
+    bool identifierList(std::vector<std::shared_ptr<AST::Identifier>>& theList);
 
     std::vector<std::shared_ptr<AST::Node>> statementList();
 

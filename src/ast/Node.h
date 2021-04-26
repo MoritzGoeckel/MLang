@@ -191,17 +191,14 @@ class Call : public Node {
     std::vector<std::shared_ptr<Node>> arguments;
 
    public:
-    Call(std::shared_ptr<Node> method,  // TODO identifier?
+    Call(std::shared_ptr<Identifier> method,
          std::vector<std::shared_ptr<Node>> arguments)
-        : method(std::static_pointer_cast<Identifier>(method)),
-          arguments(arguments) {}
+        : method(method), arguments(arguments) {}
 
-    Call(std::shared_ptr<Node> method,  // TODO identifier?
+    Call(std::shared_ptr<Identifier> method,
          std::vector<std::shared_ptr<Node>> arguments,
          const SourcePosition& thePosition)
-        : Node(thePosition),
-          method(std::static_pointer_cast<Identifier>(method)),
-          arguments(arguments) {}
+        : Node(thePosition), method(method), arguments(arguments) {}
 
     std::vector<std::shared_ptr<Node>>& getArguments() { return arguments; }
     std::shared_ptr<Identifier>& getIdentifier() { return method; }
@@ -315,12 +312,10 @@ class Declvar : public Node {
     std::shared_ptr<Identifier> name;
 
    public:
-    Declvar(std::shared_ptr<Node> name)  // TODO identifier
-        : name(std::static_pointer_cast<Identifier>(name)) {}
+    Declvar(std::shared_ptr<Identifier> name) : name(name) {}
 
-    Declvar(std::shared_ptr<Node> name,
-            const SourcePosition& thePosition)  // TODO identifier
-        : Node(thePosition), name(std::static_pointer_cast<Identifier>(name)) {}
+    Declvar(std::shared_ptr<Identifier> name, const SourcePosition& thePosition)
+        : Node(thePosition), name(name) {}
 
     std::shared_ptr<Identifier> getIdentifier() { return name; }
 
@@ -347,22 +342,20 @@ class Declfn : public Node {
     std::vector<std::shared_ptr<Identifier>> parameters;
 
    public:
-    Declfn(std::shared_ptr<Node> name,  // TODO ident
-           std::vector<std::shared_ptr<Node>> parameters)
-        : name(std::static_pointer_cast<Identifier>(name)), parameters() {
+    Declfn(std::shared_ptr<Identifier> name,
+           std::vector<std::shared_ptr<Identifier>> parameters)
+        : name(name), parameters() {
         for (auto& p : parameters) {
-            this->parameters.push_back(std::static_pointer_cast<Identifier>(p));
+            this->parameters.push_back(p);
         }
     }
 
-    Declfn(std::shared_ptr<Node> name,  // TODO ident
-           std::vector<std::shared_ptr<Node>> parameters,
+    Declfn(std::shared_ptr<Identifier> name,
+           std::vector<std::shared_ptr<Identifier>> parameters,
            const SourcePosition& thePosition)
-        : Node(thePosition),
-          name(std::static_pointer_cast<Identifier>(name)),
-          parameters() {
+        : Node(thePosition), name(name), parameters() {
         for (auto& p : parameters) {
-            this->parameters.push_back(std::static_pointer_cast<Identifier>(p));
+            this->parameters.push_back(p);
         }
     }
 
