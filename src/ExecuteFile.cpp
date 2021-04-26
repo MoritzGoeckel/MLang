@@ -2,7 +2,7 @@
 #include <string>
 
 #include "Mlang.h"
-#include "exceptions/Exceptions.h"
+#include "error/Exceptions.h"
 
 int main(int argc, char** argv) {
     if (argc != 2) {

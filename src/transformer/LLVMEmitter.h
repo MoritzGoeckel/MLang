@@ -24,7 +24,7 @@
 
 #include "../ast/DataType.h"
 #include "../ast/Node.h"
-#include "../exceptions/Exceptions.h"
+#include "../error/Exceptions.h"
 #include "TreeWalker.h"
 
 /*

@@ -23,7 +23,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "../Mlang.h"
-#include "../exceptions/Exceptions.h"
+#include "../error/Exceptions.h"
 
 #include "llvm/ExecutionEngine/Interpreter.h"
 //#include "llvm/ExecutionEngine/Jit.h"

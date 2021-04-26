@@ -2,9 +2,11 @@
 
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #include "../ast/DataType.h"
 #include "../ast/Node.h"
+#include "../error/TypeError.h"
 #include "TreeWalker.h"
 
 /*
@@ -15,14 +17,18 @@ class HasUnknownTypes : TreeWalker {
    private:
     size_t unresolvedNodes;
     size_t typeConflicts;
+    std::vector<TypeError> itsErrors;
 
    public:
-    HasUnknownTypes() : unresolvedNodes(0u), typeConflicts(0u) {}
+    HasUnknownTypes() : unresolvedNodes(0u), typeConflicts(0u), itsErrors() {}
 
     void reset() {
         unresolvedNodes = 0u;
         typeConflicts = 0u;
+        itsErrors.clear();
     }
+
+    const std::vector<TypeError>& getErrors() { return itsErrors; }
 
     bool isAllTypesResolved() {
         return unresolvedNodes == 0u && typeConflicts == 0u;

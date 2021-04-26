@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "../exceptions/Exceptions.h"
+#include "../error/Exceptions.h"
 #include "../parser/SourcePosition.h"
 #include "DataType.h"
 

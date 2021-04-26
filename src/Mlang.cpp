@@ -116,20 +116,16 @@ Mlang::Result Mlang::executeString(std::string theCode) {
             }
         }
 
-        if (!validator.isAllTypesResolved()) {
-            // TODO: Add messages from last run
+        const auto& aTypeErrors = validator.getErrors();
+        if (!aTypeErrors.empty()) {
+            // We only add one error
             return Mlang::Result(Mlang::Result::Signal::Failure)
-                .addError("Could not resolve " +
-                          std::to_string(validator.getNumUnresolved()) +
-                          " types");
+                .addError("Type inference failed:\n" +
+                          aTypeErrors.front().generateString(theCode));
         }
 
-        if (validator.hasTypeConflicts()) {
-            // TODO: Output messages from last run
-            return Mlang::Result(Mlang::Result::Signal::Failure)
-                .addError("Found " +
-                          std::to_string(validator.getNumConflicts()) +
-                          " conflicting types");
+        if (!validator.isAllTypesResolved() || validator.hasTypeConflicts()) {
+            throwConstraintViolated("Unresolved types and no errors");
         }
 
         if (settings.showInferedTypes) {

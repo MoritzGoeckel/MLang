@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "../Mlang.h"
-#include "../exceptions/Exceptions.h"
+#include "../error/Exceptions.h"
 #include "../parser/Parser.h"
 #include "../parser/Tokenizer.h"
 #include "gtest/gtest.h"

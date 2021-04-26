@@ -45,13 +45,15 @@ add_executable(Tests
   src/transformer/InstantiateFunctions.cpp
   src/transformer/TreeWalker.cpp
   src/preprocessor/Preprocessor.cpp
-  src/exceptions/Exceptions.cpp
+  src/error/Exceptions.cpp
   src/ast/DataType.cpp
   src/parser/OperatorPrecedence.cpp
   src/parser/Parser.cpp
   src/parser/Tokenizer.cpp
   src/parser/ParseError.cpp
   src/parser/SourcePosition.cpp
+  src/error/GenerateMarkedCode.cpp
+  src/error/TypeError.cpp
 )
 target_link_libraries(Tests
     gtest pthread)
@@ -68,13 +70,15 @@ add_executable(ExecuteFile
   src/transformer/InstantiateFunctions.cpp
   src/transformer/TreeWalker.cpp
   src/preprocessor/Preprocessor.cpp
-  src/exceptions/Exceptions.cpp
+  src/error/Exceptions.cpp
   src/ast/DataType.cpp
   src/parser/OperatorPrecedence.cpp
   src/parser/Parser.cpp
   src/parser/Tokenizer.cpp
   src/parser/ParseError.cpp
   src/parser/SourcePosition.cpp
+  src/error/GenerateMarkedCode.cpp
+  src/error/TypeError.cpp
 )
 target_link_libraries(ExecuteFile
     gtest pthread)
