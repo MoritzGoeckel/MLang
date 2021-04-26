@@ -29,18 +29,17 @@ bool isStatementTerminator(char c) {
 
 // TODO Put token in its own file
 
-Token::Token() : type(Token::Type::None), content(""), column(0u), line(0u) {}
+Token::Token() : type(Token::Type::None), content(""), itsPosition(0u, 0u) {}
 
 Token::Token(const std::string& content, size_t line, size_t column)
-    : type(Token::Type::None), content(content), line(line), column(column) {
+    : type(Token::Type::None), content(content), itsPosition(line, column) {
     determineType();
 }
 
 Token::Token(std::string&& content, size_t line, size_t column)
     : type(Token::Type::None),
       content(std::move(content)),
-      line(line),
-      column(column) {
+      itsPosition(line, column) {
     determineType();
 }
 
@@ -162,12 +161,7 @@ void Token::determineType() {
     type = Token::Type::Identifier;
 }
 
-size_t Token::getLine() const {
-    // TODO Should not be type::none
-    return line;
-}
-
-size_t Token::getColumn() const { return column; }
+const SourcePosition& Token::getPosition() const { return itsPosition; }
 
 std::string to_string(Token::Type theType) {
     switch (theType) {

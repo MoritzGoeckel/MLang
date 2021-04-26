@@ -15,9 +15,9 @@ std::string ParseError::getErrorMessage(const std::vector<Token>& tokens,
                            tokens[idx].getContent() + "'";
 
     // Show line number and column
-    const auto& lastToken = idx > 0u ? tokens[idx - 1u] : tokens[idx];
-    errorMsg += " @" + std::to_string(lastToken.getLine() + 1u) + ":" +
-                std::to_string(lastToken.getColumn() + 1u);
+    const auto& lastTokenPosition =
+        idx > 0u ? tokens[idx - 1u].getPosition() : tokens[idx].getPosition();
+    errorMsg += " @" + lastTokenPosition.toString();
 
     // Show faulty part of code if available
     if (!code.empty()) {
@@ -29,7 +29,7 @@ std::string ParseError::getErrorMessage(const std::vector<Token>& tokens,
         size_t i = 0u;
 
         // Line of token or one line before
-        size_t targetLine = lastToken.getLine();
+        size_t targetLine = lastTokenPosition.getLine();
         if (targetLine > 0) targetLine -= 1u;
 
         // Seek until the line before the token
@@ -40,7 +40,7 @@ std::string ParseError::getErrorMessage(const std::vector<Token>& tokens,
 
         // Print code & line numbers
         errorMsg += std::to_string(line) + ":  ";
-        while (i < code.size() && line <= lastToken.getLine()) {
+        while (i < code.size() && line <= lastTokenPosition.getLine()) {
             errorMsg += code[i];  // Print code
             if (code[i] == '\n') {
                 line++;
@@ -51,7 +51,8 @@ std::string ParseError::getErrorMessage(const std::vector<Token>& tokens,
         }
 
         // Print pointer to previous token
-        for (size_t i = 0; i < lastToken.getColumn(); ++i) errorMsg += ' ';
+        for (size_t i = 0; i < lastTokenPosition.getColumn(); ++i)
+            errorMsg += ' ';
         errorMsg += '^';
         errorMsg += '\n';
     }

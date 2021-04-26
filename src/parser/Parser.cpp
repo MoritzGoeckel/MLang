@@ -60,6 +60,23 @@ Token::Type Parser::lookAhead_t(size_t offset) {
     return tokens[idx + offset].getType();
 }
 
+Token Parser::lastToken() {
+    if (tokens.empty()) return Token();
+    return tokens[tokens.size() - 1u];
+}
+
+Token Parser::previousToken() {
+    if (idx == 0u) return Token();
+    return tokens[idx - 1u];
+}
+
+const SourcePosition& Parser::getPosition() {
+    static SourcePosition aEmpty;
+    if (tokens.empty()) return aEmpty;
+    if (idx == 0u) return tokens[idx].getPosition();
+    return tokens[idx - 1u].getPosition();
+}
+
 Token Parser::nextToken() { return lookAhead(0u); }
 
 bool Parser::isNext(Token::Type type) { return lookAhead_t(0) == type; }
@@ -137,7 +154,7 @@ std::vector<std::shared_ptr<AST::Node>> Parser::statementList() {
 std::shared_ptr<AST::Node> Parser::file() {
     auto statements = statementList();
     doOrFailMessage(isDone(), "EOF", "Could not consume all tokens");
-    return std::make_shared<AST::Block>(statements);
+    return std::make_shared<AST::Block>(statements, lastToken().getPosition());
 }
 
 std::shared_ptr<AST::Node> Parser::statement() {
@@ -223,7 +240,7 @@ std::shared_ptr<AST::Ret> Parser::ret() {
     consumeOrFail(Token::Type::Ret, "ret");
 
     if (consume(Token::Type::StatementTerminator)) {
-        return std::make_shared<AST::Ret>();
+        return std::make_shared<AST::Ret>(getPosition());
     }
 
     doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
@@ -231,14 +248,14 @@ std::shared_ptr<AST::Ret> Parser::ret() {
     auto expr = expression();
     consumeOrFail(Token::Type::StatementTerminator, ";");
 
-    return std::make_shared<AST::Ret>(expr);
+    return std::make_shared<AST::Ret>(expr, getPosition());
 }
 
 std::shared_ptr<AST::Block> Parser::block() {
     consumeOrFail('{', "{");
     auto statements = statementList();
     consumeOrFail('}', "}");
-    return std::make_shared<AST::Block>(statements);
+    return std::make_shared<AST::Block>(statements, getPosition());
 }
 
 std::shared_ptr<AST::Call> Parser::call() {
@@ -253,7 +270,8 @@ std::shared_ptr<AST::Call> Parser::call() {
     doOrFail(argumentList(arguments), "list of arguments");
     consumeOrFail(')', ")");
 
-    return std::make_shared<AST::Call>(method, arguments);
+    return std::make_shared<AST::Call>(method, arguments,
+                                       method->getPosition());
 }
 
 bool Parser::argumentList(std::vector<std::shared_ptr<AST::Node>>& theList) {
@@ -286,7 +304,7 @@ std::shared_ptr<AST::Identifier> Parser::identifier() {
     doOrFail((isNext(Token::Type::Identifier) || isNext(Token::Type::Special)),
              "identifier or special");
     auto token = consume();
-    return std::make_shared<AST::Identifier>(token.getContent());
+    return std::make_shared<AST::Identifier>(token.getContent(), getPosition());
 }
 
 std::shared_ptr<AST::Literal> Parser::literal() {
@@ -305,8 +323,8 @@ std::shared_ptr<AST::Literal> Parser::integer() {
     doOrFail(isNext(Token::Type::Number), "number");
     auto token = consume();
 
-    return std::make_shared<AST::Literal>(token.getContent(),
-                                          DataType::Primitive::Int);
+    return std::make_shared<AST::Literal>(
+        token.getContent(), DataType::Primitive::Int, getPosition());
 }
 
 std::shared_ptr<AST::Call> Parser::infixCall() {
@@ -349,9 +367,11 @@ std::shared_ptr<AST::Call> Parser::infixCall() {
             ++operatorsIt;
         }
 
-        auto reducedOperand = std::make_shared<AST::Call>(
-            *operatorsIt, std::vector<std::shared_ptr<AST::Node>>{
-                              *operandsIt, *(operandsIt + 1)});
+        auto reducedOperand =
+            std::make_shared<AST::Call>(*operatorsIt,
+                                        std::vector<std::shared_ptr<AST::Node>>{
+                                            *operandsIt, *(operandsIt + 1)},
+                                        (*operatorsIt)->getPosition());
 
         *operandsIt = reducedOperand;
 
@@ -373,13 +393,15 @@ std::shared_ptr<AST::Assign> Parser::assignment() {
              "left hand value");
     auto left = leftHandValue();
 
+    const auto& equalSignToken = nextToken();
     consumeOrFail(Token::Type::Assignment, "=");
 
     doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
              "expression");
     auto right = expression();
 
-    return std::make_shared<AST::Assign>(left, right);
+    return std::make_shared<AST::Assign>(left, right,
+                                         equalSignToken.getPosition());
 }
 
 std::shared_ptr<AST::Node> Parser::leftHandValue() {
@@ -402,7 +424,7 @@ std::shared_ptr<AST::Declvar> Parser::variableDecl() {
     consumeOrFail(Token::Type::Let, "let");
     doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
              "identifier");
-    return std::make_shared<AST::Declvar>(identifier());
+    return std::make_shared<AST::Declvar>(identifier(), getPosition());
 }
 
 std::shared_ptr<AST::Declfn> Parser::functionDecl() {
@@ -420,7 +442,7 @@ std::shared_ptr<AST::Declfn> Parser::functionDecl() {
 
     consumeOrFail(')', ")");
 
-    return std::make_shared<AST::Declfn>(method, params);
+    return std::make_shared<AST::Declfn>(method, params, method->getPosition());
 }
 
 std::shared_ptr<AST::Node> Parser::branching() {
@@ -437,6 +459,7 @@ std::shared_ptr<AST::Node> Parser::branching() {
 
 std::shared_ptr<AST::If> Parser::branchingIf() {
     consumeOrFail(Token::Type::If, "if");
+    const auto& pos = getPosition();
     consumeOrFail('(', "(");
     doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
              "expression");
@@ -455,11 +478,12 @@ std::shared_ptr<AST::If> Parser::branchingIf() {
         negative = statement();
     }
 
-    return std::make_shared<AST::If>(condition, positive, negative);
+    return std::make_shared<AST::If>(condition, positive, negative, pos);
 }
 
 std::shared_ptr<AST::While> Parser::branchingWhile() {
     consumeOrFail(Token::Type::While, "while");
+    const auto& pos = getPosition();
     consumeOrFail('(', "(");
     doOrFail(speculate(&Parser::expression, Parser::Rule::Expression),
              "expression");
@@ -470,18 +494,18 @@ std::shared_ptr<AST::While> Parser::branchingWhile() {
                     "statement", "'while' needs to be followed by a statement");
     auto body = statement();
 
-    return std::make_shared<AST::While>(condition, body);
+    return std::make_shared<AST::While>(condition, body, pos);
 }
 
 std::shared_ptr<AST::Literal> Parser::boolean() {
     if (consume(Token::Type::True)) {
-        return std::make_shared<AST::Literal>("true",
-                                              DataType::Primitive::Bool);
+        return std::make_shared<AST::Literal>("true", DataType::Primitive::Bool,
+                                              getPosition());
     }
 
     if (consume(Token::Type::False)) {
-        return std::make_shared<AST::Literal>("false",
-                                              DataType::Primitive::Bool);
+        return std::make_shared<AST::Literal>(
+            "false", DataType::Primitive::Bool, getPosition());
     }
 
     fail("Could not parse boolean, expecting 'true' or 'false'");

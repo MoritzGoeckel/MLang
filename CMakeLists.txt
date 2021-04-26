@@ -51,6 +51,7 @@ add_executable(Tests
   src/parser/Parser.cpp
   src/parser/Tokenizer.cpp
   src/parser/ParseError.cpp
+  src/parser/SourcePosition.cpp
 )
 target_link_libraries(Tests
     gtest pthread)
@@ -73,6 +74,7 @@ add_executable(ExecuteFile
   src/parser/Parser.cpp
   src/parser/Tokenizer.cpp
   src/parser/ParseError.cpp
+  src/parser/SourcePosition.cpp
 )
 target_link_libraries(ExecuteFile
     gtest pthread)

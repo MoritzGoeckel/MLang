@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../exceptions/Exceptions.h"
+#include "../parser/SourcePosition.h"
 #include "DataType.h"
 
 namespace AST {
@@ -27,15 +28,22 @@ class Node {
    protected:
     using AddMsgFn = std::function<void(const std::string&)>;
     DataType dataType;
+    SourcePosition itsSourcePosition;
 
    public:
-    Node() : dataType(DataType::Primitive::Unknown){};
+    Node() : dataType(DataType::Primitive::Unknown), itsSourcePosition(){};
+
+    Node(const SourcePosition& thePosition)
+        : dataType(DataType::Primitive::Unknown),
+          itsSourcePosition(thePosition){};
 
     std::string toString() {
         std::stringstream stream;
         toString(stream);
         return stream.str();
     };
+
+    const SourcePosition& getPosition() { return itsSourcePosition; }
 
     virtual void toString(std::stringstream& stream) = 0;
 
@@ -92,7 +100,9 @@ class Identifier : public Node {
     std::string id;
 
    public:
-    Identifier(const std::string& id) : id(id) {}
+    Identifier(const std::string& id) : Node(), id(id) {}
+    Identifier(const std::string& id, const SourcePosition& thePosition)
+        : Node(thePosition), id(id) {}
 
     std::string getName() { return id; }
 
@@ -122,6 +132,9 @@ class Block : public Node {
 
    public:
     Block(std::vector<std::shared_ptr<Node>> children) : children(children) {}
+    Block(std::vector<std::shared_ptr<Node>> children,
+          const SourcePosition& thePosition)
+        : Node(thePosition), children(children) {}
 
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "{";
@@ -183,6 +196,13 @@ class Call : public Node {
         : method(std::static_pointer_cast<Identifier>(method)),
           arguments(arguments) {}
 
+    Call(std::shared_ptr<Node> method,  // TODO identifier?
+         std::vector<std::shared_ptr<Node>> arguments,
+         const SourcePosition& thePosition)
+        : Node(thePosition),
+          method(std::static_pointer_cast<Identifier>(method)),
+          arguments(arguments) {}
+
     std::vector<std::shared_ptr<Node>>& getArguments() { return arguments; }
     std::shared_ptr<Identifier>& getIdentifier() { return method; }
 
@@ -222,7 +242,11 @@ class Ret : public Node {
 
    public:
     Ret(std::shared_ptr<Node> expr) : expr(expr) {}
+    Ret(std::shared_ptr<Node> expr, const SourcePosition& thePosition)
+        : Node(thePosition), expr(expr) {}
+
     Ret() {}
+    Ret(const SourcePosition& thePosition) : Node(thePosition), expr() {}
 
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "ret(";
@@ -260,6 +284,10 @@ class Assign : public Node {
     Assign(std::shared_ptr<Node> left, std::shared_ptr<Node> right)
         : left(left), right(right) {}
 
+    Assign(std::shared_ptr<Node> left, std::shared_ptr<Node> right,
+           const SourcePosition& thePosition)
+        : Node(thePosition), left(left), right(right) {}
+
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "assign(";
         left->toString(stream);
@@ -289,6 +317,10 @@ class Declvar : public Node {
    public:
     Declvar(std::shared_ptr<Node> name)  // TODO identifier
         : name(std::static_pointer_cast<Identifier>(name)) {}
+
+    Declvar(std::shared_ptr<Node> name,
+            const SourcePosition& thePosition)  // TODO identifier
+        : Node(thePosition), name(std::static_pointer_cast<Identifier>(name)) {}
 
     std::shared_ptr<Identifier> getIdentifier() { return name; }
 
@@ -323,8 +355,19 @@ class Declfn : public Node {
         }
     }
 
+    Declfn(std::shared_ptr<Node> name,  // TODO ident
+           std::vector<std::shared_ptr<Node>> parameters,
+           const SourcePosition& thePosition)
+        : Node(thePosition),
+          name(std::static_pointer_cast<Identifier>(name)),
+          parameters() {
+        for (auto& p : parameters) {
+            this->parameters.push_back(std::static_pointer_cast<Identifier>(p));
+        }
+    }
+
     Declfn(const std::string& name)
-        : name(std::make_shared<Identifier>(name)), parameters() {}
+        : Node(), name(std::make_shared<Identifier>(name)), parameters() {}
 
     std::vector<std::shared_ptr<Identifier>>& getParameters() {
         return parameters;
@@ -375,6 +418,13 @@ class If : public Node {
           bodyPositive(bodyPositive),
           bodyNegative(bodyNegative) {}
 
+    If(std::shared_ptr<Node> condition, std::shared_ptr<Node> bodyPositive,
+       std::shared_ptr<Node> bodyNegative, const SourcePosition& thePosition)
+        : Node(thePosition),
+          condition(condition),
+          bodyPositive(bodyPositive),
+          bodyNegative(bodyNegative) {}
+
     std::shared_ptr<Node> getCondition() { return condition; }
     std::shared_ptr<Node> getPositive() { return bodyPositive; }
     std::shared_ptr<Node> getNegative() { return bodyNegative; }
@@ -411,7 +461,11 @@ class While : public Node {
 
    public:
     While(std::shared_ptr<Node> condition, std::shared_ptr<Node> body)
-        : condition(condition), body(body) {}
+        : Node(), condition(condition), body(body) {}
+
+    While(std::shared_ptr<Node> condition, std::shared_ptr<Node> body,
+          const SourcePosition& thePosition)
+        : Node(thePosition), condition(condition), body(body) {}
 
     std::shared_ptr<Node> getCondition() { return condition; }
     std::shared_ptr<Node> getBody() { return body; }
@@ -447,6 +501,18 @@ class Literal : public Node {
         this->dataType = dataTypeStr;
     }
 
+    Literal(const std::string& value, DataType dataType,
+            const SourcePosition& thePosition)
+        : Node(thePosition), value(value) {
+        this->dataType = dataType;
+    }
+
+    Literal(const std::string& value, std::string& dataTypeStr,
+            const SourcePosition& thePosition)
+        : Node(thePosition), value(value) {
+        this->dataType = dataTypeStr;
+    }
+
     virtual void toString(std::stringstream& stream) override {
         stream << dataType.toString() << "('" << value << "')";
     }
@@ -470,6 +536,10 @@ class Function : public Node {
    public:
     Function(std::shared_ptr<Declfn> head, std::shared_ptr<Node> body)
         : head(head), body(body) {}
+
+    Function(std::shared_ptr<Declfn> head, std::shared_ptr<Node> body,
+             const SourcePosition& thePosition)
+        : Node(thePosition), head(head), body(body) {}
 
     std::shared_ptr<Declfn> getHead() { return head; }
     std::shared_ptr<Node> getBody() { return body; }
@@ -497,6 +567,12 @@ class FnPtr : public Node {
 
    public:
     FnPtr(const std::string& id, DataType dataType) : id(id) {
+        this->dataType = dataType;
+    }
+
+    FnPtr(const std::string& id, DataType dataType,
+          const SourcePosition& thePosition)
+        : Node(thePosition), id(id) {
         this->dataType = dataType;
     }
 

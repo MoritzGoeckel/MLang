@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "SourcePosition.h"
+
 namespace CharCategories {
 
 bool isParen(char c);
@@ -49,8 +51,7 @@ class Token {
     Type getType() const;
     bool isTrivialContent() const;
 
-    size_t getLine() const;
-    size_t getColumn() const;
+    const SourcePosition& getPosition() const;
 
    private:
     bool handleIsKeyword();
@@ -58,8 +59,8 @@ class Token {
 
     Type type;
     std::string content;
-    size_t line;
-    size_t column;
+
+    SourcePosition itsPosition;
 };
 
 std::string to_string(Token::Type theType);

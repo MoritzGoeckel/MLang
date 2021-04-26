@@ -77,9 +77,13 @@ class Parser {
     Token lookAhead(size_t offset);
     Token::Type lookAhead_t(size_t offset);
 
+    Token lastToken();
     Token nextToken();
+    Token previousToken();
     bool isNext(Token::Type type);
     bool isNext(char c);
+
+    const SourcePosition& getPosition();
 
     Token consume();
     bool consume(char c);
