@@ -18,17 +18,17 @@ You can download the executables for Windows and Linux in the [release section](
 - [x] Integer type
 - [x] Boolean type
 - [x] Float type
-- [ ] String type
 - [x] Operator precedence
 - [x] Linux support
 - [x] Windows support
 - [x] Error reporting
-- [ ] Closures
+- [ ] Heap allocation
+- [ ] Arrays
+- [ ] Pointers
+- [ ] String type
 - [ ] Printing
 - [ ] Structs
-- [ ] Arrays
-- [ ] Heap allocation
-- [ ] Pointers
+- [ ] Closures
 
 ## Examples
 

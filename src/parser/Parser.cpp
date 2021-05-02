@@ -267,7 +267,9 @@ std::shared_ptr<AST::Call> Parser::call() {
     method = identifier();
 
     consumeOrFail('(', "(");
-    doOrFail(argumentList(arguments), "list of arguments");
+    if (!isNext(')')) {
+        doOrFail(argumentList(arguments), "list of arguments");
+    }
     consumeOrFail(')', ")");
 
     return std::make_shared<AST::Call>(method, arguments,
