@@ -1,9 +1,9 @@
 #include "LLVMEmitter.h"
 
 LLVMEmitter::LLVMEmitter(
-    const std::map<std::string, std::shared_ptr<AST::Function>> &functions)
-    : context(), module(), functions(functions), lastId(0u) {
-    context = std::make_unique<llvm::LLVMContext>();
+    const std::map<std::string, std::shared_ptr<AST::Function>> &functions,
+    std::shared_ptr<llvm::LLVMContext> &context)
+    : context(context), module(), functions(functions), lastId(0u) {
     module = std::make_unique<llvm::Module>("test", *context);
 }
 
@@ -11,7 +11,6 @@ LLVMEmitter::LLVMEmitter(
 LLVMEmitter::~LLVMEmitter() { module.reset(); }
 
 void LLVMEmitter::run() {
-    std::map<std::string, llvm::Function *> fns;
     for (auto &fn : functions) {
         fns[fn.first] = instantiateFn(fn.first, fn.second);
     }
@@ -270,7 +269,8 @@ void LLVMEmitter::process(std::shared_ptr<AST::Node> node,
 
     } else {
         // followChildren(node, builder);
-        throwTodo("Unexpected / not implemented element");
+        // throwTodo("Unexpected / not implemented element"); // TODO
+        getValue(node, builder);  // TODO
     }
 }
 
@@ -310,6 +310,18 @@ llvm::Value *LLVMEmitter::getValue(const std::shared_ptr<AST::Node> &node,
             } else if (name == ">") {
                 return builder.CreateICmpSGT(args[0], args[1], "gttmp");
             }
+        }
+
+        // TODO: Define build ins somewhere else
+        if (name == "print" && args.empty()) {
+            // TODO buildin print
+            if (fns.find("print") == fns.end()) {
+                fns["print"] = llvm::Function::Create(
+                    llvm::FunctionType::get(llvm::Type::getVoidTy(*context),
+                                            false /*isVararg*/),
+                    llvm::Function::ExternalLinkage, "print", module.get());
+            }
+            return builder.CreateCall(fns["print"]);
         }
 
         // It's not a buildin, lets generate a call to a custom function

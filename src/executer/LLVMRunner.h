@@ -31,13 +31,18 @@
 class LLVMRunner {
    private:
     llvm::ExecutionEngine* engine;
+    std::shared_ptr<llvm::LLVMContext> context;
     llvm::Function* main;
     bool isBroken;
 
    public:
     // TODO: Maybe make it a move constructor?
-    LLVMRunner(std::unique_ptr<llvm::Module> module);
+    LLVMRunner(std::unique_ptr<llvm::Module> module,
+               std::shared_ptr<llvm::LLVMContext>& context);
     ~LLVMRunner();
+
+    bool addModule(const std::string& code);
+    bool addModule(std::unique_ptr<llvm::Module>&& module);
 
     bool getIsBroken();
     Mlang::Result run();

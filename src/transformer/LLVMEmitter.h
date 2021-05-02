@@ -33,7 +33,8 @@
 class LLVMEmitter {
    private:
     std::unique_ptr<llvm::Module> module;
-    std::unique_ptr<llvm::LLVMContext> context;
+    std::shared_ptr<llvm::LLVMContext>
+        context;  // TODO: Context needs to outlast the module
 
     std::map<std::string, std::shared_ptr<AST::Function>> functions;
 
@@ -44,9 +45,12 @@ class LLVMEmitter {
 
     size_t lastId;
 
+    std::map<std::string, llvm::Function *> fns;
+
    public:
     LLVMEmitter(
-        const std::map<std::string, std::shared_ptr<AST::Function>> &functions);
+        const std::map<std::string, std::shared_ptr<AST::Function>> &functions,
+        std::shared_ptr<llvm::LLVMContext> &context);
 
     // Why does this not happen automatically?
     ~LLVMEmitter();

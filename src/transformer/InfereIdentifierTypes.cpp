@@ -153,6 +153,11 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(
             }
         }
 
+        // TODO: Central place. This is for print. Build-ins
+        if (name == "print" && argumentTypes.empty()) {
+            type = DataType({}, DataType::Primitive::None);  // None?
+        }
+
         if (type != DataType::Primitive::Unknown) {
             call->getIdentifier()->setDataType(
                 type, [this](auto& s) { addMessage(s); });

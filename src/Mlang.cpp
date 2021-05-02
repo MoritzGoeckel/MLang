@@ -133,9 +133,12 @@ Mlang::Result Mlang::executeString(std::string theCode) {
         }
     }
 
+    // TODO: Verify ast. E.g. scopes
+
     // Instantiate functions
     InstantiateFunctions instantiator(ast);
-    // Do not use ast after this point
+
+    // Do not use ast after this point!
     auto fns = instantiator.getFunctions();
     if (settings.showFunctions) {
         for (auto& fn : fns) {
@@ -145,7 +148,8 @@ Mlang::Result Mlang::executeString(std::string theCode) {
         }
     }
 
-    LLVMEmitter emitter(fns);
+    auto context = std::make_shared<llvm::LLVMContext>();
+    LLVMEmitter emitter(fns, context);
     emitter.run();
 
     if (settings.showOptimizedModule) {
@@ -153,11 +157,20 @@ Mlang::Result Mlang::executeString(std::string theCode) {
     }
 
     auto mod = emitter.getModule();
-    LLVMRunner runner(std::move(mod));
+    LLVMRunner runner(std::move(mod), context);
+
+    // TODO
+    std::ifstream stream("lib/print.ll");
+    std::stringstream strBuffer;
+    strBuffer << stream.rdbuf();
+    auto libSrc = strBuffer.str();
+    std::cout << libSrc << std::endl;
+
+    runner.addModule(libSrc);
+
+    // TODO: Add lib. Keep context from emitter around
 
     // TODO: Have stdlib (+ - * / < > ==)
-    // TODO: Implement operator precedence transformer
-    // TODO: Use return instead of stack in PtToAST
     // TODO: Use optimization passes
 
     return runner.run();
