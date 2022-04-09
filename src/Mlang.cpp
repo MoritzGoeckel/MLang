@@ -59,8 +59,13 @@ void Mlang::shutdown() {
     }
 }
 
-Mlang::Result Mlang::executeString(std::string theCode) {
-    Tokenizer tokenizer(theCode);
+Mlang::Result Mlang::executeString(const std::string& theCode) {
+    return execute("internal", theCode);
+}
+
+Mlang::Result Mlang::execute(const std::string& theFile,
+                             const std::string& theCode) {
+    Tokenizer tokenizer(theFile, theCode);
 
     auto tokens = tokenizer.getTokens();
     if (settings.showTokens) {
@@ -75,7 +80,7 @@ Mlang::Result Mlang::executeString(std::string theCode) {
 
     if (!ast) {
         return Mlang::Result(Mlang::Result::Signal::Failure)
-            .addError("Parsing failed:")
+            //.addError("Parsing failed:")
             .addError(parser.getError(theCode));
     }
 
@@ -189,7 +194,7 @@ Mlang::Result Mlang::executeFile(std::string thePath) {
     }
 
     if (!fileContent.empty()) {
-        return executeString(fileContent);
+        return execute(thePath, fileContent);
     } else {
         return Mlang::Result(Mlang::Result::Signal::Failure)
             .addError("File at " + thePath + " is empty");

@@ -12,18 +12,19 @@ size_t ParseError::getIndex() { return idx; }
 
 std::string ParseError::getErrorMessage(const std::vector<Token>& tokens,
                                         const std::string& code) {
-    // Show expected and found
-    std::string errorMsg = "Expecting '" + expected + "' but found '" +
-                           tokens[idx].getContent() + "'";
-
     // Show line number and column
     const auto& lastTokenPosition =
         idx > 0u ? tokens[idx - 1u].getPosition() : tokens[idx].getPosition();
-    errorMsg += " @" + lastTokenPosition.toString();
+
+    std::string errorMsg = lastTokenPosition.toStandardString() + ": ";
+
+    // Show expected and found
+    errorMsg += "Expecting '" + expected + "' but found '" +
+                tokens[idx].getContent() + "'";
 
     // New paragraph
-    errorMsg += '\r';
-    errorMsg += '\r';
+    errorMsg += '\n';
+    errorMsg += '\n';
     errorMsg += generateMarkedCode(lastTokenPosition, code);
 
     // Show message if available

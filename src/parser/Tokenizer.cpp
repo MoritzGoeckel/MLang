@@ -29,17 +29,21 @@ bool isStatementTerminator(char c) {
 
 // TODO Put token in its own file
 
-Token::Token() : type(Token::Type::None), content(""), itsPosition(0u, 0u) {}
+Token::Token() : type(Token::Type::None), content(""), itsPosition() {}
 
-Token::Token(const std::string& content, size_t line, size_t column)
-    : type(Token::Type::None), content(content), itsPosition(line, column) {
+Token::Token(const std::string& content, const std::string& file, size_t line,
+             size_t column)
+    : type(Token::Type::None),
+      content(content),
+      itsPosition(file, line, column) {
     determineType();
 }
 
-Token::Token(std::string&& content, size_t line, size_t column)
+Token::Token(std::string&& content, const std::string& file, size_t line,
+             size_t column)
     : type(Token::Type::None),
       content(std::move(content)),
-      itsPosition(line, column) {
+      itsPosition(file, line, column) {
     determineType();
 }
 
@@ -209,11 +213,12 @@ std::ostream& operator<<(std::ostream& theStream, const Token& theToken) {
     return theStream;
 }
 
-Tokenizer::Tokenizer(const std::string& theInput)
+Tokenizer::Tokenizer(const std::string& theFile, const std::string& theInput)
     : tokens(),
       buffer(),
       isAlphanumericBuffer(true),
       inComment(false),
+      itsFile(theFile),
       line(0u),
       column(0u),
       bufferStartLine(0u),
@@ -243,7 +248,7 @@ Tokenizer::Tokenizer(const std::string& theInput)
         // Parenthesis are their own tokens
         if (CharCategories::isParen(c)) {
             pushBuffer();
-            tokens.emplace_back(std::string(1, c), line, column - 1u);
+            tokens.emplace_back(std::string(1, c), itsFile, line, column - 1u);
             continue;
         }
 
@@ -279,7 +284,8 @@ const std::vector<Token>& Tokenizer::getTokens() const { return tokens; }
 
 void Tokenizer::pushBuffer() {
     if (!buffer.empty()) {
-        tokens.emplace_back(buffer, bufferStartLine, bufferStartColumn - 1u);
+        tokens.emplace_back(buffer, itsFile, bufferStartLine,
+                            bufferStartColumn - 1u);
         buffer.clear();
     }
 }

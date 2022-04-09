@@ -49,7 +49,7 @@ class Mlang {
      * Execute mlang source code
      * @param mlang source code
      */
-    Result executeString(std::string theCode);
+    Result executeString(const std::string& theCode);
 
     /**
      * Loads a source code file and executes it
@@ -69,4 +69,7 @@ class Mlang {
      * Call only once. Do not use Mlang object after calling shutdwon()
      */
     static void shutdown();
+
+   private:
+    Result execute(const std::string& theFile, const std::string& theCode);
 };

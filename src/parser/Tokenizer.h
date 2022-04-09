@@ -43,8 +43,10 @@ class Token {
     // TODO: String literal
 
     Token();
-    Token(const std::string& content, size_t line, size_t column);
-    Token(std::string&& content, size_t line, size_t column);
+    Token(const std::string& content, const std::string& file, size_t line,
+          size_t column);
+    Token(std::string&& content, const std::string& file, size_t line,
+          size_t column);
 
     const std::string& getContent() const;
     char getChar();
@@ -70,7 +72,7 @@ std::ostream& operator<<(std::ostream& theStream, const Token& theToken);
 
 class Tokenizer {
    public:
-    Tokenizer(const std::string& theInput);
+    Tokenizer(const std::string& theFile, const std::string& theInput);
 
     const std::vector<Token>& getTokens() const;
 
@@ -83,6 +85,7 @@ class Tokenizer {
     bool isAlphanumericBuffer;
     bool inComment;
 
+    const std::string itsFile;
     size_t line;
     size_t column;
 

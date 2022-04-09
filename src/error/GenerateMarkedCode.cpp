@@ -25,16 +25,26 @@ std::string generateMarkedCode(const SourcePosition& thePosition,
             errorMsg += theCode[i];  // Print code
             if (theCode[i] == '\n') {
                 line++;
-                // Print line number
-                errorMsg += std::to_string(line) + ":  ";
+                if (line <= thePosition.getLine()) {
+                    // Print line number
+                    errorMsg += std::to_string(line) + ":  ";
+                } else {
+                    errorMsg += "    ";
+                }
             }
             ++i;
         }
+
+        // TODO: Should not have a line number in front of pointer
 
         // Print pointer to previous token
         for (size_t i = 0; i < thePosition.getColumn(); ++i) errorMsg += ' ';
         errorMsg += '^';
         errorMsg += '\n';
+
+        // TODO: Should print line after
+
+        // TODO: Test in first line, when no previous lines can be printed
     }
 
     return errorMsg;

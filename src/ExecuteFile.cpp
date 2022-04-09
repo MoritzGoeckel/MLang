@@ -13,8 +13,6 @@ int main(int argc, char** argv) {
 
     std::string scriptFile(argv[1]);
 
-    std::cout << "Executing file: " << scriptFile << std::endl;
-
     Mlang::init();
     Mlang mlang;
 

@@ -13,14 +13,14 @@ class MLangTest : public ::testing::Test {
    public:
     MLangTest() : basePath(""), mlang() {}
 
-    std::vector<std::string> getFileContents() {
-        std::vector<std::string> contents;
+    std::vector<std::pair<std::string, std::string>> getFileContents() {
+        std::vector<std::pair<std::string, std::string>> contents;
 
         for (auto filename : getFullFilenames()) {
             std::ifstream stream(filename);
             std::stringstream strBuffer;
             strBuffer << stream.rdbuf();
-            contents.push_back(strBuffer.str());
+            contents.emplace_back(filename, strBuffer.str());
         }
         return contents;
     }
@@ -73,11 +73,12 @@ TEST_F(MLangTest, ExecuteSimple) { mlang.executeFile("mfiles/addition.m"); }
 TEST_F(MLangTest, Tokenizer) {
     const bool show = false;
 
-    for (auto& fileContent : getFileContents()) {
-        Tokenizer tokenizer(fileContent);
+    for (auto& [name, code] : getFileContents()) {
+        Tokenizer tokenizer(name, code);
 
         if constexpr (show) {
-            std::cout << fileContent << std::endl;
+            std::cout << name << ":" << std::endl;
+            std::cout << code << std::endl;
             for (auto& t : tokenizer.getTokens()) {
                 std::cout << " " << t;
             }
@@ -90,15 +91,16 @@ TEST_F(MLangTest, Tokenizer) {
 TEST_F(MLangTest, Parser) {
     const bool show = false;
 
-    for (auto& fileContent : getFileContents()) {
-        Tokenizer tokenizer(fileContent);
+    for (auto& [name, code] : getFileContents()) {
+        Tokenizer tokenizer(name, code);
         auto tokens = tokenizer.getTokens();
 
         Parser parser(tokens);
         auto rootNode = parser.getAst();
 
         if (!rootNode || show) {
-            std::cout << fileContent << std::endl;
+            std::cout << name << ":" << std::endl;
+            std::cout << code << std::endl;
             for (auto& t : tokens) {
                 std::cout << " " << t;
             }
@@ -108,7 +110,7 @@ TEST_F(MLangTest, Parser) {
                       << std::endl;
 
             if (!rootNode) {
-                std::cout << parser.getError(fileContent) << std::endl;
+                std::cout << parser.getError(code) << std::endl;
             }
         }
         ASSERT_TRUE(rootNode);
@@ -123,7 +125,7 @@ TEST_F(MLangTest, Parser) {
 TEST_F(MLangTest, ExecuteFiles) {
     // "recursion.m" TODO: recursion.m is still broken
 
-    for (auto& code : getFileContents()) {
+    for (auto& [path, code] : getFileContents()) {
         std::string expectedResult = "";
         std::string tagPrefix = "# expect_result=";
         if (!code.empty() && code.substr(0, tagPrefix.size()) == tagPrefix) {
