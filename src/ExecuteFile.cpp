@@ -13,7 +13,6 @@ int main(int argc, char** argv) {
 
     std::string scriptFile(argv[1]);
 
-    Mlang::init();
     Mlang mlang;
 
     mlang.settings.showTokens = false;
@@ -39,6 +38,5 @@ int main(int argc, char** argv) {
         exitCode = 1;
     }
 
-    Mlang::shutdown();
     return exitCode;
 }

@@ -12,7 +12,7 @@
 /*
  * TreeWalker to infere types of identifiers throughout the different scopes
  */
-class InfereIdentifierTypes : TreeWalker {
+class InfereIdentifierTypes : private TreeWalker {
    private:
     std::vector<std::map<std::string, DataType>> stack;
 

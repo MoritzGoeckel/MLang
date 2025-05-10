@@ -73,7 +73,7 @@ std::shared_ptr<AST::Node> InfereParameterTypes::process(
             if (type != DataType::Primitive::Unknown &&
                 type != DataType::Primitive::Conflict) {
                 parameters->at(i)->setDataType(
-                    type, [this](auto& s) { addMessage(s); });
+                    type, [this](auto& s) { this->addMessage(s); });
             }
         }
     }

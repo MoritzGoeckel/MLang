@@ -55,11 +55,11 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(
                 std::dynamic_pointer_cast<AST::Declvar>(assign->getLeft());
             auto rightType = assign->getRight()->getDataType();
             declvar->getIdentifier()->setDataType(
-                rightType, [this](auto& s) { addMessage(s); });
+                rightType, [this](auto& s) { this->addMessage(s); });
 
             auto name = declvar->getIdentifier()->getName();
             if (stack.back().find(name) != stack.back().end()) {
-                addMessage("Variable already declared: " + name);
+                this->addMessage("Variable already declared: " + name);
             }
             stack.back().emplace(name, rightType);
         }
@@ -82,7 +82,7 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(
             // Evaluate right side
             process(assign->getRight());
             auto retType = assign->getRight()->getReturnType(
-                [this](auto& s) { addMessage(s); });
+                [this](auto& s) { this->addMessage(s); });
 
             // Pop stack with parameters after evaluating right side
             stack.pop_back();
@@ -97,7 +97,7 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(
                              })) {
                 auto determinedFnType = DataType(paramTypes, retType);
                 declfn->getIdentifier()->setDataType(
-                    determinedFnType, [this](auto& s) { addMessage(s); });
+                    determinedFnType, [this](auto& s) { this->addMessage(s); });
                 stack.back().emplace(declfn->getIdentifier()->getName(),
                                      DataType(paramTypes, retType));
             }
@@ -106,7 +106,7 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(
             process(assign->getRight());
             process(assign->getLeft());
         } else {
-            addMessage("Assigning to other than declvar, declfn or identifier");
+            this->addMessage("Assigning to other than declvar, declfn or identifier");
         }
     }
 
@@ -125,9 +125,9 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(
         }
 
         if (type != DataType::Primitive::Unknown) {
-            identifier->setDataType(type, [this](auto& s) { addMessage(s); });
+            identifier->setDataType(type, [this](auto& s) { this->addMessage(s); });
         } else {
-            addMessage("Undeclared variable: " + name);
+            this->addMessage("Undeclared variable: " + name);
         }
     }
 
@@ -160,9 +160,9 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(
 
         if (type != DataType::Primitive::Unknown) {
             call->getIdentifier()->setDataType(
-                type, [this](auto& s) { addMessage(s); });
+                type, [this](auto& s) { this->addMessage(s); });
         } else {
-            addMessage("Undeclared variable: " + name);
+            this->addMessage("Undeclared variable: " + name);
         }
     }
 

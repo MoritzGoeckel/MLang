@@ -1,13 +1,12 @@
 #include "InstantiateFunctions.h"
 
-InstantiateFunctions::InstantiateFunctions(std::shared_ptr<AST::Node> node)
-    : depth(0) {
+InstantiateFunctions::InstantiateFunctions(std::shared_ptr<AST::Node> node) : depth(0) {
     // Instantiate functions
     process(node);
 
     // Instantiate main
     auto declfn = std::make_shared<AST::Declfn>("main");
-    auto addMsg = [this](auto& s) { addMessage(s); };
+    auto addMsg = [this](auto& s) { this->addMessage(s); };
     declfn->getIdentifier()->setDataType(
         DataType({}, node->getReturnType(addMsg)), addMsg);
 

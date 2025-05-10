@@ -5,24 +5,7 @@
 #include <sstream>
 #include <string>
 
-#include "executer/LLVMRunner.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/GenericValue.h"
-#include "llvm/IR/Argument.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/ManagedStatic.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Support/raw_ostream.h"
+#include "executer/Runner.h"
 #include "parser/Parser.h"
 #include "parser/Tokenizer.h"
 #include "preprocessor/Preprocessor.h"
@@ -31,33 +14,11 @@
 #include "transformer/InfereIdentifierTypes.h"
 #include "transformer/InfereParameterTypes.h"
 #include "transformer/InstantiateFunctions.h"
-#include "transformer/LLVMEmitter.h"
+#include "transformer/Emitter.h"
 
 Mlang::Mlang() {}
 
 Mlang::~Mlang() {}
-
-void Mlang::init() {
-    static bool isInitialized = false;
-    if (!isInitialized) {
-        llvm::InitializeNativeTarget();
-        LLVMInitializeNativeAsmPrinter();
-        LLVMInitializeNativeAsmParser();
-        isInitialized = true;
-    } else {
-        return;
-    }
-}
-
-void Mlang::shutdown() {
-    static bool isShutdown = false;
-    if (!isShutdown) {
-        llvm::llvm_shutdown();
-        isShutdown = true;
-    } else {
-        std::cout << "Error: Shutdown already called!" << std::endl;
-    }
-}
 
 Mlang::Result Mlang::executeString(const std::string& theCode) {
     return execute("internal", theCode);
@@ -153,25 +114,24 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         }
     }
 
-    auto context = std::make_shared<llvm::LLVMContext>();
-    LLVMEmitter emitter(fns, context);
+    Emitter emitter(fns); // TODO
     emitter.run();
 
     if (settings.showOptimizedModule) {
         emitter.print();
     }
 
-    auto mod = emitter.getModule();
-    LLVMRunner runner(std::move(mod), context);
+    // auto mod = emitter.getModule();
+    Runner runner{};
 
     // TODO
-    std::ifstream stream("lib/print.ll");
+    /* std::ifstream stream("lib/print.ll");
     std::stringstream strBuffer;
     strBuffer << stream.rdbuf();
     auto libSrc = strBuffer.str();
-    std::cout << libSrc << std::endl;
+    std::cout << libSrc << std::endl;*/
 
-    runner.addModule(libSrc);
+    // runner.addModule(libSrc);
 
     // TODO: Add lib. Keep context from emitter around
 

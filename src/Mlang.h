@@ -58,18 +58,6 @@ class Mlang {
      */
     Result executeFile(std::string thePath);
 
-    /**
-     * Initializes Mlang globally
-     * Call only once. Call before using any Mlang object
-     */
-    static void init();
-
-    /**
-     * Shutsdown Mlang globally
-     * Call only once. Do not use Mlang object after calling shutdwon()
-     */
-    static void shutdown();
-
    private:
     Result execute(const std::string& theFile, const std::string& theCode);
 };
