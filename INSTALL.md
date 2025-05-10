@@ -1,50 +1,25 @@
-# Update cmake
+# Linux
 
 ```
-sudo apt upgrade cmake
-```
-
-# Other packages
-
-```
-sudo apt install cmake
 sudo apt install uuid-dev
 sudo apt install pkg-config
 sudo apt install unzip
 ```
 
-# Install llvm
+# Windows
 
+Install GnuMake:
 ```
-sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
-sudo apt install llvm
-sudo apt install clang
-```
-
-# Install gtest
-
-```
-sudo apt install build-essential
+https://gnuwin32.sourceforge.net/packages/make.htm
 ```
 
-## Compile gtest (optional)
-
+Install g++ using MinGw:
 ```
-sudo apt-get install cmake libgtest-dev
-cd /usr/src/gtest
-sudo cmake CMakeLists.txt
-sudo make
-sudo cp *.a /usr/lib
+https://sourceforge.net/projects/mingw/
 ```
 
-# Make llvm (optional)
-
+Build the executable:
 ```
-git clone https://github.com/llvm/llvm-project.git
-cd llvm-project
-mkdir build
-cd build
-cmake -G ../llvm
-make
+make ExecuteFile
+.\bin\executefile.exe .\mfiles\addition.m
 ```
-
