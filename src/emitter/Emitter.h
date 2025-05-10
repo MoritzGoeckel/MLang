@@ -8,32 +8,29 @@
 #include "../ast/DataType.h"
 #include "../ast/Node.h"
 #include "../error/Exceptions.h"
-#include "TreeWalker.h"
 
-/*
- * TODO
- */
+namespace emitter {
+
 class Emitter {
-   private:
+   protected:
     std::map<std::string, std::shared_ptr<AST::Function>> functions;
     size_t lastId;
 
    public:
     Emitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions);
-
-    ~Emitter();
-
-    void instantiateFn(const std::string &name, std::shared_ptr<AST::Function> ast);
-
-    void run();
+    virtual ~Emitter() = default;
 
     void print();
 
-   private:
+    virtual void run() = 0;
+    virtual std::string toString() = 0;
+
+   protected:
     std::string createUnique(const char *str);
     std::string createUnique(std::string str);
 
-    void process(std::shared_ptr<AST::Node> node);
-
-    void followChildren(std::shared_ptr<AST::Node> &node);
+    virtual void process(const std::shared_ptr<AST::Node>& node) = 0;
+    void followChildren(const std::shared_ptr<AST::Node>& node);
 };
+
+} // namespace emitter

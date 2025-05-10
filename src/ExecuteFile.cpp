@@ -20,8 +20,8 @@ int main(int argc, char** argv) {
     mlang.settings.showResult = false;
     mlang.settings.showAbastractSyntaxTree = false;
     mlang.settings.showInferedTypes = false;
-    mlang.settings.showFunctions = false;
-    mlang.settings.showOptimizedModule = false;
+    mlang.settings.showFunctions = true;
+    mlang.settings.showEmission = true;
     // TODO: Config params from cmd
 
     int exitCode = 0;

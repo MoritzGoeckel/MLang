@@ -40,7 +40,7 @@ class Mlang {
         bool showAbastractSyntaxTree = false;
         bool showInferedTypes = false;
         bool showFunctions = false;
-        bool showOptimizedModule = false;
+        bool showEmission = false;
     };
 
     Settings settings;

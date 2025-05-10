@@ -14,7 +14,8 @@
 #include "transformer/InfereIdentifierTypes.h"
 #include "transformer/InfereParameterTypes.h"
 #include "transformer/InstantiateFunctions.h"
-#include "transformer/Emitter.h"
+#include "emitter/Emitter.h"
+#include "emitter/Python.h"
 
 Mlang::Mlang() {}
 
@@ -114,14 +115,14 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         }
     }
 
-    Emitter emitter(fns); // TODO
-    emitter.run();
+    emitter::Python pythonEmitter(fns);
+    pythonEmitter.run();
 
-    if (settings.showOptimizedModule) {
-        emitter.print();
+    if (settings.showEmission) {
+        pythonEmitter.print();
     }
 
-    // auto mod = emitter.getModule();
+    // auto mod = pythonEmitter.getModule();
     Runner runner{};
 
     // TODO
