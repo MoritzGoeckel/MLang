@@ -1,5 +1,7 @@
 #include "Python.h"
 
+#include "../Logger.h"
+
 
 namespace emitter{
 
@@ -29,10 +31,26 @@ std::string Python::toString() {
     return code.str();
 }
 
+std::string Python::formatFnName(const std::string &name) {
+    std::string formattedName;
+    char lastChar = '\0';
+    for (char c : name) {
+        // alphanumeric characters and underscores are allowed
+        if (std::isalnum(c) || c == '_') {
+            lastChar = c;
+            formattedName += c;
+        } else if (lastChar != '_' && lastChar != '\0') {
+            formattedName += '_';
+            lastChar = '_';
+        }
+    }
+    return formattedName;
+}
+
 
 void Python::instantiateFn(const std::string &name, std::shared_ptr<AST::Function> ast) {
     indent();
-    code << "def " << name << "(";
+    code << "def " << formatFnName(name) << "(";
     for(const auto& param : ast->getHead()->getParameters()){
         code << param->getName() << ", ";
     }
@@ -43,8 +61,9 @@ void Python::instantiateFn(const std::string &name, std::shared_ptr<AST::Functio
     }
     code << "):\n";
     indent_level++;
-    followChildren(ast->getBody()); 
+    process(ast->getBody()); 
     indent_level--;
+    code << "\n";
 }
 
 void Python::process_inline(std::shared_ptr<AST::Node> node) {
@@ -111,9 +130,7 @@ void Python::process_inline(std::shared_ptr<AST::Node> node) {
 void Python::process(const std::shared_ptr<AST::Node>& node) {
     switch(node->getType()) {
         case AST::NodeType::Block: {
-            indent_level++;
             followChildren(node);
-            indent_level--;
             break;
         }
         case AST::NodeType::Ret: {
