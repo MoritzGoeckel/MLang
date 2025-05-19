@@ -31,7 +31,7 @@ std::string Python::toString() {
     return code.str();
 }
 
-std::string Python::formatFnName(const std::string &name) {
+std::string Python::formatName(const std::string &name) {
     std::string formattedName;
     char lastChar = '\0';
     for (char c : name) {
@@ -50,9 +50,9 @@ std::string Python::formatFnName(const std::string &name) {
 
 void Python::instantiateFn(const std::string &name, std::shared_ptr<AST::Function> ast) {
     indent();
-    code << "def " << formatFnName(name) << "(";
+    code << "def " << formatName(name) << "(";
     for(const auto& param : ast->getHead()->getParameters()){
-        code << param->getName() << ", ";
+        code << formatName(param->getName()) << ", ";
     }
 
     // Remove the last comma if there are parameters
@@ -71,7 +71,7 @@ void Python::process_inline(std::shared_ptr<AST::Node> node) {
     switch(node->getType()) {
         case AST::NodeType::Call: {
             auto call = std::dynamic_pointer_cast<AST::Call>(node);
-            std::string fnName = call->getIdentifier()->getName();
+            std::string fnName = formatName(call->getIdentifier()->getName());
 
             // Rename built-in functions and remember used ones
             auto it = build_in_functions.find(fnName);
@@ -106,17 +106,17 @@ void Python::process_inline(std::shared_ptr<AST::Node> node) {
         }
         case AST::NodeType::Identifier: {
             auto identifier = std::dynamic_pointer_cast<AST::Identifier>(node);
-            code << identifier->getName();
+            code << formatName(identifier->getName());
             break;
         }
         case AST::NodeType::Declvar: {
             auto declvar = std::dynamic_pointer_cast<AST::Declvar>(node);
-            code << declvar->getIdentifier()->getName();
+            code << formatName(declvar->getIdentifier()->getName());
             break;
         }
         case AST::NodeType::FnPtr: {
             auto fnPtr = std::dynamic_pointer_cast<AST::FnPtr>(node);
-            code << fnPtr->getId();
+            code << formatName(fnPtr->getId()); // TODO: Rename to getName
             break;
         }
         default: {

@@ -34,7 +34,7 @@ class Python : public Emitter {
     void process_inline(std::shared_ptr<AST::Node> node);
     void indent(); 
     void implement_build_in_functions();
-    std::string formatFnName(const std::string &name);
+    std::string formatName(const std::string &name);
 };
 
 } // namespace emitter
