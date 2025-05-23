@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 
-#include "Mlang.h"
-#include "error/Exceptions.h"
+#include "../Mlang.h"
+#include "../error/Exceptions.h"
 
 int main(int argc, char** argv) {
     if (argc != 2) {
