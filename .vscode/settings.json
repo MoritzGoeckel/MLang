@@ -3,6 +3,7 @@
         "memory": "cpp",
         "ostream": "cpp",
         "utility": "cpp",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "iosfwd": "cpp"
     }
 }

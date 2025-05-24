@@ -1,7 +1,15 @@
 #include "../executer/ByteCode.h"
 #include <iostream>
 
+#define EXPECT_EQ(expected, actual) \
+    if ((expected) != (actual)) { \
+        std::cerr << __FILE__ << ":" << __LINE__  << " " << __FUNCTION__ << " Expected: " << (expected) << ", but got: " << (actual) << std::endl; \
+        throw std::runtime_error("Test failed!"); \
+    }
+
 void TEST_ByteCodeVM() {
+    using namespace executor;
+
     Program program;
     program.code = {
         Instruction(Op::PUSH_STACK, 2),
@@ -14,7 +22,11 @@ void TEST_ByteCodeVM() {
 
     ByteCodeVM vm{program};
     int result = vm.execute();
-    std::cout << "Result: " << result << std::endl;
+    EXPECT_EQ(36, result); // 12 * 3 = 36
+}
+
+void TEST_Addition(){
+
 }
 
 int main() {

@@ -3,22 +3,32 @@
 #include <iostream>
 #include <list>
 #include <vector>
+#include <map>
+#include <sstream>
 
 #include "../error/Exceptions.h"
 
+namespace executor {
+
 using word_t = unsigned long;
 
-enum class Op { PUSH_STACK, POP_STACK, WRITE_STACK, ADD, SUB, MUL, DIV, MOD, JUMP, JUMP_IF, ALLOC, WRITE_HEAP, READ_HEAP, PRINTS, TERM };
+enum class Op { PUSH, POP, WRITE_STACK, ADD, SUB, MUL, DIV, MOD, JUMP, JUMP_IF, ALLOC, WRITE_HEAP, READ_HEAP, PRINTS, TERM };
 
 struct Instruction {
-    Instruction(Op op, word_t arg1 = 0, word_t arg2 = 0, word_t arg3 = 0)
-        : op(op), arg1(arg1), arg2(arg2), arg3(arg3) {}
+    Instruction(Op op, word_t arg1 = 0, word_t arg2 = 0, word_t arg3 = 0);
 
     Op op;
     word_t arg1;
     word_t arg2;
     word_t arg3;
 };
+
+struct OpCodeMetadata {
+    std::string name;
+    std::vector<std::string> arg_names; 
+};
+
+std::string instructionsToString(const std::vector<Instruction>& instructions, bool named_args = false);
 
 struct Program {
     word_t* data; // TODO: Unused
@@ -27,113 +37,16 @@ struct Program {
 
 class ByteCodeVM {
     private:
-        std::vector<std::vector<word_t>> stacks;
+        std::vector<word_t> stack;
         std::vector<word_t> heap;
         Program program;
 
-    word_t run() {
-        stacks.emplace_back(1);
-
-        word_t idx = 0;
-        while(true){
-            const Instruction& inst = program.code[idx++];
-            auto& stack = stacks.back();
-            switch(inst.op){
-                case Op::PRINTS: {
-                    // PRINT STACK_ADDR
-                    std::cout << "S" << inst.arg1 << "=" << stack[inst.arg1] << std::endl;
-                    break;
-                }
-                case Op::PUSH_STACK: {
-                    // PUSH_STACK SIZE
-                    stacks.emplace_back(inst.arg1);
-                    break;
-                }
-                case Op::POP_STACK: {
-                    // POP_STACK RET_STACK_DEST_ADDR RET_STACK_SRC_ADDR
-                    word_t ret = stack[inst.arg2];
-                    stacks.pop_back();
-                    stacks.back()[inst.arg1] = ret;
-                    break;
-                }
-                case Op::WRITE_STACK: {
-                    // WRITE_STACK STACK_ADDR VALUE
-                    stack[inst.arg1] = inst.arg2;
-                    break;
-                }
-                case Op::ADD: {
-                    // ADD RESULT_ADDR DIVIDEND_ADDR DIVISOR_ADDR
-                    stack[inst.arg1] = stack[inst.arg2] + stack[inst.arg3];
-                    break;
-                }
-                case Op::SUB: {
-                    stack[inst.arg1] = stack[inst.arg2] - stack[inst.arg3];
-                    break;
-                }
-                case Op::MUL: {
-                    stack[inst.arg1] = stack[inst.arg2] * stack[inst.arg3];
-                    break;
-                }
-                case Op::DIV: {
-                    stack[inst.arg1] = stack[inst.arg2] / stack[inst.arg3];
-                    break;
-                }
-                case Op::MOD: {
-                    stack[inst.arg1] = stack[inst.arg2] % stack[inst.arg3];
-                    break;
-                }
-                case Op::JUMP: {
-                    // JUMP ADDR
-                    idx = inst.arg1;
-                    break;
-                }
-                case Op::JUMP_IF: {
-                    // JUMP_IF CONDITION_STACK_ADDR NOT_NULL_ADDR NULL_ADDR
-                    if (stack[inst.arg1] != 0) {
-                        idx = inst.arg2;
-                    } else {
-                        idx = inst.arg3;
-                    }
-                    break;
-                }
-                case Op::ALLOC: {
-                    // ALLOC STACK_ADDR SIZE
-                    stack[inst.arg1] = heap.size();
-                    heap.resize(heap.size() + inst.arg2);
-                    break;
-                }
-                case Op::WRITE_HEAP: {
-                    // WRITE_HEAP FROM_STACK_ADDR TO_HEAP_ADDR SIZE
-                    for (int i = 0; i < inst.arg3; ++i) {
-                        heap[stack[inst.arg2] + i] = stack[inst.arg1 + i];
-                    }
-                    break;
-                }
-                case Op::READ_HEAP: {
-                    // READ_HEAP FROM_HEAP_ADDR TO_STACK_ADDR SIZE
-                    for (int i = 0; i < inst.arg3; ++i) {
-                        stack[inst.arg2 + i] = heap[stack[inst.arg1] + i];
-                    }
-                    break;
-                }
-                case Op::TERM: {
-                    // TERM RET_STACK_ADDR
-                    auto ret = stack[inst.arg1];
-                    return ret;
-                }
-            }
-        }
-        return 0; // Unreachable
-    }
+    word_t run();
 
     public:
-    ByteCodeVM(const Program& program) : program(program) {}
-
-    int execute(){
-        run();
-        word_t ret = stacks.front().front();
-        return static_cast<int>(ret);
-    }
+    ByteCodeVM(const Program& program);
+    int execute();
 
 };
 
+}
