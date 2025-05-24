@@ -8,7 +8,7 @@
 
 using word_t = unsigned long;
 
-enum class Op { PUSH_STACK, POP_STACK, WRITE_STACK, ADD, SUB, MUL, DIV, MOD, JUMP, JUMP_IF, ALLOC, WRITE_HEAP, READ_HEAP, TERM };
+enum class Op { PUSH_STACK, POP_STACK, WRITE_STACK, ADD, SUB, MUL, DIV, MOD, JUMP, JUMP_IF, ALLOC, WRITE_HEAP, READ_HEAP, PRINTS, TERM };
 
 struct Instruction {
     Instruction(Op op, word_t arg1 = 0, word_t arg2 = 0, word_t arg3 = 0)
@@ -31,7 +31,7 @@ class ByteCodeVM {
         std::vector<word_t> heap;
         Program program;
 
-    void run() {
+    word_t run() {
         stacks.emplace_back(1);
 
         word_t idx = 0;
@@ -39,16 +39,21 @@ class ByteCodeVM {
             const Instruction& inst = program.code[idx++];
             auto& stack = stacks.back();
             switch(inst.op){
+                case Op::PRINTS: {
+                    // PRINT STACK_ADDR
+                    std::cout << "S" << inst.arg1 << "=" << stack[inst.arg1] << std::endl;
+                    break;
+                }
                 case Op::PUSH_STACK: {
                     // PUSH_STACK SIZE
                     stacks.emplace_back(inst.arg1);
                     break;
                 }
                 case Op::POP_STACK: {
-                    // POP_STACK RET_STACK_ADDR
-                    word_t ret = stack.back();
+                    // POP_STACK RET_STACK_DEST_ADDR RET_STACK_SRC_ADDR
+                    word_t ret = stack[inst.arg2];
                     stacks.pop_back();
-                    stacks.back().at(inst.arg1) = ret;
+                    stacks.back()[inst.arg1] = ret;
                     break;
                 }
                 case Op::WRITE_STACK: {
@@ -112,10 +117,13 @@ class ByteCodeVM {
                     break;
                 }
                 case Op::TERM: {
-                    return;
+                    // TERM RET_STACK_ADDR
+                    auto ret = stack[inst.arg1];
+                    return ret;
                 }
             }
         }
+        return 0; // Unreachable
     }
 
     public:
