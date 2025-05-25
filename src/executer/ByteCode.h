@@ -12,7 +12,7 @@ namespace executor {
 
 using word_t = unsigned long;
 
-enum class Op { PUSH, POP, WRITE_STACK, ADD, SUB, MUL, DIV, MOD, JUMP, JUMP_IF, ALLOC, WRITE_HEAP, READ_HEAP, PRINTS, TERM };
+enum class Op { LOCALS, LOCALL, CALL, RET, PUSH, POP, WRITE_STACK, ADD, SUB, MUL, DIV, MOD, JUMP, JUMP_IF, ALLOC, WRITE_HEAP, READ_HEAP, PRINTS, TERM };
 
 struct Instruction {
     Instruction(Op op, word_t arg1 = 0, word_t arg2 = 0, word_t arg3 = 0);
@@ -41,7 +41,7 @@ class ByteCodeVM {
         std::vector<word_t> heap;
         Program program;
 
-    word_t run();
+    bool run();
 
     public:
     ByteCodeVM(const Program& program);

@@ -1,35 +1,93 @@
 #include "ByteCodeEmitter.h"
 
+#include "../error/Exceptions.h"
 #include "../Logger.h"
 
 
 namespace emitter {
 
 ByteCodeEmitter::ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions)
-    : Emitter(functions), code{}, labels{} {}
+    : Emitter(functions), code{}, backpatches{}, localNames{} {}
 
 void ByteCodeEmitter::run() {
+    std::map<std::string, size_t> function_idxs;
+
+    code.push_back(executor::Instruction(executor::Op::JUMP, 0)); // Jump to main
+
     for (auto &fn : functions) {
+        // TODO: All functions need to have unique names. If that is not a given, 
+        // we have to ensure this before with some kind of tree walker
+
+        localNames.clear();
+        for(const auto& param : fn.second->getHead()->getParameters()) {
+            localNames.push_back(param->getName());
+        }
+        function_idxs[fn.first] = code.size();
         instantiateFn(fn.first, fn.second);
+    }
+
+    code.front().arg1 = function_idxs["main"]; // Set the jump to main
+    for (const auto &bp : backpatches) {
+        if (function_idxs.find(bp.label) == function_idxs.end()) {
+            std::cout << "Backpatch label: " << bp.label << std::endl;
+            for (const auto& fn : function_idxs) {
+                std::cout << "Function: " << fn.first << " at index: " << fn.second << std::endl;
+            }
+            throwConstraintViolated("Backpatch label not found in function indexes.");
+        }
+        // Must be a push
+        code[bp.instruction_idx].arg1 = function_idxs[bp.label];
     }
 }
 
 std::string ByteCodeEmitter::toString() {
+    std::cout << "ByteCodeEmitter::toString()" << std::endl;
     return instructionsToString(code, false);
 }
 
-executor::word_t determineStackSize(const std::shared_ptr<AST::Function>& ast) {
-    // Every parameter
-    // Every local variable
-    return 100; // TODO
-}
-
 void ByteCodeEmitter::instantiateFn(const std::string &name, std::shared_ptr<AST::Function> ast) {
-    labels[name] = code.size(); 
     process(ast->getBody());
     if(name == "main") {
         code.push_back(executor::Instruction(executor::Op::TERM));
     }
+}
+
+
+void ByteCodeEmitter::loadIdentifier(const std::shared_ptr<AST::Identifier>& identifier) {
+
+    auto it = std::find(localNames.begin(), localNames.end(), identifier->getName());
+    if (it == localNames.end()) {
+        throwConstraintViolated("Identifier not found in local names.");
+    }
+    auto localIdx = std::distance(localNames.begin(), it);
+    code.push_back(executor::Instruction(executor::Op::LOCALL, localIdx)); // Bring it on the stack
+}
+
+void ByteCodeEmitter::storeLocalInto(const std::shared_ptr<AST::Node>& node){
+    switch(node->getType()) {
+        case AST::NodeType::Identifier: {
+            auto identifier = std::dynamic_pointer_cast<AST::Identifier>(node);
+            auto it = std::find(localNames.begin(), localNames.end(), identifier->getName());
+            if (it == localNames.end()) {
+                throwConstraintViolated("Identifier not found in local names.");
+            }  
+            auto localIdx = std::distance(localNames.begin(), it);
+            code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
+            break;
+        }
+        case AST::NodeType::Declvar: {
+            auto declvar = std::dynamic_pointer_cast<AST::Declvar>(node);
+            auto localIdx = localNames.size();
+            code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
+            localNames.push_back(declvar->getIdentifier()->getName());
+            break;
+        }
+        default:{
+            std::cout << node->toString() << std::endl;
+            throwConstraintViolated("Invalid LValue type.");
+        }
+    }
+
 }
 
 void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node) {
@@ -42,18 +100,14 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node) {
             auto ret = std::dynamic_pointer_cast<AST::Ret>(node);
             if (ret->getExpr()) {
                 process(ret->getExpr());
-            } else {
-                // Write 0 to the destination stack address, we return None
-                code.push_back(executor::Instruction(executor::Op::PUSH, 0));
-            }
+            } 
+            code.push_back(executor::Instruction(executor::Op::RET));
             break;
         }
         case AST::NodeType::Assign: {
             auto assign = std::dynamic_pointer_cast<AST::Assign>(node);
-            // process_inline(assign->getLeft());
-            // code << " = ";
-            // process_inline(assign->getRight());
-            // code << "\n";
+            process(assign->getRight());
+            storeLocalInto(assign->getLeft());
             break;
         }
         case AST::NodeType::If: {
@@ -87,7 +141,8 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node) {
             } else if (fnName == "%") {
                 code.push_back(executor::Instruction(executor::Op::MOD));
             } else {
-                // TODO handle function calls
+                loadIdentifier(call->getIdentifier()); // Bring the function addr on the stack
+                code.push_back(executor::Instruction(executor::Op::CALL, call->getArguments().size()));
             }
 
             break;
@@ -109,19 +164,24 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node) {
             } 
             break;
         }
+        case AST::NodeType::FnPtr: {
+            auto fnPtr = std::dynamic_pointer_cast<AST::FnPtr>(node);
+            // Later backpatch the address
+            backpatches.push_back(Backpatch{code.size(), fnPtr->getId()});
+            code.push_back(executor::Instruction(executor::Op::PUSH, 0));
+            break;
+        }
         case AST::NodeType::Identifier: {
-            auto identifier = std::dynamic_pointer_cast<AST::Identifier>(node);
-            // code << formatName(identifier->getName());
+            loadIdentifier(std::dynamic_pointer_cast<AST::Identifier>(node));
             break;
         }
         case AST::NodeType::Declvar: {
+            // Declare new variable with inital value 0
             auto declvar = std::dynamic_pointer_cast<AST::Declvar>(node);
-            // code << formatName(declvar->getIdentifier()->getName());
-            break;
-        }
-        case AST::NodeType::FnPtr: {
-            auto fnPtr = std::dynamic_pointer_cast<AST::FnPtr>(node);
-            // code << formatName(fnPtr->getId()); // TODO: Rename to getName
+            auto localIdx = localNames.size();
+            code.push_back(executor::Instruction(executor::Op::PUSH, 0)); // Initial value
+            code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
+            localNames.push_back(declvar->getIdentifier()->getName());
             break;
         }
     }

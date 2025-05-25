@@ -20,7 +20,13 @@ class ByteCodeEmitter : public Emitter {
     private:
     std::vector<executor::word_t> data;
     std::vector<executor::Instruction> code;
-    std::map<std::string, executor::word_t> labels;
+
+    struct Backpatch {
+        size_t instruction_idx;
+        std::string label;
+    };
+    std::vector<Backpatch> backpatches;
+    std::vector<std::string> localNames; // Id is idx
 
     public:
     ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions);
@@ -32,6 +38,8 @@ class ByteCodeEmitter : public Emitter {
 
    protected:
     virtual void process(const std::shared_ptr<AST::Node>& node);
+    void loadIdentifier(const std::shared_ptr<AST::Identifier>& identifier);
+    void storeLocalInto(const std::shared_ptr<AST::Node>& node);
 };
 
 } // namespace emitter

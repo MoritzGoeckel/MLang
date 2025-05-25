@@ -16,24 +16,30 @@ Instruction::Instruction(Op op, word_t arg1, word_t arg2, word_t arg3)
 std::string instructionsToString(const std::vector<Instruction>& instructions, bool named_args) {
 
     static std::map<Op, OpCodeMetadata> opCodeMetadata {
+        { Op::LOCALS, { "LOCALS", { "ID" } } },
+        { Op::LOCALL, { "LOCALL", { "ID" } } },
+        { Op::CALL, { "CALL", { "NUM_ARGS" } } },
+        { Op::RET, { "RET", { } } },
         { Op::PUSH, { "PUSH", { "VALUE" } } },
-        { Op::POP, { "POP", { } } },
-        { Op::ADD, { "ADD", { "RESULT_ADDR", "STACK_ADDR", "STACK_ADDR" } } },
-        { Op::SUB, { "SUB", { "RESULT_ADDR", "STACK_ADDR", "STACK_ADDR" } } },
-        { Op::MUL, { "MUL", { "RESULT_ADDR", "STACK_ADDR", "STACK_ADDR" } } },
-        { Op::DIV, { "DIV", { "RESULT_ADDR", "STACK_ADDR", "STACK_ADDR" } } },
-        { Op::MOD, { "MOD", { "RESULT_ADDR", "STACK_ADDR", "STACK_ADDR" } } },
+        { Op::POP, { "POP", {} } },
+        { Op::ADD, { "ADD", {} } },
+        { Op::SUB, { "SUB", {} } },
+        { Op::MUL, { "MUL", {} } },
+        { Op::DIV, { "DIV", {} } },
+        { Op::MOD, { "MOD", {} } },
         { Op::JUMP, { "JUMP", { "ADDR" } } },
-        { Op::JUMP_IF, { "JUMP_IF", { "CONDITION_STACK_ADDR", "NOT_NULL_ADDR", "NULL_ADDR" } } },
+        { Op::JUMP_IF, { "JUMP_IF", {} } },
         { Op::ALLOC, { "ALLOC", { "STACK_ADDR", "SIZE" } } },
         { Op::WRITE_HEAP, { "WRITE_HEAP", {"FROM_STACK_ADDR", "TO_HEAP_ADDR", "SIZE"} }},
         { Op::READ_HEAP,  {"READ_HEAP", {"FROM_HEAP_ADDR","TO_STACK_ADDR","SIZE"} }},
         { Op::PRINTS, {"PRINTS",{"STACK_ADDR"}} },
-        { Op::TERM, {"TERM",{"RET_STACK_ADDR"}} }
+        { Op::TERM, {"TERM",{}} }
     };
 
     std::stringstream ss;
-    for (const auto& inst : instructions) {
+    for (int i = 0; i < instructions.size(); ++i) {
+        const Instruction& inst = instructions[i];
+        ss << i << ": ";
         const auto& meta = opCodeMetadata[inst.op];
         ss << meta.name << " ";
         if (named_args) {
@@ -62,12 +68,60 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
     return ss.str();
 }
 
+struct StackFrame {
+    std::vector<word_t> locals;
+    word_t return_address; 
+};
 
-word_t ByteCodeVM::run() {
+bool ByteCodeVM::run() {
     word_t idx = 0;
+    std::vector<StackFrame> callstack;
+
     while(true){
         const Instruction& inst = program.code[idx++];
         switch(inst.op){
+            case Op::CALL: {
+                auto return_address = idx;
+
+                auto dest = stack.back();
+                stack.pop_back();
+                idx = dest; // Jump to function address
+
+                // Bring parameters to locals
+                std::vector<word_t> locals;
+                for (int i = 0; i < inst.arg1; ++i) {
+                    locals.push_back(stack.back());
+                    stack.pop_back();           
+                }
+
+                callstack.push_back({locals, return_address});
+                break;
+            }
+            case Op::RET: {
+                if(callstack.empty()){
+                    return true;
+                }
+                idx = callstack.back().return_address;
+                callstack.pop_back();
+                break;
+            }
+            case Op::LOCALS: {
+                // LOCALS ID
+                auto& locals = callstack.back().locals;
+                locals.resize(inst.arg1); // TODO: Expensive!
+
+                auto value = stack.back();
+                stack.pop_back();
+
+                locals[inst.arg1] = value; // Store value in local variable
+                break;
+            }
+            case Op::LOCALL: {
+                // LOCALL ID
+                auto& locals = callstack.back().locals;
+                stack.push_back(locals[inst.arg1]); // Push local variable onto stack
+                break;
+            }
             case Op::PRINTS: {
                 // PRINT STACK_ADDR
                 std::cout << stack.back() << std::endl;
@@ -124,22 +178,17 @@ word_t ByteCodeVM::run() {
                 break;
             }
             case Op::JUMP: {
-                idx = stack.back();
-                stack.pop_back();
+                idx = inst.arg1; // Jump to address
                 break;
             }
             case Op::JUMP_IF: {
                 auto cond = stack.back();
                 stack.pop_back();
-                auto positive = stack.back();
-                stack.pop_back();
-                auto negative = stack.back();
-                stack.pop_back();
 
                 if (cond != 0) {
-                    idx = positive;
+                    idx = inst.arg1;
                 } else {
-                    idx = negative;
+                    idx = inst.arg1;
                 }
                 break;
             }
@@ -164,11 +213,7 @@ word_t ByteCodeVM::run() {
                 break;
             }
             case Op::TERM: {
-                if (stack.size() > 0) {
-                    return stack.back();
-                } else {
-                    return 0;
-                }
+                return true;
             }
         }
     }
@@ -179,8 +224,11 @@ ByteCodeVM::ByteCodeVM(const Program& program) : program(program) {}
 
 int ByteCodeVM::execute(){
     run();
-    word_t ret = stack.back();
-    return static_cast<int>(ret);
+    if(stack.empty()){
+        return 0;
+    } else {
+        return static_cast<int>(stack.back());
+    }
 }
 
 }
