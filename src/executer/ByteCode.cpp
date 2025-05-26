@@ -79,10 +79,10 @@ bool ByteCodeVM::run() {
 
     while(true){
         const Instruction& inst = program.code[idx++];
+
+        std::cout << "Executing instruction: " << instructionsToString({inst}, true);
+
         switch(inst.op){
-            if(debug){
-                std::cout << "Executing instruction: " << instructionsToString({inst}, true);
-            }
             case Op::CALL: {
                 auto return_address = idx;
 
@@ -111,7 +111,7 @@ bool ByteCodeVM::run() {
             case Op::LOCALS: {
                 // LOCALS ID
                 auto& locals = callstack.back().locals;
-                locals.resize(inst.arg1); // TODO: Expensive!
+                locals.resize(inst.arg1 + 1); // TODO: Expensive!
 
                 auto value = stack.back();
                 stack.pop_back();
