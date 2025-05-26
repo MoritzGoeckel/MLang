@@ -32,8 +32,8 @@ int main() {
     testFile("mfiles/addition.m");
     testFile("mfiles/addition_infix.m");
     testFile("mfiles/comment.m");
-    // testFile("mfiles/if.m");
-    // testFile("mfiles/if_else_no_brackets.m");
-    // testFile("mfiles/if_else.m");
+    testFile("mfiles/if.m");
+    testFile("mfiles/if_else_no_brackets.m");
+    testFile("mfiles/if_else.m");
     return 0;
 }

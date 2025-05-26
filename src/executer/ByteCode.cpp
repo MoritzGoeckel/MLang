@@ -16,6 +16,7 @@ Instruction::Instruction(Op op, word_t arg1, word_t arg2, word_t arg3)
 std::string instructionsToString(const std::vector<Instruction>& instructions, bool named_args) {
 
     static std::map<Op, OpCodeMetadata> opCodeMetadata {
+        { Op::NOP, { "NOP", {} } },
         { Op::LOCALS, { "LOCALS", { "ID" } } },
         { Op::LOCALL, { "LOCALL", { "ID" } } },
         { Op::CALL, { "CALL", { "NUM_ARGS" } } },
@@ -28,12 +29,18 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
         { Op::DIV, { "DIV", {} } },
         { Op::MOD, { "MOD", {} } },
         { Op::JUMP, { "JUMP", { "ADDR" } } },
-        { Op::JUMP_IF, { "JUMP_IF", {} } },
+        { Op::JUMP_IF, { "JUMP_IF", { "POSITIVE_ADDR" } } },
         { Op::ALLOC, { "ALLOC", { "STACK_ADDR", "SIZE" } } },
         { Op::WRITE_HEAP, { "WRITE_HEAP", {"FROM_STACK_ADDR", "TO_HEAP_ADDR", "SIZE"} }},
         { Op::READ_HEAP,  {"READ_HEAP", {"FROM_HEAP_ADDR","TO_STACK_ADDR","SIZE"} }},
         { Op::PRINTS, {"PRINTS",{"STACK_ADDR"}} },
-        { Op::TERM, {"TERM",{}} }
+        { Op::TERM, {"TERM",{}} },
+        { Op::LT, {"LT", {}} },
+        { Op::GT, {"GT", {}} },
+        { Op::EQ, {"EQ", {}} },
+        { Op::LTE, {"LTE", {}} },
+        { Op::GTE, {"GTE", {}} },
+        { Op::NEQ, {"NEQ", {}} }
     };
 
     std::stringstream ss;
@@ -83,6 +90,10 @@ bool ByteCodeVM::run() {
         std::cout << "Executing instruction: " << instructionsToString({inst}, true);
 
         switch(inst.op){
+            case Op::NOP: {
+                // No operation, just continue
+                break;
+            }
             case Op::CALL: {
                 auto return_address = idx;
 
@@ -180,6 +191,54 @@ bool ByteCodeVM::run() {
                 stack.push_back(b % a);
                 break;
             }
+            case Op::LT: {
+                auto a = stack.back();
+                stack.pop_back();
+                auto b = stack.back();
+                stack.pop_back();
+                stack.push_back(b < a ? 1 : 0);
+                break;
+            }
+            case Op::GT: {
+                auto a = stack.back();
+                stack.pop_back();
+                auto b = stack.back();
+                stack.pop_back();
+                stack.push_back(b > a ? 1 : 0);
+                break;
+            }
+            case Op::EQ: {
+                auto a = stack.back();
+                stack.pop_back();
+                auto b = stack.back();
+                stack.pop_back();
+                stack.push_back(b == a ? 1 : 0);
+                break;
+            }
+            case Op::LTE: {
+                auto a = stack.back();
+                stack.pop_back();
+                auto b = stack.back();
+                stack.pop_back();
+                stack.push_back(b <= a ? 1 : 0);
+                break;
+            }
+            case Op::GTE: {
+                auto a = stack.back();
+                stack.pop_back();
+                auto b = stack.back();
+                stack.pop_back();
+                stack.push_back(b >= a ? 1 : 0);
+                break;
+            }
+            case Op::NEQ: {
+                auto a = stack.back();
+                stack.pop_back();
+                auto b = stack.back();
+                stack.pop_back();
+                stack.push_back(b != a ? 1 : 0);
+                break;
+            }
             case Op::JUMP: {
                 idx = inst.arg1; // Jump to address
                 break;
@@ -188,9 +247,7 @@ bool ByteCodeVM::run() {
                 auto cond = stack.back();
                 stack.pop_back();
 
-                if (cond != 0) {
-                    idx = inst.arg1;
-                } else {
+                if (cond == 0) {
                     idx = inst.arg1;
                 }
                 break;

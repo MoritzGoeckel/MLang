@@ -110,13 +110,23 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node) {
         }
         case AST::NodeType::If: {
             auto ifNode = std::dynamic_pointer_cast<AST::If>(node);
-            // code << "if ";
-            // process_inline(ifNode->getCondition());
-            // code << ":\n";
-            followChildren(ifNode->getPositive());
+            process(ifNode->getCondition());
+            auto jumpIfIdx = code.size();
+            code.push_back(executor::Instruction(executor::Op::JUMP_IF, 0)); // Go to else or end
+            process(ifNode->getPositive());
+
             if (ifNode->getNegative()) {
-                // code << "else:\n";
-                followChildren(ifNode->getNegative());
+                auto jumpEndIdx = code.size();
+                code.push_back(executor::Instruction(executor::Op::JUMP, 0)); // Go to end
+                process(ifNode->getNegative());
+                auto endIdx = code.size();
+                code.push_back(executor::Instruction(executor::Op::NOP));
+                code[jumpIfIdx].arg1 = jumpEndIdx + 1; // Backpatch the jump if, skip to end
+                code[jumpEndIdx].arg1 = endIdx; // Backpatch the jump to end
+            } else {
+                auto endIdx = code.size();
+                code.push_back(executor::Instruction(executor::Op::NOP));
+                code[jumpIfIdx].arg1 = endIdx; // Backpatch the jump if, skip to end
             }
             break;
         }
@@ -138,6 +148,22 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node) {
                 code.push_back(executor::Instruction(executor::Op::DIV));
             } else if (fnName == "%") {
                 code.push_back(executor::Instruction(executor::Op::MOD));
+            } else if (fnName == "<") {
+                code.push_back(executor::Instruction(executor::Op::LT));
+            } else if (fnName == ">") {
+                code.push_back(executor::Instruction(executor::Op::GT));
+            } else if (fnName == "==") {
+                code.push_back(executor::Instruction(executor::Op::EQ));
+            } else if (fnName == "<=") {
+                code.push_back(executor::Instruction(executor::Op::LTE));
+            } else if (fnName == ">=") {
+                code.push_back(executor::Instruction(executor::Op::GTE));
+            } else if (fnName == "!=") {
+                code.push_back(executor::Instruction(executor::Op::NEQ));
+            } else if (functions.find(fnName) != functions.end()) {
+                // Function call
+                loadIdentifier(call->getIdentifier());
+                code.push_back(executor::Instruction(executor::Op::CALL, call->getArguments().size()));
             } else {
                 loadIdentifier(call->getIdentifier()); // Bring the function addr on the stack
                 code.push_back(executor::Instruction(executor::Op::CALL, call->getArguments().size()));
