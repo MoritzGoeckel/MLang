@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "../Mlang.h"
+#include "../core/Mlang.h"
 #include "../error/Exceptions.h"
 
 int main(int argc, char** argv) {
@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
 
     std::string scriptFile(argv[1]);
 
-    Mlang mlang;
+    core::Mlang mlang;
 
     mlang.settings.showTokens = false;
     mlang.settings.showFileContent = false;
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     int exitCode = 0;
     try {
         auto rs = mlang.executeFile(scriptFile);
-        if (rs == Mlang::Result::Signal::Success) {
+        if (rs == core::Mlang::Result::Signal::Success) {
             std::cout << "Result: " << rs.getResult() << std::endl;
         } else {
             std::cout << rs.getErrorString() << std::endl;

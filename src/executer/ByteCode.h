@@ -31,7 +31,7 @@ struct OpCodeMetadata {
 std::string instructionsToString(const std::vector<Instruction>& instructions, bool named_args = false);
 
 struct Program {
-    word_t* data; // TODO: Unused
+    std::vector<word_t> data; // TODO: Unused
     std::vector<Instruction> code;
 };
 
@@ -40,12 +40,13 @@ class ByteCodeVM {
         std::vector<word_t> stack;
         std::vector<word_t> heap;
         Program program;
+        bool debug;
 
     bool run();
 
     public:
     ByteCodeVM(const Program& program);
-    int execute();
+    std::string execute();
 
 };
 

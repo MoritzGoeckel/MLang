@@ -1,7 +1,7 @@
 #include "ByteCodeEmitter.h"
 
 #include "../error/Exceptions.h"
-#include "../Logger.h"
+#include "../core/Logger.h"
 
 
 namespace emitter {
@@ -9,10 +9,17 @@ namespace emitter {
 ByteCodeEmitter::ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions)
     : Emitter(functions), code{}, backpatches{}, localNames{} {}
 
+
+executor::Program  ByteCodeEmitter::getProgram() {
+    return executor::Program{data, code};
+}
+
 void ByteCodeEmitter::run() {
     std::map<std::string, size_t> function_idxs;
 
-    code.push_back(executor::Instruction(executor::Op::JUMP, 0)); // Jump to main
+    code.push_back(executor::Instruction(executor::Op::PUSH, 0));
+    code.push_back(executor::Instruction(executor::Op::CALL, 0)); // Call main
+    code.push_back(executor::Instruction(executor::Op::TERM)); // We finish when we are back
 
     for (auto &fn : functions) {
         // TODO: All functions need to have unique names. If that is not a given, 
@@ -23,10 +30,10 @@ void ByteCodeEmitter::run() {
             localNames.push_back(param->getName());
         }
         function_idxs[fn.first] = code.size();
-        instantiateFn(fn.first, fn.second);
+        process(fn.second->getBody());
     }
 
-    code.front().arg1 = function_idxs["main"]; // Set the jump to main
+    code.front().arg1 = function_idxs["main"]; // Set the call to main
     for (const auto &bp : backpatches) {
         if (function_idxs.find(bp.label) == function_idxs.end()) {
             std::cout << "Backpatch label: " << bp.label << std::endl;
@@ -41,17 +48,8 @@ void ByteCodeEmitter::run() {
 }
 
 std::string ByteCodeEmitter::toString() {
-    std::cout << "ByteCodeEmitter::toString()" << std::endl;
     return instructionsToString(code, false);
 }
-
-void ByteCodeEmitter::instantiateFn(const std::string &name, std::shared_ptr<AST::Function> ast) {
-    process(ast->getBody());
-    if(name == "main") {
-        code.push_back(executor::Instruction(executor::Op::TERM));
-    }
-}
-
 
 void ByteCodeEmitter::loadIdentifier(const std::shared_ptr<AST::Identifier>& identifier) {
 

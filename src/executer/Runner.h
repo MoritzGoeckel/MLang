@@ -3,7 +3,7 @@
 #include <iostream>
 #include <memory>
 
-#include "../Mlang.h"
+#include "../core/Mlang.h"
 #include "../error/Exceptions.h"
 
 class Runner {
@@ -17,5 +17,5 @@ class Runner {
     bool addModule(const std::string& code);
 
     bool getIsBroken();
-    Mlang::Result run();
+    core::Mlang::Result run();
 };

@@ -1,6 +1,6 @@
 #include "Python.h"
 
-#include "../Logger.h"
+#include "../core/Logger.h"
 
 
 namespace emitter{

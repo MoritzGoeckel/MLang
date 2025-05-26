@@ -31,10 +31,10 @@ class ByteCodeEmitter : public Emitter {
     public:
     ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions);
 
-    void instantiateFn(const std::string &name, std::shared_ptr<AST::Function> ast);
-
     virtual void run();
     virtual std::string toString();
+
+    executor::Program getProgram();
 
    protected:
     virtual void process(const std::shared_ptr<AST::Node>& node);

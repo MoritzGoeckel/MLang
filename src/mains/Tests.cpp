@@ -1,5 +1,6 @@
 #include "../executer/ByteCode.h"
 #include <iostream>
+#include "../core/Mlang.h"
 
 #define EXPECT_EQ(expected, actual) \
     if ((expected) != (actual)) { \
@@ -7,29 +8,31 @@
         throw std::runtime_error("Test failed!"); \
     }
 
-void TEST_ByteCodeVM() {
-    using namespace executor;
+void testFile(std::string path){
+    std::cout << "Testing file: " << path << std::endl;
 
-    Program program;
-    program.code = {
-        Instruction(Op::PUSH_STACK, 2),
-        Instruction(Op::WRITE_STACK, 0 /*dest_addr*/, 12 /*value*/),
-        Instruction(Op::WRITE_STACK, 1 /*dest_addr*/, 3 /*value*/),
-        Instruction(Op::MUL, 0 /*dest_addr*/, 0 /*src_addr*/, 1 /*src_addr*/),
-        Instruction(Op::POP_STACK, 0 /*dest_addr*/, 0 /*src_addr*/),
-        Instruction(Op::TERM, 0 /*src_addr*/)
-    };
+    core::Mlang mlang;
+    mlang.settings.showTokens = false;
+    mlang.settings.showFileContent = false;
+    mlang.settings.showResult = false;
+    mlang.settings.showAbastractSyntaxTree = false;
+    mlang.settings.showInferedTypes = false;
+    mlang.settings.showFunctions = true;
+    mlang.settings.showEmission = true;
 
-    ByteCodeVM vm{program};
-    int result = vm.execute();
-    EXPECT_EQ(36, result); // 12 * 3 = 36
-}
-
-void TEST_Addition(){
-
+    auto rs = mlang.executeFile(path);
+    if (rs == core::Mlang::Result::Signal::Success) {
+        std::cout << "Result: " << rs.getResult() << std::endl;
+    } else {
+        std::cout << rs.getErrorString() << std::endl;
+    }
 }
 
 int main() {
-    TEST_ByteCodeVM();
+    testFile("mfiles/addition.m");
+    testFile("mfiles/addition_infix.m");
+    testFile("mfiles/comment.m");
+    // testFile("mfiles/if_else_no_brackets.m");
+    // testFile("mfiles/if_else.m");
     return 0;
 }

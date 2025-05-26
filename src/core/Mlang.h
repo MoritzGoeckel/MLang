@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+namespace core {
+
 class Mlang {
    public:
     Mlang();
@@ -61,3 +63,5 @@ class Mlang {
    private:
     Result execute(const std::string& theFile, const std::string& theCode);
 };
+
+}

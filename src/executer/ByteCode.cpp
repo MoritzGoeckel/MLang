@@ -80,6 +80,9 @@ bool ByteCodeVM::run() {
     while(true){
         const Instruction& inst = program.code[idx++];
         switch(inst.op){
+            if(debug){
+                std::cout << "Executing instruction: " << instructionsToString({inst}, true);
+            }
             case Op::CALL: {
                 auto return_address = idx;
 
@@ -220,14 +223,21 @@ bool ByteCodeVM::run() {
     return 0; // Unreachable
 }
 
-ByteCodeVM::ByteCodeVM(const Program& program) : program(program) {}
+ByteCodeVM::ByteCodeVM(const Program& program) : program(program), debug{true} {}
 
-int ByteCodeVM::execute(){
+std::string ByteCodeVM::execute(){
     run();
     if(stack.empty()){
-        return 0;
+        return "null";
     } else {
-        return static_cast<int>(stack.back());
+        std::stringstream ss;
+        for (size_t i = 0; i < stack.size() - 1; ++i) {
+            ss << stack[i];
+        }
+        if (!stack.empty()) {
+            ss << stack.back(); // Last element
+        }
+        return ss.str();
     }
 }
 
