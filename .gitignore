@@ -16,3 +16,4 @@ Release/*
 out/*
 .vs/*
 *.o
+.vscode/*
