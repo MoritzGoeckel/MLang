@@ -72,31 +72,60 @@ void testFile(std::string path){
     std::cout << "Expect result: " << expectResultIt->second << std::endl;
     
     core::Mlang mlang;
-    mlang.settings.showTokens = false;
-    mlang.settings.showFileContent = false;
-    mlang.settings.showResult = false;
-    mlang.settings.showAbastractSyntaxTree = false;
-    mlang.settings.showInferedTypes = false;
+    mlang.settings.showTokens = true;
+    mlang.settings.showFileContent = true;
+    mlang.settings.showResult = true;
+    mlang.settings.showAbastractSyntaxTree = true;
+    mlang.settings.showInferedTypes = true;
     mlang.settings.showFunctions = true;
     mlang.settings.showEmission = true;
 
     auto rs = mlang.executeFile(path);
-    /*if (rs == core::Mlang::Result::Signal::Success) {
-        std::cout << "Result: " << rs.getResult() << std::endl;
-    } else {
-        std::cout << rs.getErrorString() << std::endl;
-    }*/
+
+    if (rs == core::Mlang::Result::Signal::Failure){
+        std::cout << "Error: " << rs.getErrorString() << std::endl;
+    }
+
     EXPECT_TRUE(core::Mlang::Result::Signal::Success == rs);
     EXPECT_TRUE(compareResults(expectResultIt->second, rs.getResult()));
     std::cout << "[ OK ] " << path << std::endl;
 }
 
 int main() {
-    testFile("mfiles/addition.m");
     testFile("mfiles/addition_infix.m");
+    testFile("mfiles/addition.m");
+
+    // TODO: Testing framework does not support failing runs yet.
+    // testFile("mfiles/broken_syntax.m");
+    // testFile("mfile/broken_semantics.m");
+
     testFile("mfiles/comment.m");
-    testFile("mfiles/if.m");
     testFile("mfiles/if_else_no_brackets.m");
     testFile("mfiles/if_else.m");
+    testFile("mfiles/if.m");
+    testFile("mfiles/infix_operator_precedence.m");
+    testFile("mfiles/method_decl_multiline.m");
+    testFile("mfiles/method_declaration_brackets.m");
+    testFile("mfiles/method_declaration.m");
+    testFile("mfiles/multiple_vars.m");
+
+    // TODO: Printing is not implemented in the VM yet.
+    // testFile("mfiles/print_call.m");
+
+    // TODO: Type inference not working.
+    // We should skip recursive calls and find the terminating return.
+    // Assume that type for the recursive calls and see if this passes 
+    // without conflicts.
+    // testFile("mfiles/recursion.m");
+
+    testFile("mfiles/simple_fns.m");
+
+    // TODO: Without return/term statement the VM does not stop.
+    // We need an implicit return and maybe also a automatic term at the end.
+    // testFile("mfiles/var_declaration_addition.m");
+    // testFile("mfiles/var_declaration.m");
+
+    // TODO: While loops are not implemented in the emitter yet.
+    // testFile("mfiles/while.m");
     return 0;
 }

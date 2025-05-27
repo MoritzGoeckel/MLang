@@ -1,3 +1,4 @@
+# expect_result=1024
 let f(x) = {
     if(x > 100){
         ret x;
