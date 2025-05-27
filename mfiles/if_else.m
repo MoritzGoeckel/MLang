@@ -1,4 +1,4 @@
-# expect_result=false;
+# expect_result=false
 let x = true;
 if(x){
     ret false;

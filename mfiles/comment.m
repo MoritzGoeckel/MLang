@@ -1,4 +1,4 @@
-# expect_result=10;
+# expect_result=10
 # a comment
 let a = 10;
 # another comment

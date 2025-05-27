@@ -1,4 +1,4 @@
-# expect_result=1024;
+# expect_result=1024
 let i = 0;
 let j = 1;
 while(i < 10){
