@@ -153,6 +153,10 @@ class Block : public Node {
         return vec;
     }
 
+    void addChild(std::shared_ptr<Node> node) {
+        children.emplace_back(node);
+    }
+
     void setChildren(std::vector<std::shared_ptr<Node>> nodes) {
         children = nodes;
     }
@@ -536,6 +540,8 @@ class Function : public Node {
 
     std::shared_ptr<Declfn> getHead() { return head; }
     std::shared_ptr<Node> getBody() { return body; }
+
+    void setBody(std::shared_ptr<Node> newBody) { body = newBody; }
 
     virtual void toString(std::stringstream& stream) override {
         stream << "function(";

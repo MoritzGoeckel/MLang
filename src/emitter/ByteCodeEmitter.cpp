@@ -160,18 +160,16 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node) {
                 code.push_back(executor::Instruction(executor::Op::GTE));
             } else if (fnName == "!=") {
                 code.push_back(executor::Instruction(executor::Op::NEQ));
-            } else if (functions.find(fnName) != functions.end()) {
-                // Function call
-                loadIdentifier(call->getIdentifier());
-                code.push_back(executor::Instruction(executor::Op::CALL, call->getArguments().size()));
             } else {
                 loadIdentifier(call->getIdentifier()); // Bring the function addr on the stack
                 code.push_back(executor::Instruction(executor::Op::CALL, call->getArguments().size()));
+                // TODO: If we don't have a consumer, pop the result
             }
 
             break;
         }
         case AST::NodeType::Literal: {
+            // TODO: Only push literals that have a consumer
             auto literal = std::dynamic_pointer_cast<AST::Literal>(node);
             if (literal->getDataType() == DataType::Primitive::String) {
                 // code << "'" << literal->getStringValue() << "'";
@@ -189,6 +187,7 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node) {
             break;
         }
         case AST::NodeType::FnPtr: {
+            // TODO: Only push FnPtr that have a consumer
             auto fnPtr = std::dynamic_pointer_cast<AST::FnPtr>(node);
             // Later backpatch the address
             backpatches.push_back(Backpatch{code.size(), fnPtr->getId()});
@@ -196,6 +195,7 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node) {
             break;
         }
         case AST::NodeType::Identifier: {
+            // TODO: Only push Identifier that have a consumer
             loadIdentifier(std::dynamic_pointer_cast<AST::Identifier>(node));
             break;
         }

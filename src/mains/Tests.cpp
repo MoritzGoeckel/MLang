@@ -128,5 +128,18 @@ int main() {
     // TODO: While loops are not implemented in the emitter yet.
     // testFile("mfiles/while.m");
 
+    // TODO: We need to pop the stack values after a function call, if the return is ignored
+
+    // ## LATER ##
+    // terminal IO
+    // floats
+    // arrays
+    // structs
+    // strings
+    // file IO
+    // c ffi, interop
+    // Linux:   dlopen / dlsym
+    // Windows: LoadLibrary / GetProcAddress
+
     return 0;
 }

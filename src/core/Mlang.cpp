@@ -108,6 +108,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
 
     // Do not use ast after this point!
     auto fns = instantiator.getFunctions();
+
     if (settings.showFunctions) {
         for (auto& fn : fns) {
             std::cout << "### " << fn.first << " ###" << std::endl;
@@ -116,12 +117,9 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         }
     }
 
-    /*emitter::Python pythonEmitter(fns);
-    pythonEmitter.run();
-
-    if (settings.showEmission) {
-        pythonEmitter.print();
-    }*/
+    // TODO: If function returns nothing, add a void return as last statement of the body
+    // Make sure after a return no other statements exist, otherwise create error
+    // If a function has a return type, make sure that all paths return a value of that type
 
     emitter::ByteCodeEmitter byteCodeEmitter(fns);
     byteCodeEmitter.run();
