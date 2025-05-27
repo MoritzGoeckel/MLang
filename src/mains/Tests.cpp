@@ -127,5 +127,6 @@ int main() {
 
     // TODO: While loops are not implemented in the emitter yet.
     // testFile("mfiles/while.m");
+
     return 0;
 }
