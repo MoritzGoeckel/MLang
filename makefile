@@ -9,8 +9,6 @@ all: ExecuteFile Tests
 SRCS := $(wildcard $(SRCDIR)/*.cpp $(SRCDIR)/*/*.cpp)
 MAINS := $(wildcard $(MAINDIR)/*.cpp)
 
-# SRCS := $(filter-out $(EXCLUDE:%=$(MAINDIR)/%),$(SRCS))
-
 NON_MAIN_SRCS := $(filter-out $(MAINS),$(SRCS))
 OBJS := $(NON_MAIN_SRCS:$(SRCDIR)/%.cpp=$(SRCDIR)/%.o)
 
@@ -54,6 +52,3 @@ else
 	$(foreach file, $(EXES), rm ${file};)
 endif
 
-# Tests
-#   src/tests/Tests.cpp
-#	...
