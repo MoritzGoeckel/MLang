@@ -10,6 +10,8 @@
 
 namespace executor {
 
+// TODO: Make your own stack, with safety checks, etc.
+
 Instruction::Instruction(Op op, word_t arg1, word_t arg2, word_t arg3)
         : op(op), arg1(arg1), arg2(arg2), arg3(arg3) {}
 
@@ -70,7 +72,10 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
                 ss << inst.arg3 << " ";
             }
         }
-        ss << "\n";
+
+        if(i < instructions.size() - 1) {
+            ss << "\n";
+        }
     }
     return ss.str();
 }
@@ -88,6 +93,11 @@ bool ByteCodeVM::run() {
         const Instruction& inst = program.code[idx++];
 
         std::cout << "Executing instruction: " << instructionsToString({inst}, true);
+        std::cout << " | Stack: ";
+        for (const auto& val : stack) {
+            std::cout << val << " ";
+        }
+        std::cout << std::endl;
 
         switch(inst.op){
             case Op::NOP: {
@@ -288,7 +298,7 @@ std::string ByteCodeVM::execute(){
         return "null";
     } else {
         std::stringstream ss;
-        for (size_t i = 0; i < stack.size() - 1; ++i) {
+        for (int i = 0; i < stack.size() - 1; ++i) {
             ss << stack[i];
         }
         if (!stack.empty()) {

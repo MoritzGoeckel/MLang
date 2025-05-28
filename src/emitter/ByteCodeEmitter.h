@@ -15,9 +15,10 @@
 
 namespace emitter {
 
-class ByteCodeEmitter : public Emitter {
+class ByteCodeEmitter {
     
     private:
+    std::map<std::string, std::shared_ptr<AST::Function>> functions;
     std::vector<executor::word_t> data;
     std::vector<executor::Instruction> code;
 
@@ -37,7 +38,7 @@ class ByteCodeEmitter : public Emitter {
     executor::Program getProgram();
 
    protected:
-    virtual void process(const std::shared_ptr<AST::Node>& node);
+    void process(const std::shared_ptr<AST::Node>& node, bool hasConsumer);
     void loadIdentifier(const std::shared_ptr<AST::Identifier>& identifier);
     void storeLocalInto(const std::shared_ptr<AST::Node>& node);
 };
