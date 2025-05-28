@@ -14,23 +14,39 @@ MAINS := $(wildcard $(MAINDIR)/*.cpp)
 NON_MAIN_SRCS := $(filter-out $(MAINS),$(SRCS))
 OBJS := $(NON_MAIN_SRCS:$(SRCDIR)/%.cpp=$(SRCDIR)/%.o)
 
-EXES := ${BINDIR}/executefile.exe ${BINDIR}/tests.exe
+ifdef OS
+	EXECUTE_FILE_TARGET := ${BINDIR}/executefile.exe
+	TESTS_TARGET := ${BINDIR}/tests.exe
+else
+	EXECUTE_FILE_TARGET := ${BINDIR}/executefile
+	TESTS_TARGET := ${BINDIR}/tests
+endif
 
-ExecuteFile: $(OBJS) $(MAINDIR)/ExecuteFile.o
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $(BINDIR)/executeFile.exe $^
+EXES := ${EXECUTE_FILE_TARGET} ${TESTS_TARGET}
 
-Tests: $(OBJS) $(MAINDIR)/Tests.o
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $(BINDIR)/tests.exe $^
+ExecuteFile: $(OBJS) $(MAINDIR)/ExecuteFile.o | bin
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${EXECUTE_FILE_TARGET} $^
+
+Tests: $(OBJS) $(MAINDIR)/Tests.o | bin
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${TESTS_TARGET} $^
+
+bin:
+	mkdir bin
 
 Test: Tests
-	bin/tests.exe
+	${TESTS_TARGET}
 
 %.o: %.cpp
 	$(CXX) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 Clean:
+ifdef OS
 	$(foreach file, $(OBJS), -del $(subst /,\,${file}) >nul 2>&1;)
 	$(foreach file, $(EXES), -del $(subst /,\,${file}) >nul 2>&1;)
+else
+	$(foreach file, $(OBJS), rm ${file};)
+	$(foreach file, $(EXES), rm ${file};)
+endif
 
 # Tests
 #   src/tests/Tests.cpp
