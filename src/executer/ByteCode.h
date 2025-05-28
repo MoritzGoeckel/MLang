@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "../error/Exceptions.h"
+#include "Stack.hpp"
 
 namespace executor {
 
@@ -49,7 +50,7 @@ class ByteCodeVM {
     private:
         word_t idx;
         std::vector<StackFrame> callstack;
-        std::vector<word_t> stack;
+        Stack stack;
         std::vector<word_t> heap;
         Program program;
         bool debug;

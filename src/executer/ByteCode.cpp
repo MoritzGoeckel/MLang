@@ -103,15 +103,13 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
             case Op::CALL: {
                 auto return_address = idx;
 
-                auto dest = stack.back();
-                stack.pop_back();
+                auto dest = stack.pop();
                 idx = dest; // Jump to function address
 
                 // Bring parameters to locals
                 std::vector<word_t> locals;
                 for (int i = 0; i < inst.arg1; ++i) {
-                    locals.push_back(stack.back());
-                    stack.pop_back();
+                    locals.push_back(stack.pop());
                 }
 
                 callstack.push_back({locals, return_address});
@@ -130,119 +128,93 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 auto& locals = callstack.back().locals;
                 locals.resize(inst.arg1 + 1); // TODO: Expensive!
 
-                auto value = stack.back();
-                stack.pop_back();
-
+                auto value = stack.pop();
                 locals[inst.arg1] = value; // Store value in local variable
                 break;
             }
             case Op::LOCALL: {
                 // LOCALL ID
                 auto& locals = callstack.back().locals;
-                stack.push_back(locals[inst.arg1]); // Push local variable onto stack
+                stack.push(locals[inst.arg1]); // Push local variable onto stack
                 break;
             }
             case Op::PRINTS: {
-                // PRINT STACK_ADDR
-                std::cout << stack.back() << std::endl;
+                std::cout << stack.pop() << std::endl;
                 break;
             }
             case Op::PUSH: {
-                stack.emplace_back(inst.arg1);
+                stack.push(inst.arg1);
                 break;
             }
             case Op::POP: {
-                stack.pop_back();
+                stack.pop();
                 break;
             }
             case Op::ADD: {
                 // ADD RESULT_ADDR STACK_ADDR1 STACK_ADDR2
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-
-                stack.push_back(a + b);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(a + b);
                 break;
             }
             case Op::SUB: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(b - a);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(b - a);
                 break;
             }
             case Op::MUL: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(a * b);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(a * b);
                 break;
             }
             case Op::DIV: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(b / a);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(b / a);
                 break;
             }
             case Op::MOD: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(b % a);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(b % a);
                 break;
             }
             case Op::LT: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(b < a ? 1 : 0);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(b < a ? 1 : 0);
                 break;
             }
             case Op::GT: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(b > a ? 1 : 0);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(b > a ? 1 : 0);
                 break;
             }
             case Op::EQ: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(b == a ? 1 : 0);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(b == a ? 1 : 0);
                 break;
             }
             case Op::LTE: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(b <= a ? 1 : 0);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(b <= a ? 1 : 0);
                 break;
             }
             case Op::GTE: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(b >= a ? 1 : 0);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(b >= a ? 1 : 0);
                 break;
             }
             case Op::NEQ: {
-                auto a = stack.back();
-                stack.pop_back();
-                auto b = stack.back();
-                stack.pop_back();
-                stack.push_back(b != a ? 1 : 0);
+                auto a = stack.pop();
+                auto b = stack.pop();
+                stack.push(b != a ? 1 : 0);
                 break;
             }
             case Op::JUMP: {
@@ -250,9 +222,7 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 break;
             }
             case Op::JUMP_IF: {
-                auto cond = stack.back();
-                stack.pop_back();
-
+                auto cond = stack.pop();
                 if (cond == 0) {
                     idx = inst.arg1;
                 }
@@ -260,21 +230,25 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
             }
             case Op::ALLOC: {
                 // ALLOC STACK_ADDR SIZE
-                stack[inst.arg1] = heap.size();
-                heap.resize(heap.size() + inst.arg2);
+                stack.push(heap.size());
+                heap.resize(heap.size() + inst.arg1);
                 break;
             }
             case Op::WRITE_HEAP: {
                 // WRITE_HEAP FROM_STACK_ADDR TO_HEAP_ADDR SIZE
-                for (int i = 0; i < inst.arg3; ++i) {
-                    heap[stack[inst.arg2] + i] = stack[inst.arg1 + i];
+                auto heap_addr = stack.pop();
+                auto size = stack.pop();
+                for (int i = 0; i < size; ++i) {
+                    heap[heap_addr + i] = stack.pop();
                 }
                 break;
             }
             case Op::READ_HEAP: {
                 // READ_HEAP FROM_HEAP_ADDR TO_STACK_ADDR SIZE
-                for (int i = 0; i < inst.arg3; ++i) {
-                    stack[inst.arg2 + i] = heap[stack[inst.arg1] + i];
+                auto heap_addr = stack.pop();
+                auto size = stack.pop();
+                for (int i = 0; i < size; ++i) {
+                    stack.push(heap[heap_addr + i]);
                 }
                 break;
             }
@@ -298,8 +272,8 @@ std::string ByteCodeVM::execute(size_t maxInstructions) {
         return "null";
     } else {
         std::stringstream ss;
-        for (int i = 0; i < stack.size() - 1; ++i) {
-            ss << stack[i];
+        while (stack.size() > 1) {
+            ss << stack.pop() << ", ";
         }
         if (!stack.empty()) {
             ss << stack.back(); // Last element
