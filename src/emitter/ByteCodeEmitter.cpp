@@ -22,7 +22,7 @@ void ByteCodeEmitter::run() {
     code.push_back(executor::Instruction(executor::Op::TERM)); // We finish when we are back
 
     for (auto &fn : functions) {
-        // TODO: All functions need to have unique names. If that is not a given, 
+        // TODO: All functions need to have unique names. If that is not a given,
         // we have to ensure this before with some kind of tree walker
 
         localNames.clear();
@@ -68,7 +68,7 @@ void ByteCodeEmitter::storeLocalInto(const std::shared_ptr<AST::Node>& node){
             auto it = std::find(localNames.begin(), localNames.end(), identifier->getName());
             if (it == localNames.end()) {
                 throwConstraintViolated("Identifier not found in local names.");
-            }  
+            }
             auto localIdx = std::distance(localNames.begin(), it);
             code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
             break;
@@ -100,7 +100,7 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             auto ret = std::dynamic_pointer_cast<AST::Ret>(node);
             if (ret->getExpr()) {
                 process(ret->getExpr(), true);
-            } 
+            }
             code.push_back(executor::Instruction(executor::Op::RET));
             break;
         }
@@ -130,6 +130,19 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
                 code.push_back(executor::Instruction(executor::Op::NOP));
                 code[jumpIfIdx].arg1 = endIdx; // Backpatch the jump if, skip to end
             }
+            break;
+        }
+        case AST::NodeType::While: {
+            auto whileNode = std::dynamic_pointer_cast<AST::While>(node);
+            auto startIdx = code.size();
+            process(whileNode->getCondition(), true);
+            auto jumpIfIdx = code.size();
+            code.push_back(executor::Instruction(executor::Op::JUMP_IF, 0)); // Go to end if false
+            process(whileNode->getBody(), false);
+            code.push_back(executor::Instruction(executor::Op::JUMP, startIdx)); // Jump back to condition
+            auto endIdx = code.size();
+            code.push_back(executor::Instruction(executor::Op::NOP));
+            code[jumpIfIdx].arg1 = endIdx; // Backpatch the jump if, skip to end
             break;
         }
         case AST::NodeType::Call: {
@@ -189,7 +202,7 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
                 } else if (literal->getDataType() == DataType::Primitive::Float) {
                     code.push_back(executor::Instruction(
                         executor::Op::PUSH, literal->getFloatValue()));
-                } 
+                }
             }
             break;
         }

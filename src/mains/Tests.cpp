@@ -18,6 +18,13 @@
         throw std::runtime_error("Test failed!"); \
     }
 
+#define EXPECT_TRUE_PRINT(condition, output) \
+    if (!(condition)) { \
+        std::cerr << __FILE__ << ":" << __LINE__  << " " << __FUNCTION__ << " Expected condition to be true, but it was false." << std::endl; \
+        std::cerr << "Error: " << output << std::endl; \
+        throw std::runtime_error("Test failed!"); \
+    }
+
 std::map<std::string, std::string> readMetadata(const std::string& path) {
     std::map<std::string, std::string> result;
     std::ifstream stream(path);
@@ -102,7 +109,8 @@ void testFile(std::string path){
         // EXPECT_EQ(expect_failure.value(), rs.getErrorString());
     } else if (expectResult) {
         EXPECT_TRUE(rs == core::Mlang::Result::Signal::Success);
-        EXPECT_TRUE(compareResults(expectResult.value(), rs.getResult()));
+        EXPECT_TRUE_PRINT(compareResults(expectResult.value(), rs.getResult()),
+            expectResult.value() << " != " << rs.getResult());
     } else {
         EXPECT_TRUE(rs == core::Mlang::Result::Signal::Success);
     }
@@ -124,6 +132,8 @@ int main() {
     testFile("mfiles/method_declaration_brackets.m");
     testFile("mfiles/method_declaration.m");
     testFile("mfiles/multiple_vars.m");
+    testFile("mfiles/simple_fns.m");
+    testFile("mfiles/while.m");
 
     // TODO: Printing is not implemented in the VM yet.
     // testFile("mfiles/print_call.m");
@@ -134,15 +144,10 @@ int main() {
     // without conflicts.
     // testFile("mfiles/recursion.m");
 
-    testFile("mfiles/simple_fns.m");
-
     // TODO: Without return/term statement the VM does not stop.
     // We need an implicit return and maybe also a automatic term at the end.
     // testFile("mfiles/var_declaration_addition.m");
     // testFile("mfiles/var_declaration.m");
-
-    // TODO: While loops are not implemented in the emitter yet.
-    // testFile("mfiles/while.m");
 
     // TODO: We need to pop the stack values after a function call, if the return is ignored
 
