@@ -134,6 +134,9 @@ int main() {
     testFile("mfiles/multiple_vars.m");
     testFile("mfiles/simple_fns.m");
     testFile("mfiles/while.m");
+    testFile("mfiles/return_in_some_cases_0.m");
+    testFile("mfiles/return_in_some_cases_1.m");
+    testFile("mfiles/ignored_return.m");
 
     // TODO: Printing is not implemented in the VM yet.
     // testFile("mfiles/print_call.m");
@@ -148,8 +151,6 @@ int main() {
     // We need an implicit return and maybe also a automatic term at the end.
     // testFile("mfiles/var_declaration_addition.m");
     // testFile("mfiles/var_declaration.m");
-
-    // TODO: We need to pop the stack values after a function call, if the return is ignored
 
     // ## LATER ##
     // terminal IO
