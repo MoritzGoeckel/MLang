@@ -80,16 +80,12 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
     return ss.str();
 }
 
-struct StackFrame {
-    std::vector<word_t> locals;
-    word_t return_address; 
-};
-
-bool ByteCodeVM::run() {
-    word_t idx = 0;
-    std::vector<StackFrame> callstack;
-
-    while(true){
+ProgramState ByteCodeVM::run(size_t maxInstructions) {
+    std::cout << "Running ByteCodeVM with max instructions: " << maxInstructions << std::endl;
+    for (size_t instructionCount = 0; instructionCount < maxInstructions; ++instructionCount) {
+        if (idx >= program.code.size()) {
+            throwConstraintViolated("ByteCodeVM: Instruction index out of bounds");
+        }
         const Instruction& inst = program.code[idx++];
 
         std::cout << "Executing instruction: " << instructionsToString({inst}, true);
@@ -115,7 +111,7 @@ bool ByteCodeVM::run() {
                 std::vector<word_t> locals;
                 for (int i = 0; i < inst.arg1; ++i) {
                     locals.push_back(stack.back());
-                    stack.pop_back();           
+                    stack.pop_back();
                 }
 
                 callstack.push_back({locals, return_address});
@@ -123,7 +119,7 @@ bool ByteCodeVM::run() {
             }
             case Op::RET: {
                 if(callstack.empty()){
-                    return true;
+                    return ProgramState::Finished;
                 }
                 idx = callstack.back().return_address;
                 callstack.pop_back();
@@ -283,17 +279,21 @@ bool ByteCodeVM::run() {
                 break;
             }
             case Op::TERM: {
-                return true;
+                return ProgramState::Finished;
             }
         }
     }
-    return 0; // Unreachable
+    return ProgramState::Paused;
 }
 
-ByteCodeVM::ByteCodeVM(const Program& program) : program(program), debug{true} {}
+ByteCodeVM::ByteCodeVM(const Program& program) : idx{0ull}, callstack{}, stack{}, program(program), debug{true} {}
 
-std::string ByteCodeVM::execute(){
-    run();
+std::string ByteCodeVM::execute(size_t maxInstructions) {
+    auto state = run(maxInstructions);
+    if (state != ProgramState::Finished) {
+        return "Program did not finish";
+    }
+
     if(stack.empty()){
         return "null";
     } else {

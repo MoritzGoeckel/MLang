@@ -135,8 +135,6 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         std::cout << byteCodeEmitter.toString() << std::endl;
     }
 
-        return Mlang::Result(Mlang::Result::Signal::Failure);
-
     auto program = byteCodeEmitter.getProgram();
     executor::ByteCodeVM runner(program);
     auto result = runner.execute();

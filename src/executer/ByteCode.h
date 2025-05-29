@@ -25,7 +25,7 @@ struct Instruction {
 
 struct OpCodeMetadata {
     std::string name;
-    std::vector<std::string> arg_names; 
+    std::vector<std::string> arg_names;
 };
 
 std::string instructionsToString(const std::vector<Instruction>& instructions, bool named_args = false);
@@ -35,18 +35,30 @@ struct Program {
     std::vector<Instruction> code;
 };
 
+enum class ProgramState {
+    Paused,
+    Finished
+};
+
+struct StackFrame {
+    std::vector<word_t> locals;
+    word_t return_address;
+};
+
 class ByteCodeVM {
     private:
+        word_t idx;
+        std::vector<StackFrame> callstack;
         std::vector<word_t> stack;
         std::vector<word_t> heap;
         Program program;
         bool debug;
 
-    bool run();
+    ProgramState run(size_t maxInstructions);
 
     public:
     ByteCodeVM(const Program& program);
-    std::string execute();
+    std::string execute(size_t maxInstructions = 1000);
 
 };
 
