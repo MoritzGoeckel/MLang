@@ -1,4 +1,4 @@
-# expect_failing_parse
+# failure=true
 let f(x) = {
     let y = x + 2
     ret y + 3;

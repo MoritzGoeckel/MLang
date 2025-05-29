@@ -1,4 +1,4 @@
-CXXFLAGS = -Wall -O0
+CXXFLAGS = -Wall -O0 -std=c++17
 CXX = g++
 SRCDIR = src
 BINDIR = bin
@@ -41,7 +41,7 @@ Test: BuildTests
 	${TESTS_TARGET}
 
 %.o: %.cpp
-	$(CXX) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 Clean:
 ifdef OS

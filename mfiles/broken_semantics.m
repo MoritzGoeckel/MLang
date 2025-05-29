@@ -1,4 +1,4 @@
-# expect_failing_type_inference
+# failure=true
 let f(x) = {
     let y = z + 2;
     ret y + 3;

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <optional>
 
 #define EXPECT_EQ(expected, actual) \
     if ((expected) != (actual)) { \
@@ -67,10 +68,18 @@ void testFile(std::string path){
     std::cout << "Testing file: " << path << std::endl;
 
     auto metadata = readMetadata(path);
-    auto expectResultIt = metadata.find("expect_result");
-    EXPECT_TRUE(expectResultIt != metadata.end());
-    std::cout << "Expect result: " << expectResultIt->second << std::endl;
-    
+    std::optional<std::string> expectResult;
+    auto expectIt = metadata.find("expect_result");
+    if (expectIt != metadata.end()) {
+        expectResult = expectIt->second;
+    }
+
+    std::optional<std::string> expect_failure;
+    auto expect_failure_it = metadata.find("failure");
+    if (expect_failure_it  != metadata.end()) {
+        expect_failure = expect_failure_it  ->second;
+    }
+
     core::Mlang mlang;
     mlang.settings.showTokens = true;
     mlang.settings.showFileContent = true;
@@ -86,19 +95,26 @@ void testFile(std::string path){
         std::cout << "Error: " << rs.getErrorString() << std::endl;
     }
 
-    EXPECT_TRUE(core::Mlang::Result::Signal::Success == rs);
-    EXPECT_TRUE(compareResults(expectResultIt->second, rs.getResult()));
+    EXPECT_TRUE(expectResult || expect_failure);
+
+    if (expect_failure) {
+        EXPECT_TRUE(rs == core::Mlang::Result::Signal::Failure);
+        // EXPECT_EQ(expect_failure.value(), rs.getErrorString());
+    } else if (expectResult) {
+        EXPECT_TRUE(rs == core::Mlang::Result::Signal::Success);
+        EXPECT_TRUE(compareResults(expectResult.value(), rs.getResult()));
+    } else {
+        EXPECT_TRUE(rs == core::Mlang::Result::Signal::Success);
+    }
+
     std::cout << "[ OK ] " << path << std::endl;
 }
 
 int main() {
     testFile("mfiles/addition_infix.m");
     testFile("mfiles/addition.m");
-
-    // TODO: Testing framework does not support failing runs yet.
-    // testFile("mfiles/broken_syntax.m");
-    // testFile("mfile/broken_semantics.m");
-
+    testFile("mfiles/broken_syntax.m");
+    testFile("mfiles/broken_semantics.m");
     testFile("mfiles/comment.m");
     testFile("mfiles/if_else_no_brackets.m");
     testFile("mfiles/if_else.m");
@@ -114,7 +130,7 @@ int main() {
 
     // TODO: Type inference not working.
     // We should skip recursive calls and find the terminating return.
-    // Assume that type for the recursive calls and see if this passes 
+    // Assume that type for the recursive calls and see if this passes
     // without conflicts.
     // testFile("mfiles/recursion.m");
 
