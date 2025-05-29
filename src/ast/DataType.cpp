@@ -36,6 +36,14 @@ bool DataType::operator==(const DataType& other) const {
     }
 }
 
+bool DataType::operator==(Primitive primitive) const {
+    if (isSimple) {
+        return simple == primitive;
+    } else {
+        return false; // Complex types cannot be equal to a primitive
+    }
+}
+
 bool DataType::operator!=(const DataType& other) const {
     return !(other == *this);
 }

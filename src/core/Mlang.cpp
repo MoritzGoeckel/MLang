@@ -14,6 +14,7 @@
 #include "../transformer/InfereIdentifierTypes.h"
 #include "../transformer/InfereParameterTypes.h"
 #include "../transformer/InstantiateFunctions.h"
+#include "../transformer/AddVoidReturn.h"
 #include "../emitter/Emitter.h"
 #include "../emitter/Python.h"
 #include "../emitter/ByteCodeEmitter.h"
@@ -109,6 +110,11 @@ Mlang::Result Mlang::execute(const std::string& theFile,
     // Do not use ast after this point!
     auto fns = instantiator.getFunctions();
 
+    for (auto& fn : fns) {
+        transformer::AddVoidReturn addVoidReturn;
+        fn.second = addVoidReturn.process(fn.second);
+    }
+
     if (settings.showFunctions) {
         for (auto& fn : fns) {
             std::cout << "### " << fn.first << " ###" << std::endl;
@@ -128,6 +134,8 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         std::cout << "Bytecode:" << std::endl;
         std::cout << byteCodeEmitter.toString() << std::endl;
     }
+
+        return Mlang::Result(Mlang::Result::Signal::Failure);
 
     auto program = byteCodeEmitter.getProgram();
     executor::ByteCodeVM runner(program);

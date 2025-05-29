@@ -136,6 +136,8 @@ class Block : public Node {
           const SourcePosition& thePosition)
         : Node(thePosition), children(children) {}
 
+    Block(const SourcePosition& thePosition) : Node(thePosition), children() {}
+
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "{";
         print(stream, children);

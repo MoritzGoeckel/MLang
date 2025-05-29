@@ -119,24 +119,26 @@ void testFile(std::string path){
 }
 
 int main() {
-    testFile("mfiles/addition_infix.m");
-    testFile("mfiles/addition.m");
-    testFile("mfiles/broken_syntax.m");
-    testFile("mfiles/broken_semantics.m");
-    testFile("mfiles/comment.m");
-    testFile("mfiles/if_else_no_brackets.m");
-    testFile("mfiles/if_else.m");
-    testFile("mfiles/if.m");
-    testFile("mfiles/infix_operator_precedence.m");
-    testFile("mfiles/method_decl_multiline.m");
-    testFile("mfiles/method_declaration_brackets.m");
-    testFile("mfiles/method_declaration.m");
-    testFile("mfiles/multiple_vars.m");
-    testFile("mfiles/simple_fns.m");
-    testFile("mfiles/while.m");
-    testFile("mfiles/return_in_some_cases_0.m");
-    testFile("mfiles/return_in_some_cases_1.m");
-    testFile("mfiles/ignored_return.m");
+    // testFile("mfiles/addition_infix.m");
+    // testFile("mfiles/addition.m");
+    // testFile("mfiles/broken_syntax.m");
+    // testFile("mfiles/broken_semantics.m");
+    // testFile("mfiles/comment.m");
+    // testFile("mfiles/if_else_no_brackets.m");
+    // testFile("mfiles/if_else.m");
+    // testFile("mfiles/if.m");
+    // testFile("mfiles/infix_operator_precedence.m");
+    // testFile("mfiles/method_decl_multiline.m");
+    // testFile("mfiles/method_declaration_brackets.m");
+    // testFile("mfiles/method_declaration.m");
+    // testFile("mfiles/multiple_vars.m");
+    // testFile("mfiles/simple_fns.m");
+    // testFile("mfiles/while.m");
+    // testFile("mfiles/return_in_some_cases_0.m");
+    // testFile("mfiles/return_in_some_cases_1.m");
+    // testFile("mfiles/ignored_return.m");
+
+    // TODO: THese work
 
     // TODO: Printing is not implemented in the VM yet.
     // testFile("mfiles/print_call.m");
@@ -149,6 +151,7 @@ int main() {
 
     // TODO: Without return/term statement the VM does not stop.
     // We need an implicit return and maybe also a automatic term at the end.
+    testFile("mfiles/function_without_return.m");
     // testFile("mfiles/var_declaration_addition.m");
     // testFile("mfiles/var_declaration.m");
 

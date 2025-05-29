@@ -48,6 +48,7 @@ class DataType {
     void operator=(const DataType& other);
 
     bool operator==(const DataType& other) const;
+    bool operator==(Primitive primitive) const;
 
     bool operator!=(const DataType& other) const;
 
