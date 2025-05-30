@@ -2,6 +2,9 @@
 
 #include <exception>
 #include <string>
+#include <iostream>
+
+void print_stacktrace();
 
 struct MException : public std::exception {
     MException(const std::string& msg, const std::string& file, int line);
@@ -33,5 +36,11 @@ struct ConstraintViolatedException : public MException {
 
     const char* what() const throw();
 };
+
 #define throwConstraintViolated(msg) \
+    std::cout << std::endl; \
+    std::cerr << "Constraint violated: " << msg << " in " << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION__ << std::endl << std::endl; \
+    std::cerr << "Stack trace:" << std::endl; \
+    print_stacktrace(); \
+    std::cerr << std::endl; \
     throw ConstraintViolatedException(msg, __FILE__, __LINE__);

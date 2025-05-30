@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include "../error/Exceptions.h"
+
 namespace executor {
 
 // TODO: Duplicate of src/executer/ByteCode.h
@@ -9,33 +12,15 @@ class Stack {
 private:
     std::vector<word_t> impl;
 public:
-    void push(word_t value) {
-        impl.push_back(value);
-    }
+    void push(word_t value);
 
-    word_t pop() {
-        if (impl.empty()) {
-            throw std::runtime_error("Stack underflow");
-        }
-        word_t value = impl.back();
-        impl.pop_back();
-        return value;
-    }
+    word_t pop();
 
-    word_t back() const {
-        if (impl.empty()) {
-            throw std::runtime_error("Stack is empty");
-        }
-        return impl.back();
-    }
+    word_t back() const;
 
-    bool empty() const {
-        return impl.empty();
-    }
+    bool empty() const;
 
-    size_t size() const {
-        return impl.size();
-    }
+    size_t size() const;
 
     using const_iterator = std::vector<word_t>::const_iterator;
 

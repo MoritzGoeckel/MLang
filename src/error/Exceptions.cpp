@@ -1,5 +1,41 @@
 #include "Exceptions.h"
 
+#ifdef WIN
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <stdio.h>
+void print_stacktrace();
+ {
+    const ULONG framesToSkip = 0;
+    const ULONG framesToCapture = 64;
+    void* backTrace[framesToCapture] {};
+    ULONG backTraceHash = 0;
+
+    const USHORT nFrame = CaptureStackBackTrace(
+          framesToSkip
+        , framesToCapture
+        , backTrace
+        , &backTraceHash
+    );
+
+    for(USHORT iFrame = 0; iFrame < nFrame; ++iFrame) {
+        printf("[%3d] = %p\n", iFrame, backTrace[iFrame]);
+    }
+    printf("backTraceHash = %08x\n", backTraceHash);
+}
+#else
+#include <execinfo.h> /* backtrace, backtrace_symbols_fd */
+#include <unistd.h> /* STDOUT_FILENO */
+
+void print_stacktrace() {
+    size_t size;
+    enum Constexpr { MAX_SIZE = 1024 };
+    void *array[MAX_SIZE];
+    size = backtrace(array, MAX_SIZE);
+    backtrace_symbols_fd(array, size, STDOUT_FILENO);
+}
+#endif
+
 MException::MException(const std::string& msg, const std::string& file,
                        int line)
     : msg(msg), file(file), line(line) {}

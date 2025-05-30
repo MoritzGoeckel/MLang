@@ -1,4 +1,13 @@
-CXXFLAGS = -Wall -O0 -std=c++17
+# -rdynamic for backtrace support
+
+ifdef OS
+	# Windows
+	CXXFLAGS = -Wall -O0 -std=c++17 -rdynamic -DWIN
+else
+	# Unix
+	CXXFLAGS = -Wall -O0 -std=c++17 -rdynamic
+endif
+
 CXX = g++
 SRCDIR = src
 BINDIR = bin
@@ -17,7 +26,7 @@ ifdef OS
 	EXECUTE_FILE_TARGET := ${BINDIR}/executefile.exe
 	TESTS_TARGET := ${BINDIR}/tests.exe
 else
-	# Linux
+	# Unix
 	EXECUTE_FILE_TARGET := ${BINDIR}/executefile
 	TESTS_TARGET := ${BINDIR}/tests
 endif

@@ -149,7 +149,7 @@ int main() {
 
     // TODO: Without return/term statement the VM does not stop.
     // We need an implicit return and maybe also a automatic term at the end.
-    // testFile("mfiles/function_without_return.m");
+     testFile("mfiles/function_without_return.m");
     // testFile("mfiles/var_declaration_addition.m");
     // testFile("mfiles/var_declaration.m");
 
