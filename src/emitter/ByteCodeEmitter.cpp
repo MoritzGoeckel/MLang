@@ -178,9 +178,16 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             } else {
                 loadIdentifier(call->getIdentifier()); // Bring the function addr on the stack
                 code.push_back(executor::Instruction(executor::Op::CALL, call->getArguments().size()));
+
                 // CALL consumes the arguments from the stack, so we don't need to pop them
                 // If we don't have a consumer, we have to pop the result. We assume only one result.
-                if(!hasConsumer) {
+                // Only if the function is not void, of course.
+
+                const auto& identifier = call->getIdentifier();
+                ASSURE_NOT_NULL(identifier);
+                const auto& returnType = identifier->getDataType().getReturn();
+                ASSURE_NOT_NULL(returnType);
+                if(!hasConsumer && *returnType != DataType::Primitive::None) {
                     code.push_back(executor::Instruction(executor::Op::POP));
                 }
             }

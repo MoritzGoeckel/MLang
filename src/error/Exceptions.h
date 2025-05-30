@@ -44,3 +44,11 @@ struct ConstraintViolatedException : public MException {
     print_stacktrace(); \
     std::cerr << std::endl; \
     throw ConstraintViolatedException(msg, __FILE__, __LINE__);
+
+#define ASSURE(condition, msg) \
+    if (!(condition)) { \
+        throwConstraintViolated(msg); \
+    }
+
+#define ASSURE_NOT_NULL(ptr) \
+    ASSURE(ptr != nullptr, "Pointer is null: " #ptr)

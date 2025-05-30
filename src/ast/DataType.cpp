@@ -48,6 +48,11 @@ bool DataType::operator!=(const DataType& other) const {
     return !(other == *this);
 }
 
+
+bool DataType::operator!=(Primitive other) const {
+    return !(*this == other);
+}
+
 bool DataType::operator<(const DataType& other) const {
     return other.getHashNum() < getHashNum();
 }

@@ -51,6 +51,7 @@ class DataType {
     bool operator==(Primitive primitive) const;
 
     bool operator!=(const DataType& other) const;
+    bool operator!=(Primitive primitive) const;
 
     bool operator<(const DataType& other) const;
 
