@@ -269,7 +269,7 @@ std::string ByteCodeVM::execute(size_t maxInstructions) {
     }
 
     if(stack.empty()){
-        return "null";
+        return "void";
     } else {
         std::stringstream ss;
         while (stack.size() > 1) {

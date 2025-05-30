@@ -1,4 +1,4 @@
-# expect_result=null
+# expect_result=void
 let f() = {
     ret 10;
 };

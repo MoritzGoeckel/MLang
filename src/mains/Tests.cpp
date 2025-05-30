@@ -137,6 +137,9 @@ int main() {
     testFile("mfiles/return_in_some_cases_0.m");
     testFile("mfiles/return_in_some_cases_1.m");
     testFile("mfiles/ignored_return.m");
+    testFile("mfiles/function_without_return.m");
+    testFile("mfiles/var_declaration_addition.m");
+    testFile("mfiles/var_declaration.m");
 
     // TODO: Printing is not implemented in the VM yet.
     // testFile("mfiles/print_call.m");
@@ -146,12 +149,6 @@ int main() {
     // Assume that type for the recursive calls and see if this passes
     // without conflicts.
     // testFile("mfiles/recursion.m");
-
-    // TODO: Without return/term statement the VM does not stop.
-    // We need an implicit return and maybe also a automatic term at the end.
-     testFile("mfiles/function_without_return.m");
-    // testFile("mfiles/var_declaration_addition.m");
-    // testFile("mfiles/var_declaration.m");
 
     // ## LATER ##
     // terminal IO
