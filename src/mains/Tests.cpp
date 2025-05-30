@@ -141,9 +141,6 @@ int main() {
     testFile("mfiles/var_declaration_addition.m");
     testFile("mfiles/var_declaration.m");
 
-    // TODO: Printing is not implemented in the VM yet.
-    // testFile("mfiles/print_call.m");
-
     // TODO: Type inference not working.
     // We should skip recursive calls and find the terminating return.
     // Assume that type for the recursive calls and see if this passes
@@ -151,15 +148,14 @@ int main() {
     // testFile("mfiles/recursion.m");
 
     // ## LATER ##
-    // terminal IO
-    // floats
+    // alloc heap
     // arrays
+    //   strings
+    // c ffi, interop (dlopen / dlsym) and (LoadLibrary / GetProcAddress)
+    //   terminal IO
+    //   file IO
+    // floats
     // structs
-    // strings
-    // file IO
-    // c ffi, interop
-    // Linux:   dlopen / dlsym
-    // Windows: LoadLibrary / GetProcAddress
 
     return 0;
 }
