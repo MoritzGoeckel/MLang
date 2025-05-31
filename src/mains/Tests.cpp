@@ -148,14 +148,25 @@ int main() {
     // testFile("mfiles/recursion.m");
 
     // ## LATER ##
-    // alloc heap
-    // arrays
+    // structs (going to the heap, accessors for fields)
+    //    member functions for structs
+
+    // blob type (alloc8, size, get(blob, idx), set(blob, idx))
+    //    synatx sugar for get, set with []
+
+    // Use blob and struct to implement:
+    //   arrays
     //   strings
+    //   maps?
+
+    // Type annotations
+
+    // floats
+    // bools
+
     // c ffi, interop (dlopen / dlsym) and (LoadLibrary / GetProcAddress)
     //   terminal IO
     //   file IO
-    // floats
-    // structs
 
     return 0;
 }
