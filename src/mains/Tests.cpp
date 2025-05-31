@@ -147,7 +147,6 @@ int main() {
     // without conflicts.
     // testFile("mfiles/recursion.m");
 
-    // ## LATER ##
     // structs (going to the heap, accessors for fields)
     //    member functions for structs
 

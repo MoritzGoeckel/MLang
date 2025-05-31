@@ -7,7 +7,7 @@
 #include <sstream>
 
 #include "../error/Exceptions.h"
-#include "Stack.hpp"
+#include "Stack.h"
 
 namespace executor {
 

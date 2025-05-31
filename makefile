@@ -1,20 +1,23 @@
 # -rdynamic for backtrace support
 
+SHARED_FLAGS := -Wall -O0 -std=c++17 -rdynamic -ggdb
+
 ifdef OS
 	# Windows
-	CXXFLAGS = -Wall -O0 -std=c++17 -rdynamic -DWIN
+	CXXFLAGS := ${SHARED_FLAGS} -DWIN
 else
 	# Unix
-	CXXFLAGS = -Wall -O0 -std=c++17 -rdynamic
+	CXXFLAGS := ${SHARED_FLAGS}
 endif
 
-CXX = g++
-SRCDIR = src
-BINDIR = bin
-MAINDIR = src/mains
+CXX := g++
+SRCDIR := src
+BINDIR := bin
+MAINDIR := src/mains
 
 all: ExecuteFile Tests
 
+HEADERS := $(wildcard $(SRCDIR)/*.h $(SRCDIR)/*/*.h $(SRCDIR)/*.hpp $(SRCDIR)/*/*.hpp)
 SRCS := $(wildcard $(SRCDIR)/*.cpp $(SRCDIR)/*/*.cpp)
 MAINS := $(wildcard $(MAINDIR)/*.cpp)
 
@@ -47,7 +50,7 @@ bin:
 Test: BuildTests
 	${TESTS_TARGET}
 
-%.o: %.cpp
+%.o: %.cpp %.h
 	$(CXX) $(CXXFLAGS) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 Clean:
