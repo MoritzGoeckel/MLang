@@ -71,6 +71,8 @@ bool Token::isTrivialContent() const {
         case Token::Type::Comma:
         case Token::Type::True:
         case Token::Type::False:
+        case Token::Type::Colon:
+        case Token::Type::Struct:
             return true;
         default:
             return false;
@@ -85,6 +87,11 @@ bool Token::handleIsKeyword() {
 
     if (content == ",") {
         type = Token::Type::Comma;
+        return true;
+    }
+
+    if (content == ":") {
+        type = Token::Type::Colon;
         return true;
     }
 
@@ -129,6 +136,11 @@ bool Token::handleIsKeyword() {
 
     if (content == "while") {
         type = Token::Type::While;
+        return true;
+    }
+
+    if (content == "struct") {
+        type = Token::Type::Struct;
         return true;
     }
 
@@ -199,6 +211,10 @@ std::string to_string(Token::Type theType) {
             return "True";
         case Token::Type::False:
             return "False";
+        case Token::Type::Colon:
+            return "Colon";
+        case Token::Type::Struct:
+            return "Struct";
     }
 }
 

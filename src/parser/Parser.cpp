@@ -170,6 +170,10 @@ std::shared_ptr<AST::Node> Parser::statement() {
         return branching();
     }
 
+    if (speculate(&Parser::declStruct, Parser::Rule::DeclStruct)) {
+        return declStruct();
+    }
+
     if (speculate(&Parser::expression, Parser::Rule::Expression)) {
         auto node = expression();
         doOrFailMessage(
@@ -426,6 +430,7 @@ std::shared_ptr<AST::Declvar> Parser::variableDecl() {
     consumeOrFail(Token::Type::Let, "let");
     doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
              "identifier");
+    // TODO: Type annotation
     return std::make_shared<AST::Declvar>(identifier(), getPosition());
 }
 
@@ -511,5 +516,23 @@ std::shared_ptr<AST::Literal> Parser::boolean() {
     }
 
     fail("Could not parse boolean, expecting 'true' or 'false'");
+}
+
+
+std::shared_ptr<AST::DeclStruct> Parser::declStruct() {
+    consumeOrFail(Token::Type::Struct, "struct");
+    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
+             "identifier");
+    auto name = identifier();
+    auto declStruct = std::make_shared<AST::DeclStruct>(name, getPosition());
+    consumeOrFail('{', "{");
+    while (speculate(&Parser::variableDecl, Parser::Rule::VariableDecl)) {
+        auto member = variableDecl();
+        consumeOrFail(Token::Type::StatementTerminator, ";");
+        declStruct->addMember(std::dynamic_pointer_cast<AST::Identifier>(
+            member->getIdentifier()));
+    }
+    consumeOrFail('}', "}");
+    return declStruct;
 }
 

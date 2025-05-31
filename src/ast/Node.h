@@ -21,7 +21,8 @@ enum class NodeType {
     While,
     Literal,
     Function,
-    FnPtr
+    FnPtr,
+    DeclStruct
 };
 
 class Node {
@@ -586,6 +587,50 @@ class FnPtr : public Node {
     virtual NodeType getType() override { return NodeType::FnPtr; }
     virtual std::vector<std::shared_ptr<Node>> getChildren() override {
         return {};
+    }
+};
+
+class DeclStruct : public Node {
+   private:
+    std::shared_ptr<Identifier> name;
+    std::vector<std::shared_ptr<Identifier>> members;
+
+   public:
+    DeclStruct(std::shared_ptr<Identifier> name, const SourcePosition& thePosition)
+        : Node(thePosition), name(name) {}
+
+    std::shared_ptr<Identifier> getIdentifier() { return name; }
+    std::vector<std::shared_ptr<Identifier>>& getMembers() { return members; }
+
+    void addMember(std::shared_ptr<Identifier> member) {
+        members.push_back(member);
+    }
+
+    virtual void toString(std::stringstream& stream) override {
+        stream << getDataTypeString() << "declstruct(";
+        name->toString(stream);
+        stream << ", members(";
+        for (const auto& member : members) {
+            member->toString(stream);
+            stream << " ";
+        }
+        stream << "))";
+    }
+
+    virtual NodeType getType() override { return NodeType::DeclStruct; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() override {
+        std::vector<std::shared_ptr<Node>> vec;
+        vec.reserve(members.size() + 1);
+        vec.emplace_back(name);
+        for (const auto& member : members) {
+            vec.emplace_back(member);
+        }
+        return vec;
+    }
+
+    virtual DataType getDataType() override {
+        return DataType::Primitive::None; // TODO
     }
 };
 

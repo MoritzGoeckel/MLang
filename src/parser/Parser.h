@@ -38,7 +38,8 @@ class Parser {
         Branching,
         BranchingIf,
         BranchingWhile,
-        ParenthesizedExpression
+        ParenthesizedExpression,
+        DeclStruct
     };
 
     enum CacheResult { SUCCESS, FAILURE, MISS };
@@ -119,6 +120,7 @@ class Parser {
     std::shared_ptr<AST::If> branchingIf();
     std::shared_ptr<AST::While> branchingWhile();
     std::shared_ptr<AST::Literal> boolean();
+    std::shared_ptr<AST::DeclStruct> declStruct();
 
     std::map<size_t /*idx*/, std::map<Rule, CacheResult>> cache;
 

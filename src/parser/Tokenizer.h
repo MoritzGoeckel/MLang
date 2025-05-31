@@ -28,8 +28,10 @@ class Token {
         Special,
         Number,
         Parenthesis,
+        // Signs
         StatementTerminator,
         Comma,
+        Colon,
         // Keywords
         Let,
         Ret,
@@ -38,7 +40,8 @@ class Token {
         While,
         Assignment,
         True,
-        False
+        False,
+        Struct
     };
     // TODO: String literal
 
