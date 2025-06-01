@@ -317,14 +317,19 @@ class Assign : public Node {
 class Declvar : public Node {
    private:
     std::shared_ptr<Identifier> name;
+    std::shared_ptr<Identifier> typeAnnotation;
 
    public:
-    Declvar(std::shared_ptr<Identifier> name) : name(name) {}
+    Declvar(std::shared_ptr<Identifier> name) : name(name), typeAnnotation{nullptr} {}
 
     Declvar(std::shared_ptr<Identifier> name, const SourcePosition& thePosition)
-        : Node(thePosition), name(name) {}
+        : Node(thePosition), name(name), typeAnnotation{nullptr} {}
 
     std::shared_ptr<Identifier> getIdentifier() { return name; }
+
+    void setTypeAnnotation(std::shared_ptr<Identifier> type) {
+        typeAnnotation = type;
+    }
 
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "declvar(";

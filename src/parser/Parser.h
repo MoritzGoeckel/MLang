@@ -39,7 +39,9 @@ class Parser {
         BranchingIf,
         BranchingWhile,
         ParenthesizedExpression,
-        DeclStruct
+        DeclStruct,
+        TypeAnnotation,
+        UninitializedVarDecl
     };
 
     enum CacheResult { SUCCESS, FAILURE, MISS };
@@ -121,6 +123,8 @@ class Parser {
     std::shared_ptr<AST::While> branchingWhile();
     std::shared_ptr<AST::Literal> boolean();
     std::shared_ptr<AST::DeclStruct> declStruct();
+    std::shared_ptr<AST::Identifier> typeAnnotation();
+    std::shared_ptr<AST::Declvar> uninitializedVarDecl();
 
     std::map<size_t /*idx*/, std::map<Rule, CacheResult>> cache;
 

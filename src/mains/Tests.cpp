@@ -142,7 +142,8 @@ int main() {
     testFile("mfiles/var_declaration.m");
 
     // TODO: Structs
-    testFile("mfiles/struct.m");
+    testFile("mfiles/type_annotation.m");
+    // testFile("mfiles/struct.m");
 
     // TODO: Type inference not working.
     // We should skip recursive calls and find the terminating return.

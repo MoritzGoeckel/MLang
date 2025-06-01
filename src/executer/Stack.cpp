@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Stack.hpp"
+#include "Stack.h"
 
 #include "../error/Exceptions.h"
 

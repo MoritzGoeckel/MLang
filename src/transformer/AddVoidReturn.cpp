@@ -17,9 +17,8 @@ std::shared_ptr<AST::Function> AddVoidReturn::process(const std::shared_ptr<AST:
 	if(!body) { throwConstraintViolated("Body is nullptr"); }
 
 	if(body->getType() != AST::NodeType::Block) {
-		std::cout << __FILE__ << __LINE__ << std::endl;
 		if (body->getType() == AST::NodeType::Ret) {
-		return node; // Already has a return statement
+			return node; // Already has a return statement
 		}
 		auto block = std::make_shared<AST::Block>(body->getPosition());
 		block->addChild(body);

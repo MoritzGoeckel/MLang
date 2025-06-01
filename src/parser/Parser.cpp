@@ -162,6 +162,10 @@ std::shared_ptr<AST::Node> Parser::statement() {
         return ret();
     }
 
+    if (speculate(&Parser::uninitializedVarDecl, Parser::Rule::UninitializedVarDecl)) {
+        return uninitializedVarDecl();
+    }
+
     if (speculate(&Parser::block, Parser::Rule::Block)) {
         return block();
     }
@@ -426,15 +430,45 @@ std::shared_ptr<AST::Node> Parser::leftHandValue() {
     fail("Failed to parse left hand value");
 }
 
+
+std::shared_ptr<AST::Declvar> Parser::uninitializedVarDecl() {
+    consumeOrFail(Token::Type::Let, "let");
+
+    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
+             "identifier");
+    auto ident = identifier();
+
+    doOrFail(speculate(&Parser::typeAnnotation, Parser::Rule::TypeAnnotation), "type_annotation");
+    auto type = typeAnnotation();
+
+    consumeOrFail(Token::Type::StatementTerminator, ";");
+
+    auto aResult = std::make_shared<AST::Declvar>(ident, getPosition());
+    aResult->setTypeAnnotation(type);
+    return aResult;
+}
+
 std::shared_ptr<AST::Declvar> Parser::variableDecl() {
     consumeOrFail(Token::Type::Let, "let");
     doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
              "identifier");
-    // TODO: Type annotation
-    return std::make_shared<AST::Declvar>(identifier(), getPosition());
+
+    auto aResult = std::make_shared<AST::Declvar>(identifier(), getPosition());
+
+    if (speculate(&Parser::typeAnnotation, Parser::Rule::TypeAnnotation), "type_annotation") {
+        aResult->setTypeAnnotation(typeAnnotation());
+    } 
+    return aResult;
+}
+
+std::shared_ptr<AST::Identifier> Parser::typeAnnotation() {
+    consumeOrFail(Token::Type::Colon, ":");
+    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier), "identifier");
+    return identifier();
 }
 
 std::shared_ptr<AST::Declfn> Parser::functionDecl() {
+    // TODO: Do we ever need this?
     consumeOrFail(Token::Type::Let, "let");
     doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
              "identifier");
