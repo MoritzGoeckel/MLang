@@ -438,9 +438,7 @@ std::shared_ptr<AST::Declvar> Parser::uninitializedVarDecl() {
              "identifier");
     auto ident = identifier();
 
-    std::cout << "x " << idx << std::endl;
     doOrFail(speculate(&Parser::typeAnnotation, Parser::Rule::TypeAnnotation), "type_annotation");
-    std::cout << "y " << idx << std::endl;
     auto type = typeAnnotation();
 
     consumeOrFail(Token::Type::StatementTerminator, ";");
@@ -457,23 +455,18 @@ std::shared_ptr<AST::Declvar> Parser::variableDecl() {
 
     auto aResult = std::make_shared<AST::Declvar>(identifier(), getPosition());
 
-    std::cout << "a " << idx << std::endl;
-    if (speculate(&Parser::typeAnnotation, Parser::Rule::TypeAnnotation), "type_annotation") {
-        std::cout << "b " << idx << std::endl;
+    if (speculate(&Parser::typeAnnotation, Parser::Rule::TypeAnnotation)) {
         auto type = typeAnnotation();
+        ASSURE_NOT_NULL(type);
         aResult->setTypeAnnotation(type->getName());
-    } 
+    }
     return aResult;
 }
 
 std::shared_ptr<AST::Identifier> Parser::typeAnnotation() {
-    std::cout << "t1 "  << idx << std::endl;
     consumeOrFail(Token::Type::Colon, ":");
-    std::cout << "t2 "  << idx << std::endl;
     doOrFail(isNext(Token::Type::Identifier), "identifier");
-    std::cout << "t3 "  << idx << std::endl;
     auto token = consume();
-    std::cout << token.getContent() << std::endl;
     return std::make_shared<AST::Identifier>(token.getContent(), getPosition());
 }
 
@@ -579,4 +572,3 @@ std::shared_ptr<AST::DeclStruct> Parser::declStruct() {
     consumeOrFail('}', "}");
     return declStruct;
 }
-

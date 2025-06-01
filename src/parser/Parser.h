@@ -51,13 +51,13 @@ class Parser {
     template <typename Fn>
     bool speculate(Fn fn, Rule rule) {
         switch (checkCache(idx, rule)) {
-            case CacheResult::FAILURE:
+            case CacheResult::FAILURE: {
                 return false;
-
-            case CacheResult::SUCCESS:
+            }
+            case CacheResult::SUCCESS: {
                 return true;
-
-            case CacheResult::MISS:
+            }
+            case CacheResult::MISS: {
                 bool success = true;
                 mark();
                 std::shared_ptr<AST::Node> aResult = ((*this).*(fn))();
@@ -69,6 +69,7 @@ class Parser {
 
                 memorize(idx, rule, success ? SUCCESS : FAILURE);
                 return success;
+            }
         }
         return false;
     }
@@ -135,4 +136,3 @@ class Parser {
     std::vector<size_t> markers;
     size_t idx;
 };
-
