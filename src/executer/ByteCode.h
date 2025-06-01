@@ -88,6 +88,7 @@ class ByteCodeVM {
 
     public:
     ByteCodeVM(const Program& program);
+    void setDebug(bool debug) { this->debug = debug; }
     std::string execute(size_t maxInstructions = 1000);
 
 };

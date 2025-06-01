@@ -44,6 +44,7 @@ class Mlang {
         bool showFunctions = false;
         bool showEmission = false;
         bool showTypeInference = false;
+        bool showExecution = false;
     };
 
     Settings settings;

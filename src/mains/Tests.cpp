@@ -95,6 +95,7 @@ void testFile(std::string path){
     mlang.settings.showInferedTypes = true;
     mlang.settings.showFunctions = true;
     mlang.settings.showEmission = true;
+    mlang.settings.showExecution = true;
 
     auto rs = mlang.executeFile(path);
 

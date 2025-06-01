@@ -88,12 +88,14 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
         }
         const Instruction& inst = program.code[idx++];
 
-        std::cout << "Executing instruction: " << instructionsToString({inst}, true);
-        std::cout << " | Stack: ";
-        for (const auto& val : stack) {
-            std::cout << val << " ";
+        if(debug) {
+            std::cout << "Executing instruction: " << instructionsToString({inst}, true);
+            std::cout << " | Stack: ";
+            for (const auto& val : stack) {
+                std::cout << val << " ";
+            }
+            std::cout << std::endl;
         }
-        std::cout << std::endl;
 
         switch(inst.op){
             case Op::NOP: {
