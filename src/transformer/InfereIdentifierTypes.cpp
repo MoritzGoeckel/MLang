@@ -32,8 +32,7 @@ InfereIdentifierTypes::InfereIdentifierTypes() {
     stack.push_back({});
 }
 
-std::shared_ptr<AST::Node> InfereIdentifierTypes::process(
-    std::shared_ptr<AST::Node> node) {
+std::shared_ptr<AST::Node> InfereIdentifierTypes::process(std::shared_ptr<AST::Node> node) {
     // Block
     if (node->getType() == AST::NodeType::Block) {
         stack.push_back({});

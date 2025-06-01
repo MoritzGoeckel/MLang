@@ -12,6 +12,7 @@
 #include "../transformer/HasUnknownTypes.h"
 #include "../transformer/ImplicitReturn.h"
 #include "../transformer/InfereIdentifierTypes.h"
+#include "../transformer/ApplyTypeAnnotations.h"
 #include "../transformer/InfereParameterTypes.h"
 #include "../transformer/InstantiateFunctions.h"
 #include "../transformer/AddVoidReturn.h"
@@ -65,6 +66,9 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         // Infere types
         HasUnknownTypes validator;
         size_t lastUnresolved = 0xfffffffff;
+
+        ApplyTypeAnnotations applyTypeAnnotationsWalker;
+        applyTypeAnnotationsWalker.process(ast);
 
         while (true) {
             // Identifier types
