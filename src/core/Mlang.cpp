@@ -70,14 +70,29 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         ApplyTypeAnnotations applyTypeAnnotationsWalker;
         applyTypeAnnotationsWalker.process(ast);
 
+        if(settings.showTypeInference) {
+            std::cout << "After ApplyTypeAnnotation: " << std::endl;
+            std::cout << ast->toString() << std::endl;
+        }
+
         while (true) {
             // Identifier types
             InfereIdentifierTypes identTypesWalker;
             identTypesWalker.process(ast);
 
+            if(settings.showTypeInference) {
+                std::cout << "After InfereIdentifierTypes: " << std::endl;
+                std::cout << ast->toString() << std::endl;
+            }
+
             // Function types / params
             InfereParameterTypes paramTypesWalker;
             paramTypesWalker.process(ast);
+
+            if(settings.showTypeInference) {
+                std::cout << "After InfereParameterTypes: " << std::endl;
+                std::cout << ast->toString() << std::endl;
+            }
 
             validator.process(ast);
             if (validator.hasTypeConflicts() ||

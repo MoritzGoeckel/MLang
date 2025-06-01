@@ -43,6 +43,7 @@ class Mlang {
         bool showInferedTypes = false;
         bool showFunctions = false;
         bool showEmission = false;
+        bool showTypeInference = false;
     };
 
     Settings settings;

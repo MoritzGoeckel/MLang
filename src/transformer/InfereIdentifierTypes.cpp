@@ -40,6 +40,18 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(std::shared_ptr<AST::N
         stack.pop_back();
     }
 
+    // Declvar
+    else if (node->getType() == AST::NodeType::Declvar) {
+        auto declvar = std::dynamic_pointer_cast<AST::Declvar>(node);
+        auto identifier = declvar->getIdentifier();
+
+        auto name = identifier->getName();
+        if (stack.back().find(name) != stack.back().end()) {
+            this->addMessage("Variable already declared: " + name);
+        }
+        stack.back().emplace(name, identifier->getDataType());
+    }
+
     // Assignment
     else if (node->getType() == AST::NodeType::Assign) {
         auto assign = std::dynamic_pointer_cast<AST::Assign>(node);
