@@ -11,6 +11,7 @@
 #include "../preprocessor/Preprocessor.h"
 #include "../transformer/HasUnknownTypes.h"
 #include "../transformer/ImplicitReturn.h"
+#include "../transformer/CollectTypes.h"
 #include "../transformer/InfereIdentifierTypes.h"
 #include "../transformer/ApplyTypeAnnotations.h"
 #include "../transformer/InfereParameterTypes.h"
@@ -124,9 +125,11 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         }
     }
 
-    InstantiateFunctions instantiator(ast);
+    CollectTypes collectTypesWalker;
+    collectTypesWalker.process(ast);
+    const auto& types = collectTypesWalker.getTypes();
 
-    // Do not use ast after this point!
+    InstantiateFunctions instantiator(ast); // Do not use ast after this point!
     auto fns = instantiator.getFunctions();
 
     for (auto& fn : fns) {
@@ -146,7 +149,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
     // Make sure after a return no other statements exist, otherwise create error
     // If a function has a return type, make sure that all paths return a value of that type
 
-    emitter::ByteCodeEmitter byteCodeEmitter(fns);
+    emitter::ByteCodeEmitter byteCodeEmitter(fns, types);
     byteCodeEmitter.run();
 
     if (settings.showEmission) {

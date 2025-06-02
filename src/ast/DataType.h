@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <variant>
+#include "../error/Exceptions.h"
 
 class DataType {
    public:
@@ -23,12 +24,13 @@ class DataType {
         None
     };
 
-    struct Struct{ 
-        std::string name; 
+    struct Struct{
+        std::string name;
+        std::vector<DataType> fields;
     };
 
    private:
-    struct Simple { 
+    struct Simple {
         Primitive simple;
     };
 
@@ -69,6 +71,32 @@ class DataType {
     std::shared_ptr<const std::vector<DataType>> getParams() const;
     bool getIsPrimitive() const;
     Primitive getPrimitive() const;
+
+    bool isStruct() const {
+        return std::holds_alternative<Struct>(impl);
+    }
+
+    const Struct& getStruct() const {
+        if (!isStruct()) {
+            throwConstraintViolated("DataType is not a struct");
+        }
+        return std::get<Struct>(impl);
+    }
+
+    bool isFunction() const {
+        return std::holds_alternative<Function>(impl);
+    }
+
+    const Function& getFunction() const {
+        if (!isFunction()) {
+            throwConstraintViolated("DataType is not a function");
+        }
+        return std::get<Function>(impl);
+    }
+
+    bool isPrimitive() const {
+        return std::holds_alternative<Simple>(impl);
+    }
 
     std::string toString() const;
 

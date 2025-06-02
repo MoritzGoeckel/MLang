@@ -6,8 +6,8 @@
 
 namespace emitter {
 
-ByteCodeEmitter::ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions)
-    : functions(functions), code{}, backpatches{}, localNames{} {}
+ByteCodeEmitter::ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions, const std::map<std::string, DataType>& structTypes)
+    : functions(functions), code{}, backpatches{}, localNames{}, structTypes{structTypes} {}
 
 
 executor::Program  ByteCodeEmitter::getProgram() {
@@ -232,9 +232,28 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             // Declare new variable with inital value 0
             auto declvar = std::dynamic_pointer_cast<AST::Declvar>(node);
             auto localIdx = localNames.size();
-            code.push_back(executor::Instruction(executor::Op::PUSH, 0)); // Initial value
-            code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
             localNames.push_back(declvar->getIdentifier()->getName());
+
+            const auto& dataType = declvar->getIdentifier()->getDataType();
+
+            if(dataType.isPrimitive()) {
+                code.push_back(executor::Instruction(executor::Op::PUSH, 0)); // Initial value
+                code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
+            } else if(dataType.isStruct()) {
+                // structTypes.
+                const auto& structType = dataType.getStruct();
+                std::cout << "Name=" << structType.name << std::endl;
+                for (const auto& field : structType.fields) {
+                    std::cout << "Field: " << field.toString() << std::endl;
+                }
+                // Need to look them up in  structTypes by name
+                throwTodo("Structs not yet supported in variable declaration.");
+                // TODO
+            }
+            break;
+        }
+        case AST::NodeType::DeclStruct: {
+            // Are collected in TypesCollector
             break;
         }
     }
