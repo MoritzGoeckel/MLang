@@ -1,47 +1,50 @@
 #include "DataType.h"
+#include "../error/Exceptions.h"
 
 DataType::DataType(DataType::Primitive primitive)
-    : isSimple(true), simple(primitive) {}
+    : impl(Simple{primitive}) {}
 
-DataType::DataType(const std::string& str)
-    : isSimple(true), simple(toPrimitive(str)) {}
+DataType::DataType(const std::string& str) // TODO, maybe remove
+    : impl(Simple{toPrimitive(str)}) {}
 
-// Complex type constructor
-DataType::DataType(std::vector<DataType> params, DataType ret)
-    : isSimple(false),
-      params(std::make_shared<const std::vector<DataType>>(params)),
-      ret(std::make_shared<const DataType>(ret)) {}
+DataType::DataType(const std::vector<DataType>& params, DataType ret)
+    : impl(Function{
+          std::make_shared<const std::vector<DataType>>(params),
+          std::make_shared<const DataType>(ret)}) {}
 
 DataType::DataType(const DataType& other)
-    : isSimple(other.isSimple),
-      simple(other.simple),
-      params(other.params),
-      ret(other.ret) {}
+    : impl(other.impl) {}
 
-DataType::DataType() : isSimple(true), simple(DataType::Primitive::Unknown) {}
+DataType::DataType() : impl(Simple{Primitive::Unknown}) {}
 
 void DataType::operator=(const DataType& other) {
-    isSimple = other.isSimple;
-    simple = other.simple;
-    params = other.params;
-    ret = other.ret;
+    impl = other.impl;
 }
 
 bool DataType::operator==(const DataType& other) const {
-    if (other.isSimple != isSimple) return false;
-    if (isSimple) {
-        return other.simple == simple;
-    } else {
-        return *(other.params) == *params && *(other.ret) == *ret;
+    if (impl.index() != other.impl.index()) {
+        return false; // Different types
     }
+
+    if (std::holds_alternative<Simple>(impl)) {
+        return std::get<Simple>(impl).simple == std::get<Simple>(other.impl).simple;
+    } else if (std::holds_alternative<Function>(impl)) {
+        const auto& thisFunc = std::get<Function>(impl);
+        const auto& otherFunc = std::get<Function>(other.impl);
+        return *thisFunc.ret == *otherFunc.ret &&
+               *thisFunc.params == *otherFunc.params;
+    } else if (std::holds_alternative<Struct>(impl)) {
+        return std::get<Struct>(impl).name == std::get<Struct>(other.impl).name;
+    }
+    throwConstraintViolated("Unknown DataType variant in comparison");
 }
 
 bool DataType::operator==(Primitive primitive) const {
-    if (isSimple) {
-        return simple == primitive;
-    } else {
-        return false; // Complex types cannot be equal to a primitive
+    if (!std::holds_alternative<Simple>(impl)) {
+        return false; // Only simple types can be compared to primitives
     }
+    const auto& simple = std::get<Simple>(impl).simple;
+    return simple == primitive;
 }
 
 bool DataType::operator!=(const DataType& other) const {
@@ -57,21 +60,40 @@ bool DataType::operator<(const DataType& other) const {
     return other.getHashNum() < getHashNum();
 }
 
-std::shared_ptr<const DataType> DataType::getReturn() const { return ret; }
-std::shared_ptr<const std::vector<DataType>> DataType::getParams() const {
-    return params;
+std::shared_ptr<const DataType> DataType::getReturn() const { 
+    if (!std::holds_alternative<Function>(impl)) {
+        return nullptr; // Not a function type
+    }
+    const auto& func = std::get<Function>(impl);
+    return func.ret;
 }
-bool DataType::getIsPrimitive() const { return isSimple; }
+
+std::shared_ptr<const std::vector<DataType>> DataType::getParams() const {
+    if (!std::holds_alternative<Function>(impl)) {
+        return nullptr; // Not a function type
+    }
+    const auto& func = std::get<Function>(impl);
+    return func.params;
+}
+bool DataType::getIsPrimitive() const { 
+    return std::holds_alternative<Simple>(impl);
+}
+
 DataType::Primitive DataType::getPrimitive() const {
-    if (!isSimple) throw "Accessing simple type of complex type";
-    return simple;
+    if (!std::holds_alternative<Simple>(impl)) {
+        return Primitive::None; // Not a simple type
+    }
+    return std::get<Simple>(impl).simple;
 }
 
 std::string DataType::toString() const {
-    if (isSimple) {
+    if (std::holds_alternative<Simple>(impl)) {
+        const auto& simple = std::get<Simple>(impl).simple;
         return toString(simple);
-    } else {
-        // Complex
+    } else if (std::holds_alternative<Function>(impl)) {
+        const auto& func = std::get<Function>(impl);
+        const auto& params = func.params;
+        const auto& ret = func.ret;
         std::stringstream stream;
         if (params->size() > 1u) stream << "[";
         if (params->empty()) stream << "[]";
@@ -84,6 +106,9 @@ std::string DataType::toString() const {
         if (params->size() > 1u) stream << "]";
         stream << " -> " << ret->toString();
         return stream.str();
+    } else if (std::holds_alternative<Struct>(impl)) {
+        const auto& structType = std::get<Struct>(impl);
+        return "struct " + structType.name;
     }
 }
 
@@ -131,12 +156,18 @@ DataType::Primitive DataType::toPrimitive(const std::string& str) {
 }
 
 size_t DataType::getHashNum() const {
-    if (isSimple) {
-        return static_cast<int>(simple);
-    } else {
+    if (std::holds_alternative<Simple>(impl)) {
+        const auto& simple = std::get<Simple>(impl).simple;
+        return static_cast<size_t>(simple);
+    } else if (std::holds_alternative<Function>(impl)) {
+        const auto& function = std::get<Function>(impl);
         size_t sum;
-        for (const auto& p : *params) sum += p.getHashNum();
-        sum += ret->getHashNum();
+        for (const auto& p : *function.params) sum += p.getHashNum();
+        sum += function.ret->getHashNum();
         return sum;
+    } else if (std::holds_alternative<Struct>(impl)) {
+        const auto& structType = std::get<Struct>(impl);
+        return std::hash<std::string>()(structType.name);
     }
+    throwConstraintViolated("Unknown DataType variant in getHashNum");
 }

@@ -6,5 +6,12 @@ struct point {
     let y: Int; 
 }
 
+# TODO: Instatiate (heap allocation, garbage collection)
+# let p: point;
+
+# TODO: Access fields
+# p.x = 1;
+# p.y = 2;
+
 let j = 2;
 ret i + j;

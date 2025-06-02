@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <variant>
 
 class DataType {
    public:
@@ -23,16 +24,21 @@ class DataType {
     };
 
    private:
-    bool isSimple;
+    struct Simple { 
+        Primitive simple;
+    };
 
-    // Simple:
-    // Just a Primitive
-    Primitive simple;
+    struct Function{
+        // Types[] -> Type
+        std::shared_ptr<const std::vector<DataType>> params;
+        std::shared_ptr<const DataType> ret;
+    };
 
-    // Complex:
-    // Types[] -> Type
-    std::shared_ptr<const std::vector<DataType>> params;
-    std::shared_ptr<const DataType> ret;
+    struct Struct{ 
+        std::string name; 
+    };
+
+    std::variant<Simple, Function, Struct> impl;
 
    public:
     // Simple type constructors
@@ -40,7 +46,7 @@ class DataType {
     DataType(const std::string& str);
 
     // Complex type constructor
-    DataType(std::vector<DataType> params, DataType ret);
+    DataType(const std::vector<DataType>& params, DataType ret);
 
     DataType(const DataType& other);
 
