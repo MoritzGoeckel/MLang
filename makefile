@@ -1,6 +1,6 @@
 # -rdynamic for backtrace support
 
-SHARED_FLAGS := -Wall -O0 -std=c++17 -rdynamic -ggdb
+SHARED_FLAGS := -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Werror -O0 -std=c++17 -rdynamic -ggdb
 
 ifdef OS
 	# Windows

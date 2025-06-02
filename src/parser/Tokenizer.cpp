@@ -1,5 +1,6 @@
 #include "Tokenizer.h"
 
+#include "../error/Exceptions.h"
 #include <iostream>
 
 namespace CharCategories {
@@ -216,6 +217,8 @@ std::string to_string(Token::Type theType) {
         case Token::Type::Struct:
             return "Struct";
     }
+    throwConstraintViolated("Unknown Token::Type in to_string");
+    return "Unknown Token::Type";  // Should never reach here
 }
 
 std::ostream& operator<<(std::ostream& theStream, Token::Type theType) {

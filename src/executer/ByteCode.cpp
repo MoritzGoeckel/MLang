@@ -152,6 +152,9 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 stack.pop();
                 break;
             }
+            case Op::WRITE_STACK: {
+                throwTodo("ByteCodeVM: WRITE_STACK not implemented");
+            }
             case Op::ADD: {
                 // ADD RESULT_ADDR STACK_ADDR1 STACK_ADDR2
                 auto a = stack.pop();
@@ -232,6 +235,7 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
             }
             case Op::ALLOC: {
                 // ALLOC SIZE
+                // TODO: Also have a parent object and garbage collection
                 if (inst.arg1 <= 0) {
                     throwConstraintViolated("ByteCodeVM: Invalid allocation size");
                 }

@@ -167,6 +167,8 @@ std::string DataType::toString(DataType::Primitive type) {
         case DataType::Primitive::None:
             return "None";
     }
+    throwConstraintViolated("Unknown DataType::Primitive in toString");
+    return "Unknown DataType::Primitive"; // Should never reach here
 }
 
 DataType::Primitive DataType::toPrimitive(const std::string& str) {

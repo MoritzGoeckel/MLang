@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Stack.h"
 
 #include "../error/Exceptions.h"

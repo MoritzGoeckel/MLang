@@ -90,6 +90,12 @@ void ByteCodeEmitter::storeLocalInto(const std::shared_ptr<AST::Node>& node){
 
 void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasConsumer) {
     switch(node->getType()) {
+        case AST::NodeType::Declfn:
+        case AST::NodeType::Function: {
+            // Should not happen, as it this runs on extracted functions
+            throwConstraintViolated("Declfn should not be processed here.");
+            break;
+        }
         case AST::NodeType::Block: {
             for(const auto& child : std::dynamic_pointer_cast<AST::Block>(node)->getChildren()) {
                 process(child, false);
