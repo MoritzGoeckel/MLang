@@ -1,10 +1,10 @@
+# expect_result=3
 let i = 1;
 
 struct point {
-    let x;
-    let y; 
+    let x: Int;
+    let y: Int; 
 }
 
 let j = 2;
-
 ret i + j;

@@ -108,6 +108,8 @@ std::string DataType::toString(DataType::Primitive type) {
             return "bool";
         case DataType::Primitive::Void:
             return "void";
+        case DataType::Primitive::Struct:
+            return "struct";
         case DataType::Primitive::Unknown:
             return "unknown";
         case DataType::Primitive::Conflict:

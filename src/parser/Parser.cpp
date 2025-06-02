@@ -566,8 +566,7 @@ std::shared_ptr<AST::DeclStruct> Parser::declStruct() {
     while (speculate(&Parser::variableDecl, Parser::Rule::VariableDecl)) {
         auto member = variableDecl();
         consumeOrFail(Token::Type::StatementTerminator, ";");
-        declStruct->addMember(std::dynamic_pointer_cast<AST::Identifier>(
-            member->getIdentifier()));
+        declStruct->addMember(member);
     }
     consumeOrFail('}', "}");
     return declStruct;

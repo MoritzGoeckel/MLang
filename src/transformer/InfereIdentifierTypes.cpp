@@ -52,6 +52,17 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(std::shared_ptr<AST::N
         stack.back().emplace(name, identifier->getDataType());
     }
 
+    // Declstruct
+    else if (node->getType() == AST::NodeType::DeclStruct) {
+        auto declstruct = std::dynamic_pointer_cast<AST::DeclStruct>(node);
+        std::cout << "yo" << std::endl;
+        auto identifier = declstruct->getIdentifier();
+        ASSURE_NOT_NULL(identifier);
+        identifier->setDataType(
+            DataType::Primitive::Struct, [this](auto& s) { this->addMessage(s); });
+        followChildren(node);
+    }
+
     // Assignment
     else if (node->getType() == AST::NodeType::Assign) {
         auto assign = std::dynamic_pointer_cast<AST::Assign>(node);

@@ -606,16 +606,16 @@ class FnPtr : public Node {
 class DeclStruct : public Node {
    private:
     std::shared_ptr<Identifier> name;
-    std::vector<std::shared_ptr<Identifier>> members;
+    std::vector<std::shared_ptr<Declvar>> members;
 
    public:
     DeclStruct(std::shared_ptr<Identifier> name, const SourcePosition& thePosition)
         : Node(thePosition), name(name) {}
 
     std::shared_ptr<Identifier> getIdentifier() { return name; }
-    std::vector<std::shared_ptr<Identifier>>& getMembers() { return members; }
+    std::vector<std::shared_ptr<Declvar>>& getMembers() { return members; }
 
-    void addMember(std::shared_ptr<Identifier> member) {
+    void addMember(std::shared_ptr<Declvar> member) {
         members.push_back(member);
     }
 

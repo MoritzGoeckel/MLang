@@ -16,6 +16,7 @@ class DataType {
         String,
         Bool,
         Void,
+        Struct,
         Unknown,
         Conflict,
         None

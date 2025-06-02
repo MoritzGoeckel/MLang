@@ -96,6 +96,7 @@ void testFile(std::string path){
     mlang.settings.showFunctions = true;
     mlang.settings.showEmission = true;
     mlang.settings.showExecution = true;
+    mlang.settings.showTypeInference = true;
 
     auto rs = mlang.executeFile(path);
 
@@ -144,7 +145,7 @@ int main() {
 
     // TODO: Structs
     testFile("mfiles/type_annotation.m");
-    // testFile("mfiles/struct.m");
+    testFile("mfiles/struct.m");
 
     // TODO: Type inference not working.
     // We should skip recursive calls and find the terminating return.
