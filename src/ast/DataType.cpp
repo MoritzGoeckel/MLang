@@ -1,6 +1,14 @@
 #include "DataType.h"
 #include "../error/Exceptions.h"
 
+size_t DataType::Struct::getMemorySize() const {
+    size_t size = 0;
+    for (const auto& field : fields) {
+        size += field.second.getMemorySize();
+    }
+    return size;
+}
+
 DataType::DataType(DataType::Primitive primitive)
     : impl(Simple{primitive}) {}
 
@@ -61,6 +69,18 @@ bool DataType::operator!=(Primitive other) const {
 
 bool DataType::operator<(const DataType& other) const {
     return other.getHashNum() < getHashNum();
+}
+
+size_t DataType::getMemorySize() const {
+    if (std::holds_alternative<Simple>(impl)) {
+        return 1ull;
+    } else if (std::holds_alternative<Function>(impl)) {
+        return 1ull;
+    } else if (std::holds_alternative<Struct>(impl)) {
+        return getStruct().getMemorySize();
+    }
+    throwConstraintViolated("Unknown DataType variant in getMemorySize");
+    return 0; // Should never reach here
 }
 
 std::shared_ptr<const DataType> DataType::getReturn() const {

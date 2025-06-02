@@ -240,15 +240,15 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
                 code.push_back(executor::Instruction(executor::Op::PUSH, 0)); // Initial value
                 code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
             } else if(dataType.isStruct()) {
-                // structTypes.
                 const auto& structType = dataType.getStruct();
-                std::cout << "Name=" << structType.name << std::endl;
+                /*std::cout << "Name=" << structType.name << std::endl;
                 for (const auto& [fieldName, fieldType] : structType.fields) {
                     std::cout << "Field: " << fieldType.toString() << std::endl;
-                }
-                // Need to look them up in  structTypes by name
-                throwTodo("Structs not yet supported in variable declaration");
-                // TODO
+                }*/
+
+                size_t size = structType.getMemorySize();
+                code.push_back(executor::Instruction(executor::Op::ALLOC, size));
+                code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
             }
             break;
         }

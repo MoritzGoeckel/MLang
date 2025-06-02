@@ -28,6 +28,7 @@ class DataType {
     struct Struct{
         std::string name;
         std::map<std::string, DataType> fields;
+        size_t getMemorySize() const;
     };
 
    private:
@@ -67,6 +68,8 @@ class DataType {
     bool operator!=(Primitive primitive) const;
 
     bool operator<(const DataType& other) const;
+
+    size_t getMemorySize() const;
 
     std::shared_ptr<const DataType> getReturn() const;
     std::shared_ptr<const std::vector<DataType>> getParams() const;

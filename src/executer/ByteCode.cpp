@@ -32,7 +32,7 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
         { Op::MOD, { "MOD", {} } },
         { Op::JUMP, { "JUMP", { "ADDR" } } },
         { Op::JUMP_IF, { "JUMP_IF", { "POSITIVE_ADDR" } } },
-        { Op::ALLOC, { "ALLOC", { "STACK_ADDR", "SIZE" } } },
+        { Op::ALLOC, { "ALLOC", { "SIZE" } } },
         { Op::WRITE_HEAP, { "WRITE_HEAP", {"FROM_STACK_ADDR", "TO_HEAP_ADDR", "SIZE"} }},
         { Op::READ_HEAP,  {"READ_HEAP", {"FROM_HEAP_ADDR","TO_STACK_ADDR","SIZE"} }},
         { Op::PRINTS, {"PRINTS",{"STACK_ADDR"}} },
@@ -231,7 +231,10 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 break;
             }
             case Op::ALLOC: {
-                // ALLOC STACK_ADDR SIZE
+                // ALLOC SIZE
+                if (inst.arg1 <= 0) {
+                    throwConstraintViolated("ByteCodeVM: Invalid allocation size");
+                }
                 stack.push(heap.size());
                 heap.resize(heap.size() + inst.arg1);
                 break;

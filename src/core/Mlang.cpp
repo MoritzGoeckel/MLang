@@ -68,6 +68,8 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         HasUnknownTypes validator;
         size_t lastUnresolved = 0xfffffffff;
 
+        // TODO: Once check that structs have unique names
+
         CollectTypes::TypesMap structs;
         CollectTypes collectTypesWalker{structs};
         ApplyTypeAnnotations applyTypeAnnotationsWalker{structs};
