@@ -4,20 +4,31 @@
 
 #include <algorithm>
 
-CollectTypes::CollectTypes() {}
+CollectTypes::CollectTypes(TypesMap& types) : types{types} {}
 
 std::shared_ptr<AST::Node> CollectTypes::process(std::shared_ptr<AST::Node> node) {
+    // TODO: Have another walker check for duplicate struct names
     if (node->getType() == AST::NodeType::DeclStruct) {
         auto declStruct = std::dynamic_pointer_cast<AST::DeclStruct>(node);
-        std::vector<DataType> fields;
-        for(const auto& aMember : declStruct->getMembers()){
-            fields.push_back(aMember->getIdentifier()->getDataType());
-        }
-        auto structType = DataType::Struct{declStruct->getIdentifier()->getName(), fields};
-        auto [it, inserted] = types.emplace(structType.name, structType);
-        if (!inserted) {
-            // TODO: Add message to error
-            throwConstraintViolated("Duplicate struct declaration");
+        const auto& structName = declStruct->getIdentifier()->getName();
+        if(types.find(structName) == types.end()) {
+            bool isComplete = true;
+            std::map<std::string, DataType> fields;
+            for(const auto& aMember : declStruct->getMembers()){
+                const auto& aMemberIdentifier = aMember->getIdentifier();
+                ASSURE_NOT_NULL(aMemberIdentifier);
+                const auto& aMemberName = aMemberIdentifier->getName();
+                const auto& aMemberType = aMemberIdentifier->getDataType();
+                if(aMemberType == DataType::Primitive::Unknown || aMemberType == DataType::Primitive::None) {
+                    isComplete = false;
+                    break;
+                }
+                fields.emplace(aMemberName, aMemberType);
+            }
+            if(isComplete) {
+                auto structType = DataType::Struct{structName, fields};
+                types.emplace(structType.name, structType);
+            }
         }
     }
     followChildren(node);

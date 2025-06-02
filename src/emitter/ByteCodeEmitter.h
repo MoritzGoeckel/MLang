@@ -29,11 +29,8 @@ class ByteCodeEmitter {
     std::vector<Backpatch> backpatches;
     std::vector<std::string> localNames; // Id is idx
 
-    std::map<std::string, DataType> structTypes; // TODO: Populate
-
     public:
-    ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions,
-        const std::map<std::string, DataType>& structTypes);
+    ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions);
 
     virtual void run();
     virtual std::string toString();

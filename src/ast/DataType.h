@@ -5,6 +5,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <map>
 #include <vector>
 #include <algorithm>
 #include <variant>
@@ -26,7 +27,7 @@ class DataType {
 
     struct Struct{
         std::string name;
-        std::vector<DataType> fields;
+        std::map<std::string, DataType> fields;
     };
 
    private:

@@ -6,8 +6,8 @@
 
 namespace emitter {
 
-ByteCodeEmitter::ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions, const std::map<std::string, DataType>& structTypes)
-    : functions(functions), code{}, backpatches{}, localNames{}, structTypes{structTypes} {}
+ByteCodeEmitter::ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions)
+    : functions(functions), code{}, backpatches{}, localNames{} {}
 
 
 executor::Program  ByteCodeEmitter::getProgram() {
@@ -243,11 +243,11 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
                 // structTypes.
                 const auto& structType = dataType.getStruct();
                 std::cout << "Name=" << structType.name << std::endl;
-                for (const auto& field : structType.fields) {
-                    std::cout << "Field: " << field.toString() << std::endl;
+                for (const auto& [fieldName, fieldType] : structType.fields) {
+                    std::cout << "Field: " << fieldType.toString() << std::endl;
                 }
                 // Need to look them up in  structTypes by name
-                throwTodo("Structs not yet supported in variable declaration.");
+                throwTodo("Structs not yet supported in variable declaration");
                 // TODO
             }
             break;

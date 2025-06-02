@@ -11,14 +11,11 @@
 
 class CollectTypes : private TreeWalker {
     public:
-    CollectTypes();
+    using TypesMap = std::map<std::string, DataType>;
+    CollectTypes(TypesMap& types);
 
     std::shared_ptr<AST::Node> process(std::shared_ptr<AST::Node> node);
 
-    const std::map<std::string, DataType>& getTypes() const {
-        return types;
-    }
-
     private:
-    std::map<std::string, DataType> types;
+    TypesMap& types;
 };

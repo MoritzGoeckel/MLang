@@ -4,31 +4,23 @@
 
 #include <algorithm>
 
-ApplyTypeAnnotations::ApplyTypeAnnotations() {}
-
-DataType typeFromString(const std::string& typeStr) {
-    DataType::Primitive primitive = DataType::toPrimitive(typeStr);
-    if(primitive != DataType::Primitive::Unknown) {
-        return DataType(primitive);
-    }
-
-    return DataType(DataType::Struct{typeStr});
-}
+ApplyTypeAnnotations::ApplyTypeAnnotations(CollectTypes::TypesMap& types) : types{types} {}
 
 std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::Node> node) {
     if (node->getType() == AST::NodeType::Declvar) {
         auto declvar = std::dynamic_pointer_cast<AST::Declvar>(node);
         if (declvar->hasTypeAnnotation()) {
+            const auto& annotationText = declvar->getTypeAnnotation();
+            auto identifier = declvar->getIdentifier();
+            ASSURE_NOT_NULL(identifier);
 
-            auto type = typeFromString(declvar->getTypeAnnotation());
-            ASSURE(type != DataType::Primitive::Unknown, "Unknown type annotation");
-
-            if(type == DataType::Primitive::Unknown) {
-                this->addMessage("Bad type annotation: " + declvar->getTypeAnnotation());
-            }  else {
-                auto identifier = declvar->getIdentifier();
-                ASSURE_NOT_NULL(identifier);
-                identifier->setDataType(type, [this](auto& s) { this->addMessage(s); });
+            if(types.find(annotationText) != types.end()) {
+                identifier->setDataType(types[annotationText], [this](auto& s) { this->addMessage(s); });
+            } else {
+                DataType::Primitive primitive = DataType::toPrimitive(annotationText);
+                if(primitive != DataType::Primitive::Unknown) {
+                    identifier->setDataType(DataType(primitive), [this](auto& s) { this->addMessage(s); });
+                }
             }
         }
     }  else {

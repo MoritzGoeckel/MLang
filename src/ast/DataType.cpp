@@ -107,11 +107,14 @@ std::string DataType::toString() const {
             }
         }
         if (params->size() > 1u) stream << "]";
+        stream << " -> " << ret->toString();
         return stream.str();
     } else if (std::holds_alternative<Struct>(impl)) {
         const auto& structType = std::get<Struct>(impl);
         return "struct " + structType.name;
     }
+    throwConstraintViolated("Unknown DataType variant in toString");
+    return "Unexpected DataType variant";
 }
 
 void DataType::removeNone(std::set<DataType::Primitive>& set,

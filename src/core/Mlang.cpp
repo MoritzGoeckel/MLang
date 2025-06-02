@@ -68,15 +68,13 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         HasUnknownTypes validator;
         size_t lastUnresolved = 0xfffffffff;
 
-        ApplyTypeAnnotations applyTypeAnnotationsWalker;
-        applyTypeAnnotationsWalker.process(ast);
-
-        if(settings.showTypeInference) {
-            std::cout << "After ApplyTypeAnnotation: " << std::endl;
-            std::cout << ast->toString() << std::endl;
-        }
-
+        CollectTypes::TypesMap structs;
+        CollectTypes collectTypesWalker{structs};
+        ApplyTypeAnnotations applyTypeAnnotationsWalker{structs};
         while (true) {
+            applyTypeAnnotationsWalker.process(ast);
+            collectTypesWalker.process(ast);
+
             // Identifier types
             InfereIdentifierTypes identTypesWalker;
             identTypesWalker.process(ast);
@@ -125,10 +123,6 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         }
     }
 
-    CollectTypes collectTypesWalker;
-    collectTypesWalker.process(ast);
-    const auto& types = collectTypesWalker.getTypes();
-
     InstantiateFunctions instantiator(ast); // Do not use ast after this point!
     auto fns = instantiator.getFunctions();
 
@@ -149,7 +143,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
     // Make sure after a return no other statements exist, otherwise create error
     // If a function has a return type, make sure that all paths return a value of that type
 
-    emitter::ByteCodeEmitter byteCodeEmitter(fns, types);
+    emitter::ByteCodeEmitter byteCodeEmitter(fns);
     byteCodeEmitter.run();
 
     if (settings.showEmission) {

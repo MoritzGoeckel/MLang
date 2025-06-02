@@ -28,7 +28,14 @@ struct TodoException : public MException {
 
     const char* what() const throw();
 };
-#define throwTodo(msg) throw TodoException(msg, __FILE__, __LINE__);
+
+#define throwTodo(msg) \
+    std::cout << std::endl; \
+    std::cerr << "TODO: " << msg << " in " << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION__ << std::endl << std::endl; \
+    std::cerr << "Stack trace:" << std::endl; \
+    print_stacktrace(); \
+    std::cerr << std::endl; \
+    throw TodoException(msg, __FILE__, __LINE__);
 
 struct ConstraintViolatedException : public MException {
     ConstraintViolatedException(const char* msg, const std::string& file,

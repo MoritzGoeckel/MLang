@@ -71,9 +71,8 @@ class Node {
             addMessage(msg);
         } else if (types.empty()) {
             return DataType::Primitive::None;
-        } else {
-            return *(types.begin());
         }
+        return *(types.begin());
     }
 
     virtual DataType getDataType() { return dataType; }
