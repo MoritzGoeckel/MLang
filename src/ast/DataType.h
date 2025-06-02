@@ -23,6 +23,10 @@ class DataType {
         None
     };
 
+    struct Struct{ 
+        std::string name; 
+    };
+
    private:
     struct Simple { 
         Primitive simple;
@@ -34,10 +38,6 @@ class DataType {
         std::shared_ptr<const DataType> ret;
     };
 
-    struct Struct{ 
-        std::string name; 
-    };
-
     std::variant<Simple, Function, Struct> impl;
 
    public:
@@ -47,6 +47,9 @@ class DataType {
 
     // Complex type constructor
     DataType(const std::vector<DataType>& params, DataType ret);
+
+    // Struct
+    DataType(Struct structType);
 
     DataType(const DataType& other);
 

@@ -7,17 +7,12 @@
 ApplyTypeAnnotations::ApplyTypeAnnotations() {}
 
 DataType typeFromString(const std::string& typeStr) {
-    if (typeStr == "Int") {
-        return DataType::Primitive::Int;
-    } else if (typeStr == "Float") {
-        return DataType::Primitive::Float;
-    } else if (typeStr == "String") {
-        return DataType::Primitive::String;
-    } else if (typeStr == "Bool") {
-        return DataType::Primitive::Bool;
+    DataType::Primitive primitive = DataType::toPrimitive(typeStr);
+    if(primitive != DataType::Primitive::Unknown) {
+        return DataType(primitive);
     }
 
-    return DataType::Primitive::Unknown;
+    return DataType(DataType::Struct{typeStr});
 }
 
 std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::Node> node) {

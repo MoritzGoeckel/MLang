@@ -12,6 +12,9 @@ DataType::DataType(const std::vector<DataType>& params, DataType ret)
           std::make_shared<const std::vector<DataType>>(params),
           std::make_shared<const DataType>(ret)}) {}
 
+DataType::DataType(DataType::Struct structType)
+    : impl(structType) {}
+
 DataType::DataType(const DataType& other)
     : impl(other.impl) {}
 
