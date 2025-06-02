@@ -63,7 +63,7 @@ bool DataType::operator<(const DataType& other) const {
     return other.getHashNum() < getHashNum();
 }
 
-std::shared_ptr<const DataType> DataType::getReturn() const { 
+std::shared_ptr<const DataType> DataType::getReturn() const {
     if (!std::holds_alternative<Function>(impl)) {
         return nullptr; // Not a function type
     }
@@ -78,7 +78,7 @@ std::shared_ptr<const std::vector<DataType>> DataType::getParams() const {
     const auto& func = std::get<Function>(impl);
     return func.params;
 }
-bool DataType::getIsPrimitive() const { 
+bool DataType::getIsPrimitive() const {
     return std::holds_alternative<Simple>(impl);
 }
 
@@ -107,7 +107,6 @@ std::string DataType::toString() const {
             }
         }
         if (params->size() > 1u) stream << "]";
-        stream << " -> " << ret->toString();
         return stream.str();
     } else if (std::holds_alternative<Struct>(impl)) {
         const auto& structType = std::get<Struct>(impl);
@@ -148,13 +147,16 @@ std::string DataType::toString(DataType::Primitive type) {
 }
 
 DataType::Primitive DataType::toPrimitive(const std::string& str) {
-    if (str == "int") return DataType::Primitive::Int;
-    if (str == "float") return DataType::Primitive::Float;
-    if (str == "string") return DataType::Primitive::String;
-    if (str == "bool") return DataType::Primitive::Bool;
-    if (str == "void") return DataType::Primitive::Void;
-    if (str == "conflict") return DataType::Primitive::Conflict;
-    if (str == "none") return DataType::Primitive::None;
+    std::string lowerStr = str;
+    std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    if (lowerStr == "int") return DataType::Primitive::Int;
+    if (lowerStr == "float") return DataType::Primitive::Float;
+    if (lowerStr == "string") return DataType::Primitive::String;
+    if (lowerStr == "bool") return DataType::Primitive::Bool;
+    if (lowerStr == "void") return DataType::Primitive::Void;
+    if (lowerStr == "conflict") return DataType::Primitive::Conflict;
+    if (lowerStr == "none") return DataType::Primitive::None;
     return DataType::Primitive::Unknown;
 }
 

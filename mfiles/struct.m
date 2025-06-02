@@ -3,11 +3,11 @@ let i = 1;
 
 struct point {
     let x: Int;
-    let y: Int; 
+    let y: Int;
 }
 
 # TODO: Instatiate (heap allocation, garbage collection)
-# let p: point;
+let p: point;
 
 # TODO: Access fields
 # p.x = 1;

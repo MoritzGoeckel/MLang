@@ -20,13 +20,12 @@ std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::No
         auto declvar = std::dynamic_pointer_cast<AST::Declvar>(node);
         if (declvar->hasTypeAnnotation()) {
 
-            auto type = typeFromString(declvar->getTypeAnnotation());  
+            auto type = typeFromString(declvar->getTypeAnnotation());
             ASSURE(type != DataType::Primitive::Unknown, "Unknown type annotation");
 
             if(type == DataType::Primitive::Unknown) {
                 this->addMessage("Bad type annotation: " + declvar->getTypeAnnotation());
             }  else {
-                std::cout << "Applying type annotation: " << declvar->getTypeAnnotation() << std::endl;
                 auto identifier = declvar->getIdentifier();
                 ASSURE_NOT_NULL(identifier);
                 identifier->setDataType(type, [this](auto& s) { this->addMessage(s); });
@@ -38,4 +37,3 @@ std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::No
 
     return node;
 }
-
