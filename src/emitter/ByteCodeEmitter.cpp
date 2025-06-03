@@ -262,6 +262,10 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             // Are collected in TypesCollector
             break;
         }
+        case AST::NodeType::StructAccess: {
+            throwTodo("StructAccess not implemented in ByteCodeEmitter yet.");
+            break;
+        }
     }
 }
 

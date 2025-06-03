@@ -22,7 +22,8 @@ enum class NodeType {
     Literal,
     Function,
     FnPtr,
-    DeclStruct
+    DeclStruct,
+    StructAccess
 };
 
 class Node {
@@ -644,6 +645,45 @@ class DeclStruct : public Node {
     virtual DataType getDataType() override {
         return DataType::Primitive::None; // TODO
     }
+};
+
+
+class StructAccess : public Node {
+   private:
+    std::vector<std::shared_ptr<Identifier>> identifiers;
+
+   public:
+    StructAccess(const std::vector<std::shared_ptr<Identifier>>& identifiers, const SourcePosition& thePosition)
+        : Node(thePosition), identifiers(identifiers) {}
+
+    std::vector<std::shared_ptr<Identifier>>& getIdentifiers() { return identifiers; }
+
+    virtual void toString(std::stringstream& stream) override {
+        stream << getDataTypeString() << "struct_access(";
+        for (const auto& identifier : identifiers) {
+            identifier->toString(stream);
+            stream << " ";
+        }
+        if (!identifiers.empty())
+            stream.seekp(-1, std::ios_base::end); // Remove last space
+        stream << ")";
+    }
+
+    virtual NodeType getType() override { return NodeType::StructAccess; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() override {
+        std::vector<std::shared_ptr<Node>> vec;
+        vec.reserve(identifiers.size());
+        for (const auto& id : identifiers) {
+            vec.emplace_back(id);
+        }
+        return vec;
+    }
+
+    // TODO: Type of last identifier in the list
+    /*virtual DataType getDataType() override {
+        return DataType::Primitive::None; // TODO
+    }*/
 };
 
 }  // namespace AST

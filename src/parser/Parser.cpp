@@ -236,6 +236,11 @@ std::shared_ptr<AST::Node> Parser::nrExpression() {
         return literal();
     }
 
+    // Struct access
+    if (speculate(&Parser::structAccess, Parser::Rule::StructAccess)) {
+        return structAccess();
+    }
+
     // identifier
     if (speculate(&Parser::identifier, Parser::Rule::Identifier)) {
         return identifier();
@@ -308,6 +313,34 @@ bool Parser::identifierList(
         }
     } while (consume(Token::Type::Comma));
     return true;
+}
+
+
+std::shared_ptr<AST::StructAccess> Parser::structAccess() {
+    doOrFail((lookAhead_t(0) == Token::Type::Identifier && lookAhead_t(1) == Token::Type::Period && lookAhead_t(2) == Token::Type::Identifier), "identifier.identifier");
+
+    auto identifierLeft = consume();
+    ASSURE(identifierLeft.getType() == Token::Type::Identifier, "Expect identifier");
+
+    consume(Token::Type::Period);
+
+    auto identifierRight = consume();
+    ASSURE(identifierRight.getType() == Token::Type::Identifier, "Expect identifier");
+
+    std::vector<std::shared_ptr<AST::Identifier>> identifiers;
+    identifiers.push_back(std::make_shared<AST::Identifier>(identifierLeft.getContent(), getPosition()));
+    identifiers.push_back(std::make_shared<AST::Identifier>(identifierRight.getContent(), getPosition()));
+
+    while(lookAhead_t(0) == Token::Type::Period && lookAhead_t(1) == Token::Type::Identifier){
+        consume(Token::Type::Period); 
+
+        auto nextIdentifier = consume();
+        ASSURE(nextIdentifier.getType() == Token::Type::Identifier, "Expect identifier");
+
+        identifiers.push_back(std::make_shared<AST::Identifier>(nextIdentifier.getContent(), getPosition()));
+    }
+
+    return std::make_shared<AST::StructAccess>(identifiers, getPosition());
 }
 
 std::shared_ptr<AST::Identifier> Parser::identifier() {
@@ -421,6 +454,10 @@ std::shared_ptr<AST::Node> Parser::leftHandValue() {
 
     if (speculate(&Parser::variableDecl, Parser::Rule::VariableDecl)) {
         return variableDecl();
+    }
+
+    if (speculate(&Parser::structAccess, Parser::Rule::StructAccess)) {
+        return structAccess();
     }
 
     if (speculate(&Parser::identifier, Parser::Rule::Identifier)) {

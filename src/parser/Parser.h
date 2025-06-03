@@ -41,7 +41,8 @@ class Parser {
         ParenthesizedExpression,
         DeclStruct,
         TypeAnnotation,
-        UninitializedVarDecl
+        UninitializedVarDecl,
+        StructAccess
     };
 
     enum CacheResult { SUCCESS, FAILURE, MISS };
@@ -126,6 +127,7 @@ class Parser {
     std::shared_ptr<AST::DeclStruct> declStruct();
     std::shared_ptr<AST::Identifier> typeAnnotation();
     std::shared_ptr<AST::Declvar> uninitializedVarDecl();
+    std::shared_ptr<AST::StructAccess> structAccess();
 
     std::map<size_t /*idx*/, std::map<Rule, CacheResult>> cache;
 
