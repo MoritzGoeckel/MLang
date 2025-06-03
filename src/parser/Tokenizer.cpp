@@ -25,6 +25,9 @@ bool isCommentTerminator(char c) { return c == '\n'; }
 bool isStatementTerminator(char c) {
     return c == ';'; /* TODO maybe also new line */
 }
+bool isPeriod(char c) {
+    return c == '.'; 
+}
 
 }  // namespace CharCategories
 
@@ -74,6 +77,7 @@ bool Token::isTrivialContent() const {
         case Token::Type::False:
         case Token::Type::Colon:
         case Token::Type::Struct:
+        case Token::Type::Period:
             return true;
         default:
             return false;
@@ -93,6 +97,11 @@ bool Token::handleIsKeyword() {
 
     if (content == ":") {
         type = Token::Type::Colon;
+        return true;
+    }
+
+    if (content == ".") {
+        type = Token::Type::Period;
         return true;
     }
 
@@ -216,6 +225,8 @@ std::string to_string(Token::Type theType) {
             return "Colon";
         case Token::Type::Struct:
             return "Struct";
+        case Token::Type::Period:
+            return "Period";
     }
     throwConstraintViolated("Unknown Token::Type in to_string");
     return "Unknown Token::Type";  // Should never reach here

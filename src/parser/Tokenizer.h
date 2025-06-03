@@ -32,6 +32,7 @@ class Token {
         StatementTerminator,
         Comma,
         Colon,
+        Period,
         // Keywords
         Let,
         Ret,

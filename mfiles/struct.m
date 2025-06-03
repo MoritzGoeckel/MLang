@@ -10,7 +10,7 @@ struct Point {
 let p: Point;
 
 # TODO: Access fields
-# p.x = 1;
+p.x = 1;
 # p.y = 2;
 
 struct Line {
