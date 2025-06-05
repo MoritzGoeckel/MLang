@@ -55,7 +55,6 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(std::shared_ptr<AST::N
     // Declstruct
     else if (node->getType() == AST::NodeType::DeclStruct) {
         auto declstruct = std::dynamic_pointer_cast<AST::DeclStruct>(node);
-        std::cout << "yo" << std::endl;
         auto identifier = declstruct->getIdentifier();
         ASSURE_NOT_NULL(identifier);
         identifier->setDataType(
@@ -66,6 +65,10 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(std::shared_ptr<AST::N
     // Assignment
     else if (node->getType() == AST::NodeType::Assign) {
         auto assign = std::dynamic_pointer_cast<AST::Assign>(node);
+
+        if(assign->getLeft()->getType() == AST::NodeType::StructAccess){
+            process(assign->getLeft());
+        }
 
         // Assignment with variable declaration left
         if (assign->getLeft()->getType() == AST::NodeType::Declvar) {
@@ -132,12 +135,56 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(std::shared_ptr<AST::N
         }
     }
 
+    // Struct access
+    else if(node->getType() == AST::NodeType::StructAccess){
+        auto structAccess = std::dynamic_pointer_cast<AST::StructAccess>(node);
+        ASSURE(structAccess->getIdentifiers().size() >= 2, "Struct access must have at least two identifier");
+        const auto& identifiers = structAccess->getIdentifiers();
+
+        auto getType = [this](const std::string& name) -> DataType {
+            for (auto rIt = stack.rbegin(); rIt != stack.rend(); ++rIt) {
+                if (rIt->find(name) != rIt->end()) {
+                    return (*rIt)[name];
+                }
+            }
+            return DataType::Primitive::Unknown;
+        };
+
+        const auto& first = identifiers.front();
+        const auto& name = first->getName();
+        auto lastType = getType(name);
+        if (lastType != DataType::Primitive::Unknown) {
+            first->setDataType(lastType, [this](auto& s) { this->addMessage(s); });
+
+            for(auto current = std::next(identifiers.begin()); current != identifiers.end(); ++current) {
+                auto currentIdentifier = *current;
+                ASSURE(lastType.isStruct(), "First identifier must be a struct");
+                const auto& parentFields = lastType.getStruct().fields;
+                auto it = parentFields.find(currentIdentifier->getName());
+                ASSURE(it != parentFields.end(), "Field not found in struct");
+                auto currentType = it->second;
+
+                if (currentType != DataType::Primitive::Unknown) {
+                    currentIdentifier->setDataType(currentType, [this](auto& s) { this->addMessage(s); });
+                } else {
+                    this->addMessage("Undeclared field: " + currentIdentifier->getName());
+                }
+                lastType = currentType;
+            }
+
+            structAccess->setDataType(lastType, [this](auto& s) { this->addMessage(s); });
+        } else {
+            this->addMessage("Undeclared variable: " + name);
+        }
+    }
+
     // Identifier
     else if (node->getType() == AST::NodeType::Identifier) {
         // Existing var, get type from stack
         auto identifier = std::dynamic_pointer_cast<AST::Identifier>(node);
         auto name = identifier->getName();
 
+        // TODO: Use getType() to get type from stack
         DataType type = DataType::Primitive::Unknown;
         for (auto rIt = stack.rbegin(); rIt != stack.rend(); ++rIt) {
             if (rIt->find(name) != rIt->end()) {

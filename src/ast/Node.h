@@ -680,6 +680,16 @@ class StructAccess : public Node {
         return vec;
     }
 
+    void setDataType(DataType type, AddMsgFn addMessage) {
+        if (dataType == DataType::Primitive::Unknown || dataType == type)
+            dataType = type;
+        else {
+            dataType = DataType::Primitive::Conflict;
+            addMessage("Conflicting types: set " + dataType.toString() +
+                       " to " + type.toString());
+        }
+    }
+
     // TODO: Type of last identifier in the list
     /*virtual DataType getDataType() override {
         return DataType::Primitive::None; // TODO
