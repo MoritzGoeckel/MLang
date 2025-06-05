@@ -27,7 +27,7 @@ class DataType {
 
     struct Struct{
         std::string name;
-        std::map<std::string, DataType> fields;
+        std::map<std::string, DataType> fields; // TODO add offsets
         size_t getMemorySize() const;
     };
 

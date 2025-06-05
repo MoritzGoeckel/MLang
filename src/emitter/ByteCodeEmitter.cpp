@@ -80,6 +80,15 @@ void ByteCodeEmitter::storeLocalInto(const std::shared_ptr<AST::Node>& node){
             localNames.push_back(declvar->getIdentifier()->getName());
             break;
         }
+        case AST::NodeType::StructAccess: {
+            auto structAccess = std::dynamic_pointer_cast<AST::StructAccess>(node);
+            ASSURE(structAccess->getIdentifiers().size() >= 2, "Struct access must have at least two identifiers");
+            const auto& identifiers = structAccess->getIdentifiers();
+            (void)identifiers;
+            // TODO: access the struct fields
+            throwTodo("Store StructAccess not implemented in ByteCodeEmitter yet.");
+            break;
+        }
         default:{
             std::cout << node->toString() << std::endl;
             throwConstraintViolated("Invalid LValue type.");
@@ -263,7 +272,8 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             break;
         }
         case AST::NodeType::StructAccess: {
-            throwTodo("StructAccess not implemented in ByteCodeEmitter yet.");
+            throwTodo("Loading with StructAccess not implemented in ByteCodeEmitter yet.");
+            // TODO: Implement struct access loading
             break;
         }
     }

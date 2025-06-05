@@ -10,8 +10,6 @@
 
 namespace executor {
 
-// TODO: Make your own stack, with safety checks, etc.
-
 Instruction::Instruction(Op op, word_t arg1, word_t arg2, word_t arg3)
         : op(op), arg1(arg1), arg2(arg2), arg3(arg3) {}
 
