@@ -162,7 +162,7 @@ std::shared_ptr<AST::Node> InfereIdentifierTypes::process(std::shared_ptr<AST::N
                 const auto& parentFields = lastType.getStruct().fields;
                 auto it = parentFields.find(currentIdentifier->getName());
                 ASSURE(it != parentFields.end(), "Field not found in struct");
-                auto currentType = it->second;
+                auto currentType = it->second.type;
 
                 if (currentType != DataType::Primitive::Unknown) {
                     currentIdentifier->setDataType(currentType, [this](auto& s) { this->addMessage(s); });

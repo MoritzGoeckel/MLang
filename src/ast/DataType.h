@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <limits>
 #include <set>
 #include <sstream>
 #include <string>
@@ -10,6 +11,8 @@
 #include <algorithm>
 #include <variant>
 #include "../error/Exceptions.h"
+
+struct StructMember;
 
 class DataType {
    public:
@@ -27,7 +30,7 @@ class DataType {
 
     struct Struct{
         std::string name;
-        std::map<std::string, DataType> fields; // TODO add offsets
+        std::map<std::string, StructMember> fields;
         size_t getMemorySize() const;
     };
 
@@ -87,6 +90,13 @@ class DataType {
         return std::get<Struct>(impl);
     }
 
+    Struct& getStruct() {
+        if (!isStruct()) {
+            throwConstraintViolated("DataType is not a struct");
+        }
+        return std::get<Struct>(impl);
+    }
+
     bool isFunction() const {
         return std::holds_alternative<Function>(impl);
     }
@@ -125,4 +135,12 @@ class DataType {
 
    private:
     size_t getHashNum() const;
+};
+
+
+const size_t INVALID_OFFSET = std::numeric_limits<size_t>::max();
+
+struct StructMember {
+    DataType type;
+    size_t offset; // Offset in bytes from the start of the struct
 };

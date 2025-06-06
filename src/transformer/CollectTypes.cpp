@@ -13,8 +13,9 @@ std::shared_ptr<AST::Node> CollectTypes::process(std::shared_ptr<AST::Node> node
         const auto& structName = declStruct->getIdentifier()->getName();
         if(types.find(structName) == types.end()) {
             bool isComplete = true;
-            std::map<std::string, DataType> fields;
-            for(const auto& aMember : declStruct->getMembers()){
+            std::map<std::string, StructMember> fields;
+            for(const auto& aMember : declStruct->getMembers())
+            {
                 const auto& aMemberIdentifier = aMember->getIdentifier();
                 ASSURE_NOT_NULL(aMemberIdentifier);
                 const auto& aMemberName = aMemberIdentifier->getName();
@@ -23,10 +24,10 @@ std::shared_ptr<AST::Node> CollectTypes::process(std::shared_ptr<AST::Node> node
                     isComplete = false;
                     break;
                 }
-                fields.emplace(aMemberName, aMemberType);
+                fields.emplace(aMemberName, StructMember{aMemberType, INVALID_OFFSET});
             }
             if(isComplete) {
-                auto structType = DataType::Struct{structName, fields};
+                auto structType = DataType::Struct{structName, fields}; // MGDO this should not work
                 types.emplace(structType.name, structType);
             }
         }

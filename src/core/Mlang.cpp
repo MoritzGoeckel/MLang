@@ -12,6 +12,7 @@
 #include "../transformer/HasUnknownTypes.h"
 #include "../transformer/ImplicitReturn.h"
 #include "../transformer/CollectTypes.h"
+#include "../transformer/UpdateOffsets.h"
 #include "../transformer/InfereIdentifierTypes.h"
 #include "../transformer/ApplyTypeAnnotations.h"
 #include "../transformer/InfereParameterTypes.h"
@@ -76,6 +77,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         while (true) {
             applyTypeAnnotationsWalker.process(ast);
             collectTypesWalker.process(ast);
+            updateOffsets(structs);
 
             // Identifier types
             InfereIdentifierTypes identTypesWalker;

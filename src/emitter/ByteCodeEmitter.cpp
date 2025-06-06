@@ -84,8 +84,41 @@ void ByteCodeEmitter::storeLocalInto(const std::shared_ptr<AST::Node>& node){
             auto structAccess = std::dynamic_pointer_cast<AST::StructAccess>(node);
             ASSURE(structAccess->getIdentifiers().size() >= 2, "Struct access must have at least two identifiers");
             const auto& identifiers = structAccess->getIdentifiers();
-            (void)identifiers;
-            // TODO: access the struct fields
+
+            /*auto identifierIt = identifiers.begin();
+            ASSURE(identifierIt != identifiers.end(),
+                   "StructAccess must have at least one identifier.");
+
+            // Load address in first identifier, it is a local variable
+            auto it = std::find(localNames.begin(), localNames.end(), (*identifierIt)->getName()); // TODO: This repeats, make function
+            if (it == localNames.end()) {
+                throwConstraintViolated("Identifier not found in local names.");
+            }
+            auto localIdx = std::distance(localNames.begin(), it);
+            code.push_back(executor::Instruction(executor::Op::LOCALL, localIdx));
+            // We got the address of the first struct on the stack
+
+            do {
+                const auto& type = (*identifierIt)->getDataType();
+                size_t offset = type.getStruct().offset;
+                code.push_back(executor::Instruction(executor::Op::LOADW, offset));
+                ++identifierIt;
+            } while (identifierIt != std::prev(identifiers.end()) && type.isStruct())
+            
+            ASSURE(identifierIt != identifiers.end(), "StructAccess must have at least one identifier after the first.");
+
+            const auto& lastType = (*identifierIt)->getDataType();
+            if(currentType.isStruct()) {
+                const auto& structType = currentType.getStruct();
+                code.push_back(executor::Instruction(executor::Op::LOADW, offset));
+                offset = structType.offset;
+            }
+
+            ASSURE(!currentType.isStruct(), "StructAccess must not have a struct type as last identifier.");
+            code.push_back(executor::Instruction(executor::Op::STOREW, offset)); // Store at offset 0 */
+
+            // a.b = 1
+            // a.b.c = 1;
             throwTodo("Store StructAccess not implemented in ByteCodeEmitter yet.");
             break;
         }

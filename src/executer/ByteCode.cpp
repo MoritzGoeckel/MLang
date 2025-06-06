@@ -32,6 +32,8 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
         { Op::JUMP_IF, { "JUMP_IF", { "POSITIVE_ADDR" } } },
         { Op::ALLOC, { "ALLOC", { "SIZE" } } },
         { Op::WRITE_HEAP, { "WRITE_HEAP", {"FROM_STACK_ADDR", "TO_HEAP_ADDR", "SIZE"} }},
+        { Op::LOADW, { "LOADW", { "OFFSET" } }},
+        { Op::STOREW, { "STOREW", { "OFFSET" } }},
         { Op::READ_HEAP,  {"READ_HEAP", {"FROM_HEAP_ADDR","TO_STACK_ADDR","SIZE"} }},
         { Op::PRINTS, {"PRINTS",{"STACK_ADDR"}} },
         { Op::TERM, {"TERM",{}} },
@@ -257,6 +259,23 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 for (int i = 0; i < size; ++i) {
                     stack.push(heap[heap_addr + i]);
                 }
+                break;
+            }
+            case Op::LOADW: {
+                // LOADW OFFSET
+                // Read from heap at stack top + offset
+                auto offset = inst.arg1;
+                auto addr = stack.pop();
+                stack.push(heap.at(addr + offset));
+                break;
+            }
+            case Op::STOREW: {
+                // STOREW OFFSET
+                // Write to heap at stack top + offset
+                auto offset = inst.arg1;
+                auto value = stack.pop();
+                auto addr = stack.pop();
+                heap.at(addr + offset) = value;
                 break;
             }
             case Op::TERM: {

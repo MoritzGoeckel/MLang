@@ -4,7 +4,7 @@
 size_t DataType::Struct::getMemorySize() const {
     size_t size = 0;
     for (const auto& field : fields) {
-        size += field.second.getMemorySize();
+        size += field.second.type.getMemorySize();
     }
     return size;
 }
