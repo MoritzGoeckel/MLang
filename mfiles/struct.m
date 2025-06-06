@@ -10,8 +10,8 @@ struct Point {
 let p: Point;
 
 # TODO: Access fields
-p.x = 1;
-# p.y = 2;
+p.x = 18;
+p.y = 99;
 
 struct Line {
     let begin: Point;
@@ -20,7 +20,7 @@ struct Line {
 
 # TODO: Access nested fields
 let l: Line;
-# l.begin.x = 1;
+l.begin.x = 14;
 
 let j = 2;
 ret i + j;

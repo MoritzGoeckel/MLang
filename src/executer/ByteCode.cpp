@@ -273,8 +273,8 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 // STOREW OFFSET
                 // Write to heap at stack top + offset
                 auto offset = inst.arg1;
-                auto value = stack.pop();
                 auto addr = stack.pop();
+                auto value = stack.pop();
                 heap.at(addr + offset) = value;
                 break;
             }
