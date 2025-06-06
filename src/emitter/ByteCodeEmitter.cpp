@@ -85,7 +85,8 @@ void ByteCodeEmitter::storeLocalInto(const std::shared_ptr<AST::Node>& node){
             ASSURE(structAccess->getIdentifiers().size() >= 2, "Struct access must have at least two identifiers");
             const auto& identifiers = structAccess->getIdentifiers();
 
-            /*auto identifierIt = identifiers.begin();
+            // Load first identifier
+            auto identifierIt = identifiers.begin();
             ASSURE(identifierIt != identifiers.end(),
                    "StructAccess must have at least one identifier.");
 
@@ -98,28 +99,33 @@ void ByteCodeEmitter::storeLocalInto(const std::shared_ptr<AST::Node>& node){
             code.push_back(executor::Instruction(executor::Op::LOCALL, localIdx));
             // We got the address of the first struct on the stack
 
-            do {
-                const auto& type = (*identifierIt)->getDataType();
-                size_t offset = type.getStruct().offset;
-                code.push_back(executor::Instruction(executor::Op::LOADW, offset));
-                ++identifierIt;
-            } while (identifierIt != std::prev(identifiers.end()) && type.isStruct())
-            
-            ASSURE(identifierIt != identifiers.end(), "StructAccess must have at least one identifier after the first.");
+            const auto& type = (*identifierIt)->getDataType();
+            ASSURE(type.isStruct(), "First identifier in StructAccess must be a struct type.");
+            const auto* structType = &type.getStruct();
+            ++identifierIt;
 
-            const auto& lastType = (*identifierIt)->getDataType();
-            if(currentType.isStruct()) {
-                const auto& structType = currentType.getStruct();
-                code.push_back(executor::Instruction(executor::Op::LOADW, offset));
-                offset = structType.offset;
+            // Load in-between identifiers
+            while (identifierIt != std::prev(identifiers.end())) {
+                const auto& name = (*identifierIt)->getName();
+                auto fieldIt = structType->fields.find(name);
+                ASSURE(fieldIt != structType->fields.end(), "Field not found in struct");
+                const auto& field = fieldIt->second;
+                ASSURE(field.type.isStruct(), "In-between identifier in StructAccess must be a struct type.");
+                structType = &field.type.getStruct();
+                code.push_back(executor::Instruction(executor::Op::LOADW, field.offset));
+                ++identifierIt;
             }
 
-            ASSURE(!currentType.isStruct(), "StructAccess must not have a struct type as last identifier.");
-            code.push_back(executor::Instruction(executor::Op::STOREW, offset)); // Store at offset 0 */
+            ASSURE(identifierIt != identifiers.end(),
+                   "StructAccess must have at least one identifier after the first.");
 
-            // a.b = 1
-            // a.b.c = 1;
-            throwTodo("Store StructAccess not implemented in ByteCodeEmitter yet.");
+            // Write to last identifier 
+            const auto& name = (*identifierIt)->getName();
+            auto fieldIt = structType->fields.find(name);
+            ASSURE(fieldIt != structType->fields.end(), "Field not found in struct");
+            const auto& field = fieldIt->second;
+            // We don't really care about the type here, we just store a word
+            code.push_back(executor::Instruction(executor::Op::STOREW, field.offset));
             break;
         }
         default:{
