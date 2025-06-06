@@ -1,26 +1,15 @@
-# expect_result=3
-let i = 1;
-
+# expect_result=95
 struct Point {
     let x: Int;
     let y: Int;
+    let z: Int;
 }
 
-# TODO: Instatiate (heap allocation, garbage collection)
 let p: Point;
 
 # TODO: Access fields
 p.x = 18;
-p.y = 99;
+p.y = 95;
+p.z = 42;
 
-struct Line {
-    let begin: Point;
-    let end: Point;
-}
-
-# TODO: Access nested fields
-let l: Line;
-l.begin.x = 14;
-
-let j = 2;
-ret i + j;
+ret p.y;

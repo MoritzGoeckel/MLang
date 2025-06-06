@@ -1,6 +1,7 @@
 #include "ParseError.h"
 
 #include "../error/GenerateMarkedCode.h"
+#include "../error/Exceptions.h"
 
 ParseError::ParseError() : idx(0u), expected(), msg() {}
 
@@ -12,6 +13,13 @@ size_t ParseError::getIndex() { return idx; }
 
 std::string ParseError::getErrorMessage(const std::vector<Token>& tokens,
                                         const std::string& code) {
+    ASSURE(idx <= tokens.size(), "ParseError index out of bounds");
+
+    if(idx == tokens.size()) {
+        if (tokens.empty()) return "No tokens available for error message";
+        idx = tokens.size() - 1;
+    }
+
     // Show line number and column
     const auto& lastTokenPosition =
         idx > 0u ? tokens[idx - 1u].getPosition() : tokens[idx].getPosition();

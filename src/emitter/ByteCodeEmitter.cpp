@@ -300,6 +300,8 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
                     std::cout << "Field: " << fieldType.toString() << std::endl;
                 }*/
 
+                // TODO: We need to allocate every struct nested in the struct separately!
+
                 size_t size = structType.getMemorySize();
                 code.push_back(executor::Instruction(executor::Op::ALLOC, size));
                 code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
@@ -311,8 +313,52 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             break;
         }
         case AST::NodeType::StructAccess: {
-            throwTodo("Loading with StructAccess not implemented in ByteCodeEmitter yet.");
-            // TODO: Implement struct access loading
+            auto structAccess = std::dynamic_pointer_cast<AST::StructAccess>(node);
+            ASSURE(structAccess->getIdentifiers().size() >= 2, "Struct access must have at least two identifiers");
+            const auto& identifiers = structAccess->getIdentifiers();
+
+            // Load first identifier
+            auto identifierIt = identifiers.begin();
+            ASSURE(identifierIt != identifiers.end(),
+                   "StructAccess must have at least one identifier.");
+
+            // Load address in first identifier, it is a local variable
+            auto it = std::find(localNames.begin(), localNames.end(), (*identifierIt)->getName()); // TODO: This repeats, make function
+            if (it == localNames.end()) {
+                throwConstraintViolated("Identifier not found in local names.");
+            }
+            auto localIdx = std::distance(localNames.begin(), it);
+            code.push_back(executor::Instruction(executor::Op::LOCALL, localIdx));
+            // We got the address of the first struct on the stack
+
+            const auto& type = (*identifierIt)->getDataType();
+            ASSURE(type.isStruct(), "First identifier in StructAccess must be a struct type.");
+            const auto* structType = &type.getStruct();
+            ++identifierIt;
+
+            // Load rest of identifiers
+            while (identifierIt != std::prev(identifiers.end())) {
+                const auto& name = (*identifierIt)->getName();
+                auto fieldIt = structType->fields.find(name);
+                ASSURE(fieldIt != structType->fields.end(), "Field not found in struct");
+                const auto& field = fieldIt->second;
+                ASSURE(field.type.isStruct(), "In-between identifier in StructAccess must be a struct type.");
+                structType = &field.type.getStruct();
+                code.push_back(executor::Instruction(executor::Op::LOADW, field.offset));
+                ++identifierIt;
+            }
+
+            ASSURE(identifierIt != identifiers.end(),
+                   "StructAccess must have at least one identifier after the first.");
+
+            // Write to last identifier 
+            const auto& name = (*identifierIt)->getName();
+            auto fieldIt = structType->fields.find(name);
+            ASSURE(fieldIt != structType->fields.end(), "Field not found in struct");
+            const auto& field = fieldIt->second;
+
+            // We don't really care about the type here, we just store a word
+            code.push_back(executor::Instruction(executor::Op::LOADW, field.offset));
             break;
         }
     }

@@ -142,12 +142,13 @@ int main() {
     testFile("mfiles/function_without_return.m");
     testFile("mfiles/var_declaration_addition.m");
     testFile("mfiles/var_declaration.m");
-
-    // TODO: Structs
     testFile("mfiles/type_annotation.m");
     testFile("mfiles/struct.m");
 
-    // TODO: Type inference not working.
+    // TODO: So far we inline nested structs, we should have pointers instead
+    testFile("mfiles/struct_nested.m");
+
+    // TODO: Type inference not working for recursive functions
     // We should skip recursive calls and find the terminating return.
     // Assume that type for the recursive calls and see if this passes
     // without conflicts.
@@ -163,8 +164,6 @@ int main() {
     //   arrays
     //   strings
     //   maps?
-
-    // Type annotations
 
     // floats
     // bools
