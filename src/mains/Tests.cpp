@@ -144,20 +144,14 @@ int main() {
     testFile("mfiles/var_declaration.m");
     testFile("mfiles/type_annotation.m");
     testFile("mfiles/struct.m");
-
-    // TODO: So far we inline nested structs, we should have pointers instead
     testFile("mfiles/struct_nested.m");
 
-    // TODO: Type inference not working for recursive functions
-    // We should skip recursive calls and find the terminating return.
-    // Assume that type for the recursive calls and see if this passes
-    // without conflicts.
-    // testFile("mfiles/recursion.m");
-
-    // structs (going to the heap, accessors for fields)
+    // Structs:
     //    member functions for structs
 
-    // blob type (alloc8, size, get(blob, idx), set(blob, idx))
+    // Garbage collection
+
+    // blob type (alloc8, size, get(blob, idx), set(blob, idx)):
     //    synatx sugar for get, set with []
 
     // Use blob and struct to implement:
@@ -165,12 +159,19 @@ int main() {
     //   strings
     //   maps?
 
-    // floats
-    // bools
+    // Other types:
+    //   floats
+    //   bools
 
-    // c ffi, interop (dlopen / dlsym) and (LoadLibrary / GetProcAddress)
+    // c ffi, interop (dlopen / dlsym) and (LoadLibrary / GetProcAddress):
     //   terminal IO
     //   file IO
+
+    // TODO: Type inference not working for recursive functions
+    // We should skip recursive calls and find the terminating return.
+    // Assume that type for the recursive calls and see if this passes
+    // without conflicts.
+    // testFile("mfiles/recursion.m");
 
     return 0;
 }

@@ -231,12 +231,14 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
             }
             case Op::ALLOC: {
                 // ALLOC SIZE
-                // TODO: Also have a parent object and garbage collection
                 if (inst.arg1 <= 0) {
                     throwConstraintViolated("ByteCodeVM: Invalid allocation size");
                 }
-                stack.push(heap.size());
-                heap.resize(heap.size() + inst.arg1);
+                // auto parentObj = stack.pop(); // TODO: Also have a parent object and garbage collection
+                auto addr = heap.size();
+                stack.push(addr + 1);
+                heap.resize(addr + inst.arg1 + 1);
+                // heap[addr] = parentObj; // Store parent object for garbage collection
                 break;
             }
             case Op::LOADW: {
