@@ -134,14 +134,14 @@ void testLibrary(){
 
     dlerror(); // Clear any existing error
 
-    void (*myprint)() = (void (*)())dlsym(handle, "myprint");
+    void (*print)() = (void (*)())dlsym(handle, "print");
     const char* dlsym_error = dlerror();
     if (dlsym_error) {
         std::cerr << "Error: " << dlsym_error << std::endl;
         dlclose(handle);
         throwConstraintViolated("Failed to find symbol in library");
     }
-    myprint(); // Call the function from the library
+    print(); // Call the function from the library
     dlclose(handle); // Close the library handle
 
     std::cout << "[ OK ] Library test passed." << std::endl;
@@ -172,6 +172,11 @@ void suiteTestfiles(){
     testFile("mfiles/type_annotation.m");
     testFile("mfiles/struct.m");
     testFile("mfiles/struct_nested.m");
+
+    // TODO shared libraries
+    // Parse extern functions and load them
+    // Use them in the call
+    // testFile("mfiles/extern.m");
 }
 
 int main() {

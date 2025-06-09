@@ -3,7 +3,14 @@
 
 // To avoid renaming the function in the exported symbols
 extern "C" {
-    void myprint();
+    void print();
+    int mul(int a, int b);
 }
 
-void myprint() { printf("It's working!\n"); }
+void print() { printf("It's working!\n"); }
+
+int mul(int a, int b) {
+    int result = a * b;
+    printf("Multiplication result: %d\n", result);
+    return result;
+}
