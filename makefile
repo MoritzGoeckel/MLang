@@ -38,7 +38,8 @@ endif
 
 EXES := ${EXECUTE_FILE_TARGET} ${TESTS_TARGET}
 
-Build: BuildExecuteFile BuildTests Lib
+Lib: lib/libprint.cpp | bin
+	$(CXX) $(CXXFLAGS) -shared -fPIC $(CPPFLAGS) -o ${LIB_TARGET} $<
 
 BuildExecuteFile: $(OBJS) $(MAINDIR)/ExecuteFile.o | bin
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${EXECUTE_FILE_TARGET} $^
@@ -49,8 +50,10 @@ BuildTests: $(OBJS) $(MAINDIR)/Tests.o | bin
 bin:
 	mkdir bin
 
-Test: BuildTests
+Test: BuildTests Lib
 	${TESTS_TARGET}
+
+Build: BuildExecuteFile BuildTests Lib
 
 %.o: %.cpp %.h
 	$(CXX) $(CXXFLAGS) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
@@ -64,7 +67,7 @@ else
 	# Linux
 	$(foreach file, $(OBJS), rm ${file};)
 	$(foreach file, $(EXES), rm ${file};)
+	rm bin/libprint.so
+	rm src/mains/ExecuteFile.o
+	rm src/mains/Tests.o
 endif
-
-Lib: lib/libprint.cpp | bin
-	$(CXX) $(CXXFLAGS) -shared -fPIC $(CPPFLAGS) -o ${LIB_TARGET} $<
