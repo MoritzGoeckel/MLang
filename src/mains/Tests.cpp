@@ -120,7 +120,34 @@ void testFile(std::string path){
     std::cout << "[ OK ] " << path << std::endl;
 }
 
-int main() {
+// TODO
+#include <dlfcn.h>
+
+void testLibrary(){
+    std::cout << "Testing library..." << std::endl;
+
+    void* handle = dlopen("bin/libprint.so", RTLD_LAZY);
+    if (!handle) {
+        std::cerr << "Error: " << dlerror() << std::endl;
+        throwConstraintViolated("Failed to load library");
+    }
+
+    dlerror(); // Clear any existing error
+
+    void (*myprint)() = (void (*)())dlsym(handle, "myprint");
+    const char* dlsym_error = dlerror();
+    if (dlsym_error) {
+        std::cerr << "Error: " << dlsym_error << std::endl;
+        dlclose(handle);
+        throwConstraintViolated("Failed to find symbol in library");
+    }
+    myprint(); // Call the function from the library
+    dlclose(handle); // Close the library handle
+
+    std::cout << "[ OK ] Library test passed." << std::endl;
+}
+
+void suiteTestfiles(){
     testFile("mfiles/addition_infix.m");
     testFile("mfiles/addition.m");
     testFile("mfiles/broken_syntax.m");
@@ -145,7 +172,11 @@ int main() {
     testFile("mfiles/type_annotation.m");
     testFile("mfiles/struct.m");
     testFile("mfiles/struct_nested.m");
+}
 
+int main() {
+    suiteTestfiles();
+    testLibrary();
     // Structs:
     //    member functions for structs
 
@@ -153,6 +184,8 @@ int main() {
 
     // blob type (alloc8, size, get(blob, idx), set(blob, idx)):
     //    synatx sugar for get, set with []
+
+    // C-Strings / strings
 
     // Use blob and struct to implement:
     //   arrays
