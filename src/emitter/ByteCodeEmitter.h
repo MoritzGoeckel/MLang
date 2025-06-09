@@ -41,6 +41,7 @@ class ByteCodeEmitter {
     void process(const std::shared_ptr<AST::Node>& node, bool hasConsumer);
     void loadIdentifier(const std::shared_ptr<AST::Identifier>& identifier);
     void storeLocalInto(const std::shared_ptr<AST::Node>& node);
+    size_t allocStructs(const DataType::Struct& structType);
 };
 
 } // namespace emitter

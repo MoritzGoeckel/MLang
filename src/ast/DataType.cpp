@@ -2,11 +2,7 @@
 #include "../error/Exceptions.h"
 
 size_t DataType::Struct::getMemorySize() const {
-    size_t size = 0;
-    for (const auto& field : fields) {
-        size += field.second.type.getMemorySize();
-    }
-    return size;
+    return fields.size();
 }
 
 DataType::DataType(DataType::Primitive primitive)

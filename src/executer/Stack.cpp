@@ -23,6 +23,14 @@ word_t Stack::back() const {
     return impl.back();
 }
 
+
+word_t Stack::lookback(size_t n) const{
+    if (n >= impl.size()) {
+        throwConstraintViolated("Lookback index out of bounds");
+    }
+    return impl[impl.size() - 1 - n];
+}
+
 bool Stack::empty() const {
     return impl.empty();
 }

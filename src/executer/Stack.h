@@ -22,6 +22,8 @@ public:
 
     size_t size() const;
 
+    word_t lookback(size_t n) const;
+
     using const_iterator = std::vector<word_t>::const_iterator;
 
     auto begin() const {

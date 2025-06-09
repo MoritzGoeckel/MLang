@@ -13,7 +13,7 @@ namespace executor {
 
 using word_t = unsigned long;
 
-enum class Op { NOP, LOCALS, LOCALL, CALL, RET, PUSH, POP, ADD, SUB, MUL, DIV, MOD, JUMP, JUMP_IF, ALLOC, PRINTS, TERM, LT, GT, EQ, LTE, GTE, NEQ, LOADW, STOREW };
+enum class Op { NOP, LOCALS, LOCALL, CALL, RET, PUSH, POP, ADD, SUB, MUL, DIV, MOD, JUMP, JUMP_IF, ALLOC, PRINTS, TERM, LT, GT, EQ, LTE, GTE, NEQ, LOADW, STOREW, DUB };
 
 // TODO: ADD etc should be type specific, so IADD, FADD
 // TODO: Logic operator missing: AND, OR, NOT

@@ -136,6 +136,22 @@ void ByteCodeEmitter::storeLocalInto(const std::shared_ptr<AST::Node>& node){
 
 }
 
+size_t ByteCodeEmitter::allocStructs(const DataType::Struct& structType) {
+    size_t instructions = 0;
+
+    code.push_back(executor::Instruction(executor::Op::ALLOC, structType.getMemorySize()));
+    instructions++;
+    for (const auto& [fieldName, member] : structType.fields) {
+        if(member.type.isStruct()) {
+            allocStructs(member.type.getStruct());
+            code.push_back(executor::Instruction(executor::Op::DUB, instructions)); // Bring address here
+            code.push_back(executor::Instruction(executor::Op::STOREW, member.offset));
+        }
+    }
+
+    return instructions;
+}
+
 void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasConsumer) {
     switch(node->getType()) {
         case AST::NodeType::Declfn:
@@ -294,16 +310,47 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
                 code.push_back(executor::Instruction(executor::Op::PUSH, 0)); // Initial value
                 code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
             } else if(dataType.isStruct()) {
-                const auto& structType = dataType.getStruct();
                 /*std::cout << "Name=" << structType.name << std::endl;
                 for (const auto& [fieldName, fieldType] : structType.fields) {
                     std::cout << "Field: " << fieldType.toString() << std::endl;
                 }*/
 
+                /*
+                struct a {}
+                struct b {
+                    a a;
+                }
+                struct c {
+                    a a;
+                    b b;
+                }
+
+                c c;
+                
+                // alloc c
+                // dup
+                // alloc a
+                // dup
+                // alloc b
+                // dup
+                // alloc a (in b)
+                // storew
+
+
+                // c a -> alloc a
+                // c b a -> alloc a
+                // c b -> alloc b
+                // c -> alloc c
+                // local = c
+                // c.b = b
+                // c.b.a = a
+                // c.a = a
+                */
+
                 // TODO: We need to allocate every struct nested in the struct separately!
 
-                size_t size = structType.getMemorySize();
-                code.push_back(executor::Instruction(executor::Op::ALLOC, size));
+                const auto& structType = dataType.getStruct();
+                allocStructs(structType);
                 code.push_back(executor::Instruction(executor::Op::LOCALS, localIdx));
             }
             break;

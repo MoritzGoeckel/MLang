@@ -40,7 +40,8 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
         { Op::EQ, {"EQ", {}} },
         { Op::LTE, {"LTE", {}} },
         { Op::GTE, {"GTE", {}} },
-        { Op::NEQ, {"NEQ", {}} }
+        { Op::NEQ, {"NEQ", {}} },
+        { Op::DUB, {"DUB", {"LOOKBACK"}} }
     };
 
     std::stringstream ss;
@@ -253,6 +254,13 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 auto addr = stack.pop();
                 auto value = stack.pop();
                 heap.at(addr + offset) = value;
+                break;
+            }
+            case Op::DUB: {
+                // DUB Num_lookback
+                // Duplicate a value from the stack based on lookback index
+                auto value = stack.lookback(inst.arg1);
+                stack.push(value);
                 break;
             }
             case Op::TERM: {
