@@ -173,9 +173,10 @@ void suiteTestfiles(){
     testFile("mfiles/struct.m");
     testFile("mfiles/struct_nested.m");
 
-    // TODO shared libraries
-    // Parse extern functions and load them
-    // Use them in the call
+    // TODO: Blob
+    // testFile("mfiles/blob.m");
+
+    // TODO: Extern functions
     // testFile("mfiles/extern.m");
 }
 
@@ -187,23 +188,23 @@ int main() {
 
     // Garbage collection
 
-    // blob type (alloc8, size, get(blob, idx), set(blob, idx)):
+    // blob type (alloc8(size), get(blob, idx), set(blob, idx)):
     //    synatx sugar for get, set with []
-
-    // C-Strings / strings
 
     // Use blob and struct to implement:
     //   arrays
     //   strings
     //   maps?
 
-    // Other types:
-    //   floats
-    //   bools
+    // C-Strings / strings
 
     // c ffi, interop (dlopen / dlsym) and (LoadLibrary / GetProcAddress):
     //   terminal IO
     //   file IO
+
+    // Other types:
+    //   floats
+    //   bools
 
     // TODO: Type inference not working for recursive functions
     // We should skip recursive calls and find the terminating return.
