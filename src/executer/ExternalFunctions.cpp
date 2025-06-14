@@ -3,6 +3,39 @@
 
 namespace ffi {
 
+Arguments::Arguments() : buffer() {}
+
+void Arguments::addWord(word_t value) {
+    ASSURE(size < capacity, "Too many arguments added to the buffer");
+
+    arg_t& arg = buffer[size++];
+    arg.type = arg_types::Word;
+    *reinterpret_cast<word_t*>(&arg.value) = value;
+}
+
+void Arguments::addDWord(dword_t value) {
+    ASSURE(size < capacity, "Too many arguments added to the buffer");
+    
+    arg_t& arg = buffer[size++];
+    arg.type = arg_types::DWord;
+    *reinterpret_cast<dword_t*>(&arg.value) = value;
+}
+
+void Arguments::addQWord(qword_t value) {
+    ASSURE(size < capacity, "Too many arguments added to the buffer");
+    
+    arg_t& arg = buffer[size++];
+    arg.type = arg_types::QWord;
+    *reinterpret_cast<qword_t*>(&arg.value) = value;
+}
+
+void Arguments::clear() {
+    size = 0;
+    for (size_t i = 0; i < capacity; ++i) {
+        buffer[i] = {arg_types::None, 0}; // Reset to default
+    }
+}
+
 #ifdef WIN // Windows
 
 ExternalFunctions::ExternalFunctions() = default;
