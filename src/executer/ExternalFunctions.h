@@ -13,7 +13,7 @@ using byte_t = unsigned char;
 using word_t = unsigned short;
 using dword_t = unsigned int;
 using qword_t = unsigned long long;
-using xmmword_t = unsigned char[16]; // Probably we don't need this
+using xmmword_t = unsigned char[16]; // Probably we don't need this, we might for floats
 
 using ptr = void*;
 static_assert(sizeof(ptr) == 8);
@@ -64,8 +64,6 @@ struct ExternalFunction {
     std::string library;
     std::string name;
     void* functionPtr;
-    // std::vector<Type> parameters;
-    // Type returnType;
 };
 
 class ExternalFunctions {

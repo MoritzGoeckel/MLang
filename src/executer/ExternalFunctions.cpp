@@ -78,7 +78,6 @@ size_t ExternalFunctions::add(const std::string& library, const std::string& fun
     ASSURE_NOT_NULL(libraryHandle);
     dlerror(); // Clear any existing error
 
-    //void (*print)() = (void (*)())dlsym(handle, "print");
     functionInfo.functionPtr = dlsym(libraryHandle, functionName.c_str());
     const char* dlsym_error = dlerror();
     if (dlsym_error) {
@@ -95,11 +94,21 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     ASSURE(id < functions.size(), "Function ID out of bounds");
 
     const ExternalFunction& func = functions[id];
+    ASSURE_NOT_NULL(func.functionPtr);
+
+    // TODO: We don't support more than 6 arguments yet (put on stack)
+    ASSURE(args.getSize() <= 6, "Too many arguments for external function");
+
+    // TODO: We don't support float/double arguments yet (xmm registers)
+
+    // https://github.com/tsoding/b/blob/main/src/codegen/fasm_x86_64.rs#L221
+    // Floating point numbers are passed in xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7
+    // Integer numbers are passed in rdi, rsi, rdx, rcx, r8, r9
+    // The result is returned in rax
+    // If we need more than 6 arguments, the rest are passed on the stack. (?)
 
     qword_t result;
-
     __asm__ volatile (
-
         "movq %[args_tag], %%R10\n" // Bring arg pointer into R10
 
         "call bring_next_value_into_rax\n"
@@ -155,12 +164,6 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
         : [result_tag] "=r"(result) 
         : [fn_tag] "r"(func.functionPtr), 
           [args_tag] "r"(args.getBuffer())) ;
-
-    // https://github.com/tsoding/b/blob/main/src/codegen/fasm_x86_64.rs#L221
-    // Floating point numbers are passed in xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7
-    // Integer numbers are passed in rdi, rsi, rdx, rcx, r8, r9
-    // The result is returned in rax
-    // If we need more than 6 arguments, the rest are passed on the stack. (?)
 
     return result;
 }

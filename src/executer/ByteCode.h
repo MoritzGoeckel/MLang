@@ -6,6 +6,7 @@
 #include <map>
 #include <sstream>
 
+#include "../executer/ExternalFunctions.h"
 #include "../error/Exceptions.h"
 #include "Stack.h"
 
@@ -13,7 +14,40 @@ namespace executor {
 
 using word_t = unsigned long;
 
-enum class Op { NOP, LOCALS, LOCALL, CALL, RET, PUSH, POP, ADD, SUB, MUL, DIV, MOD, JUMP, JUMP_IF, ALLOC, PRINTS, TERM, LT, GT, EQ, LTE, GTE, NEQ, LOADW, STOREW, DUB };
+enum class Op { 
+    NOP, 
+    LOCALS, 
+    LOCALL, 
+    CALL, 
+    RET, 
+    PUSH, 
+    POP, 
+    ADD, 
+    SUB, 
+    MUL, 
+    DIV, 
+    MOD, 
+    JUMP, 
+    JUMP_IF, 
+    ALLOC, 
+    PRINTS, 
+    TERM, 
+    LT, 
+    GT, 
+    EQ, 
+    LTE, 
+    GTE, 
+    NEQ, 
+    LOADW, 
+    STOREW, 
+    DUB,
+    REG_FFI,
+    PUSH_FFI_WORD, 
+    PUSH_FFI_DWORD, 
+    PUSH_FFI_QWORD, 
+    PUSH_FFI_XWORD, 
+    CALL_FFI
+};
 
 // TODO: ADD etc should be type specific, so IADD, FADD
 // TODO: Logic operator missing: AND, OR, NOT
@@ -83,6 +117,8 @@ class ByteCodeVM {
         std::vector<word_t> heap;
         Program program;
         bool debug;
+        ffi::ExternalFunctions ffiFunctions;
+        ffi::Arguments ffiArgs;
 
     ProgramState run(size_t maxInstructions);
 

@@ -41,7 +41,13 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
         { Op::LTE, {"LTE", {}} },
         { Op::GTE, {"GTE", {}} },
         { Op::NEQ, {"NEQ", {}} },
-        { Op::DUB, {"DUB", {"LOOKBACK"}} }
+        { Op::DUB, {"DUB", {"LOOKBACK"}} },
+        { Op::REG_FFI, {"REG_FFI", {}} },
+        { Op::PUSH_FFI_WORD, {"PUSH_FFI_WORD", {}} },
+        { Op::PUSH_FFI_DWORD, {"PUSH_FFI_DWORD", {}} },
+        { Op::PUSH_FFI_QWORD, {"PUSH_FFI_QWORD", {}} },
+        { Op::PUSH_FFI_XWORD, {"PUSH_FFI_XWORD", {}} },
+        { Op::CALL_FFI, {"CALL_FFI", {}} }
     };
 
     std::stringstream ss;
@@ -268,12 +274,42 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
             case Op::TERM: {
                 return ProgramState::Finished;
             }
+            case Op::REG_FFI: {
+                // Register FFI function
+                // TODO: How do we get strings here?
+                // TODO: Need to somehow embed strings into the bytecode
+                ffiFunctions.add("library", "function");
+                break;
+            }
+            case Op::PUSH_FFI_WORD:
+            case Op::PUSH_FFI_DWORD:
+            case Op::PUSH_FFI_QWORD: 
+            case Op::PUSH_FFI_XWORD: // TODO: Distinguish between these types
+            {
+                auto value = stack.pop();
+                ffiArgs.addWord(value);
+                break;
+            }
+            case Op::CALL_FFI: {
+                auto id = stack.pop();
+                auto result = ffiFunctions.call(id, ffiArgs);
+                stack.push(result);
+                ffiArgs.clear();
+                break;
+            }
         }
     }
     return ProgramState::Paused;
 }
 
-ByteCodeVM::ByteCodeVM(const Program& program) : idx{0ull}, callstack{}, stack{}, program(program), debug{true} {}
+ByteCodeVM::ByteCodeVM(const Program& program) : 
+    idx{0ull}, 
+    callstack{}, 
+    stack{}, 
+    program(program), 
+    debug{true},
+    ffiFunctions{},
+    ffiArgs{} {}
 
 std::string ByteCodeVM::execute(size_t maxInstructions) {
     auto state = run(maxInstructions);
