@@ -23,7 +23,57 @@ std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::No
                 }
             }
         }
-    }  else {
+    } if (node->getType() == AST::NodeType::Identifier) {
+        auto identifier = std::dynamic_pointer_cast<AST::Identifier>(node);
+        if(identifier->hasTypeAnnotation()) {
+            const auto& annotationText = identifier->getTypeAnnotation();
+            if(types.find(annotationText) != types.end()) {
+                identifier->setDataType(types[annotationText], [this](auto& s) { this->addMessage(s); });
+            } else {
+                DataType::Primitive primitive = DataType::toPrimitive(annotationText);
+                if(primitive != DataType::Primitive::Unknown) {
+                    identifier->setDataType(DataType(primitive), [this](auto& s) { this->addMessage(s); });
+                }
+            }
+        }
+    } if (node->getType() == AST::NodeType::ExternFn) {
+        auto externFn = std::dynamic_pointer_cast<AST::ExternFn>(node);
+        for(auto& param : externFn->getParameters()) {
+            ASSURE_NOT_NULL(param);
+            process(param);
+        }
+
+        std::shared_ptr<DataType> returnType{nullptr};
+        if (externFn->hasTypeAnnotation()) {
+            const auto& annotationText = externFn->getTypeAnnotation();
+            if (types.find(annotationText) != types.end()) {
+                returnType = std::make_shared<DataType>(types[annotationText]); // TODO: Should just return shared_ptr
+            } else {
+                DataType::Primitive primitive = DataType::toPrimitive(annotationText);
+                if (primitive != DataType::Primitive::Unknown) {
+                    returnType = std::make_shared<DataType>(primitive);
+                }
+            }
+        }
+
+        if(!returnType && *returnType == DataType::Primitive::Unknown) {
+            return node;
+        }
+
+        std::vector<DataType> params;
+        for (const auto& param : externFn->getParameters()) {
+            ASSURE_NOT_NULL(param);
+            const auto& type = param->getDataType();
+            if (type == DataType::Primitive::Unknown) {
+                return node;
+            }
+            params.push_back(type);
+        }
+
+        if(returnType) {
+            externFn->setDataType(DataType(params, *returnType), [this](auto& s) { this->addMessage(s); });
+        }
+    } else {
         followChildren(node);
     }
 

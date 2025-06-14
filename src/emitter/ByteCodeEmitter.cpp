@@ -154,6 +154,10 @@ size_t ByteCodeEmitter::allocStructs(const DataType::Struct& structType) {
 
 void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasConsumer) {
     switch(node->getType()) {
+        case AST::NodeType::ExternFn: {
+            throwConstraintViolated("ExterrnFn not implemented yet"); // TODO
+            break;
+        }
         case AST::NodeType::Declfn:
         case AST::NodeType::Function: {
             // Should not happen, as it this runs on extracted functions

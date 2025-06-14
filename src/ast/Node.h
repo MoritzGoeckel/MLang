@@ -82,7 +82,7 @@ class Node {
     std::string getDataTypeString() {
         auto type = getDataType();
         if (type == DataType::Primitive::Unknown) return "[U]";
-        if (type == DataType::Primitive::None) return {};
+        if (type == DataType::Primitive::None) return "[N]";
         return "[" + type.toString() + "]";
     }
 
@@ -100,13 +100,26 @@ class Node {
 class Identifier : public Node {
    private:
     std::string id;
+    std::string typeAnnotation;
 
    public:
-    Identifier(const std::string& id) : Node(), id(id) {}
+    Identifier(const std::string& id) : Node(), id(id), typeAnnotation{} {}
     Identifier(const std::string& id, const SourcePosition& thePosition)
-        : Node(thePosition), id(id) {}
+        : Node(thePosition), id(id), typeAnnotation{} {}
 
     std::string getName() { return id; }
+
+    void setTypeAnnotation(const std::string& type) {
+        typeAnnotation = type;
+    }
+
+    bool hasTypeAnnotation() const {
+        return !typeAnnotation.empty();
+    }
+
+    const std::string& getTypeAnnotation() const {
+        return typeAnnotation;
+    }
 
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "'" << id << "'";
@@ -234,8 +247,14 @@ class Call : public Node {
     }
 
     virtual DataType getDataType() override {
-        if (getIdentifier()->getDataType() != DataType::Primitive::Unknown)
-            return *(getIdentifier()->getDataType().getReturn());
+        ASSURE_NOT_NULL(getIdentifier());
+        if (getIdentifier()->getDataType() != DataType::Primitive::Unknown){
+            auto ret = getIdentifier()->getDataType().getReturn();
+            if(!ret) {
+                return DataType::Primitive::Unknown;
+            }
+            return *ret;
+        }
         else
             return DataType::Primitive::Unknown;
     }
@@ -422,8 +441,8 @@ class Declfn : public Node {
 
 class ExternFn : public Node {
    private:
-    std::shared_ptr<Identifier> name;
-    std::shared_ptr<Identifier> library;
+    std::string name;
+    std::string library;
     std::vector<std::shared_ptr<Identifier>> parameters;
     std::string typeAnnotation;
 
@@ -432,7 +451,7 @@ class ExternFn : public Node {
            std::shared_ptr<Identifier> library,
            std::vector<std::shared_ptr<Identifier>> parameters,
            const SourcePosition& thePosition)
-        : Node(thePosition), name(name), library(library), parameters(), typeAnnotation{} {
+        : Node(thePosition), name(name->getName()), library(library->getName()), parameters(), typeAnnotation{} {
         for (auto& p : parameters) {
             this->parameters.push_back(p);
         }
@@ -442,16 +461,24 @@ class ExternFn : public Node {
         return parameters;
     }
 
-    std::shared_ptr<Identifier>& getIdentifier() { return name; }
-
+    const std::string& getName() { return name; }
+    const std::string& getLibrary() { return library; }
 
     void setTypeAnnotation(const std::string& type) {
         typeAnnotation = type;
     }
 
+    bool hasTypeAnnotation() const {
+        return !typeAnnotation.empty();
+    }
+
+    const std::string& getTypeAnnotation() const {
+        return typeAnnotation;
+    }
+
     virtual void toString(std::stringstream& stream) override {
         stream << getDataTypeString() << "externfn(";
-        name->toString(stream);
+        stream << getLibrary() << "::" << getName();
         stream << ", params(";
         for (auto it = parameters.begin(); it != parameters.end(); ++it) {
             (*it)->toString(stream);
@@ -467,7 +494,6 @@ class ExternFn : public Node {
     virtual std::vector<std::shared_ptr<Node>> getChildren() override {
         std::vector<std::shared_ptr<Node>> vec;
         vec.reserve(parameters.size() + 1);
-        vec.emplace_back(name);
         for (auto& p : parameters) {
             vec.emplace_back(p);
         }
@@ -475,7 +501,17 @@ class ExternFn : public Node {
     }
 
     virtual DataType getDataType() override {
-        return DataType::Primitive::None;
+        return dataType;
+    }
+
+    void setDataType(DataType type, AddMsgFn addMessage) {
+        if (dataType == DataType::Primitive::Unknown || dataType == type)
+            dataType = type;
+        else {
+            dataType = DataType::Primitive::Conflict;
+            addMessage("Conflicting types: set " + dataType.toString() +
+                       " to " + type.toString());
+        }
     }
 };
 

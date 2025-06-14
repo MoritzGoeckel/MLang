@@ -52,7 +52,7 @@ class DataType {
     DataType(Primitive primitive);
     DataType(const std::string& str);
 
-    // Complex type constructor
+    // Function type constructor
     DataType(const std::vector<DataType>& params, DataType ret);
 
     // Struct

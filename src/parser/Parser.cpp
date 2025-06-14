@@ -162,10 +162,6 @@ std::shared_ptr<AST::Node> Parser::statement() {
         return ret();
     }
 
-    if (speculate(&Parser::externFn, Parser::Rule::ExternFn)) {
-        return externFn();
-    }
-
     if (speculate(&Parser::uninitializedVarDecl, Parser::Rule::UninitializedVarDecl)) {
         return uninitializedVarDecl();
     }
@@ -250,6 +246,11 @@ std::shared_ptr<AST::Node> Parser::nrExpression() {
         return identifier();
     }
 
+    // Extern function
+    if (speculate(&Parser::externFn, Parser::Rule::ExternFn)) {
+        return externFn();
+    }
+
     fail("Failed to parse a non recursive expression");
 }
 
@@ -269,13 +270,6 @@ std::shared_ptr<AST::Ret> Parser::ret() {
 }
 
 std::shared_ptr<AST::ExternFn> Parser::externFn() {
-    consumeOrFail(Token::Type::Let, "let");
-
-    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
-             "identifier");
-    auto ident = identifier();
-
-    consumeOrFail(Token::Type::Assignment, "=");
     consumeOrFail(Token::Type::Keyword, "extern");
 
 
@@ -283,8 +277,7 @@ std::shared_ptr<AST::ExternFn> Parser::externFn() {
              "identifier");
     auto library = identifier();
 
-    consumeOrFail(Token::Type::Colon, ":");
-    consumeOrFail(Token::Type::Colon, ":");
+    consumeOrFail(Token::Type::Special, "::");
 
     doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
              "identifier");
@@ -300,15 +293,13 @@ std::shared_ptr<AST::ExternFn> Parser::externFn() {
 
     consumeOrFail(')', ")");
 
-    auto result = std::make_shared<AST::ExternFn>(ident, library, params, getPosition());
+    auto result = std::make_shared<AST::ExternFn>(function, library, params, getPosition());
 
     if(speculate(&Parser::typeAnnotation, Parser::Rule::TypeAnnotation)) {
         auto type = typeAnnotation();
+        ASSURE_NOT_NULL(type);
         result->setTypeAnnotation(type->getName());
     }
-
-    consumeOrFail(Token::Type::StatementTerminator, ";");
-
     return result;
 }
 
@@ -355,6 +346,13 @@ bool Parser::identifierList(
         if (speculate(&Parser::identifier, Parser::Rule::Identifier)) {
             auto ident = identifier();
             if (!ident) return false;
+
+            if(speculate(&Parser::typeAnnotation, Parser::Rule::TypeAnnotation)){
+                auto type = typeAnnotation();
+                ASSURE_NOT_NULL(type);
+                ident->setTypeAnnotation(type->getName());
+            }
+
             theList.emplace_back(std::move(ident));
         } else {
             return false;
@@ -529,6 +527,7 @@ std::shared_ptr<AST::Declvar> Parser::uninitializedVarDecl() {
     consumeOrFail(Token::Type::StatementTerminator, ";");
 
     auto aResult = std::make_shared<AST::Declvar>(ident, getPosition());
+    ASSURE_NOT_NULL(type);
     aResult->setTypeAnnotation(type->getName());
     return aResult;
 }
@@ -570,6 +569,8 @@ std::shared_ptr<AST::Declfn> Parser::functionDecl() {
     }
 
     consumeOrFail(')', ")");
+
+    // TODO: Add optional type annotation
 
     return std::make_shared<AST::Declfn>(method, params, method->getPosition());
 }
