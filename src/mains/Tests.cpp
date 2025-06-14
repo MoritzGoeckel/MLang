@@ -123,14 +123,65 @@ void testFile(std::string path){
 
 void testLibrary(){
     std::cout << "Testing library..." << std::endl;
-    ffi::ExternalFunctions externalFunctions;
-    auto id = externalFunctions.add("print", "mul");
 
-    ffi::Arguments args;
-    args.addDWord(5);
-    args.addDWord(10);
-    auto r = externalFunctions.call(id, args); // TODO: Args are not used yet
-    EXPECT_EQ(50, r);
+    ffi::ExternalFunctions externalFunctions;
+
+    auto test_ii_i = externalFunctions.add("print", "test_ii_i");
+    {
+        ffi::Arguments args;
+        args.addDWord(5);
+        args.addDWord(10);
+        auto r = externalFunctions.call(test_ii_i, args);
+        EXPECT_EQ(15, r);
+    }
+
+    auto test_iii_i = externalFunctions.add("print", "test_iii_i");
+    {
+        ffi::Arguments args;
+        args.addDWord(5);
+        args.addDWord(10);
+        args.addDWord(15);
+        auto r = externalFunctions.call(test_iii_i, args);
+        EXPECT_EQ(30, r);
+    }
+
+    auto test_iiii_i = externalFunctions.add("print", "test_iiii_i");
+    {
+        ffi::Arguments args;
+        args.addDWord(5);
+        args.addDWord(10);
+        args.addDWord(15);
+        args.addDWord(20);
+        auto r = externalFunctions.call(test_iiii_i, args);
+        EXPECT_EQ(50, r);
+    }
+
+
+    auto test_iiiii_i = externalFunctions.add("print", "test_iiiii_i");
+    {
+        ffi::Arguments args;
+        args.addDWord(5);
+        args.addDWord(10);
+        args.addDWord(15);
+        args.addDWord(20);
+        args.addDWord(25);
+        auto r = externalFunctions.call(test_iiiii_i, args);
+        EXPECT_EQ(75, r);
+    }
+
+    auto test_iiiiii_i = externalFunctions.add("print", "test_iiiiii_i");
+    {
+        ffi::Arguments args;
+        args.addDWord(5);
+        args.addDWord(10);
+        args.addDWord(15);
+        args.addDWord(20);
+        args.addDWord(25);
+        args.addDWord(30);
+        auto r = externalFunctions.call(test_iiiiii_i, args);
+        EXPECT_EQ(105, r);
+    }
+
     std::cout << "[ OK ] Library test passed." << std::endl;
 }
 

@@ -3,7 +3,9 @@
 
 namespace ffi {
 
-Arguments::Arguments() : size{0}, buffer() {}
+Arguments::Arguments() : size{0}, buffer() { 
+    clear(); 
+}
 
 void Arguments::addWord(word_t value) {
     ASSURE(size < capacity, "Too many arguments added to the buffer");
@@ -97,34 +99,54 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     qword_t result;
 
     __asm__ volatile (
+
         "movq %[args_tag], %%R10\n" // Bring arg pointer into R10
 
-        // ---
-
-        "get_next_value_into_rax:\n"
-
-        "cmpq $0, (%%R10)\n" // Check if type is None (0)
-        "je label_do_call\n" // End of args
-
-        "add $8, %%R10\n" // Bring the pointer to the argument value
-        "movq (%%R10), %%rdi\n" // Put into target register
-
-        "add $8, %%R10\n" // Move to next argument
-
-        // ---
-        // "movq %%rax, %%rdi\n" // Move the first argument into rdi
-        // "jump get_next_value_into_rdi\n"
-
+        "call bring_next_value_into_rax\n"
+        "movq %%rax, %%rdi\n" // Move the first argument into rdi
 
         "cmpq $0, (%%R10)\n" // Check if type is None (0)
         "je label_do_call\n" // End of args
 
-        "add $8, %%R10\n" // Bring the pointer to the argument value
-        "movq (%%R10), %%rsi\n" // Put into target register (rsi)
+        "call bring_next_value_into_rax\n"
+        "movq %%rax, %%rsi\n" // Move the first argument into rsi
 
-        "add $8, %%R10\n" // Move to next argument
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
 
-        // ---
+        "call bring_next_value_into_rax\n"
+        "movq %%rax, %%rdx\n" // Move the first argument into rdx
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        "call bring_next_value_into_rax\n"
+        "movq %%rax, %%rcx\n" // Move the first argument into rcx
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        "call bring_next_value_into_rax\n"
+        "movq %%rax, %%r8\n" // Move the first argument into r8
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        "call bring_next_value_into_rax\n"
+        "movq %%rax, %%r9\n" // Move the first argument into r9
+
+        "jmp label_do_call\n" // Skip the function and call the method
+
+        // Function bring_next_value_into_rax
+        "bring_next_value_into_rax:\n"
+        // These chacks would be nice to have here, but the call somehow segfaults then
+        // "   cmpq $0, (%%R10)\n" // Check if type is None (0)
+        // "   je label_do_call\n" // End of args
+        "   add $8, %%R10\n" // Bring the pointer to the argument value
+        "   movq (%%R10), %%rax\n" // Put into target register
+        "   add $8, %%R10\n" // Move to next argument
+        "   ret\n"
+        // End of bring_next_value_into_rax
 
         "label_do_call:"
         "call *%[fn_tag]\n"
