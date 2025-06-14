@@ -1,3 +1,4 @@
+#include "../executer/ExternalFunctions.h"
 #include "../executer/ByteCode.h"
 #include <iostream>
 #include "../core/Mlang.h"
@@ -120,50 +121,12 @@ void testFile(std::string path){
     std::cout << "[ OK ] " << path << std::endl;
 }
 
-// TODO
-#include <dlfcn.h>
-
 void testLibrary(){
     std::cout << "Testing library..." << std::endl;
-
-    void* handle = dlopen("bin/libprint.so", RTLD_LAZY);
-    if (!handle) {
-        std::cerr << "Error: " << dlerror() << std::endl;
-        throwConstraintViolated("Failed to load library");
-    }
-
-    dlerror(); // Clear any existing error
-
-    //void (*print)() = (void (*)())dlsym(handle, "print");
-    void* fn = dlsym(handle, "mul");
-    const char* dlsym_error = dlerror();
-    if (dlsym_error) {
-        std::cerr << "Error: " << dlsym_error << std::endl;
-        dlclose(handle);
-        throwConstraintViolated("Failed to find symbol in library");
-    }
-
-    // print(); // Call the function from the library
-    size_t result;
-    __asm__ (
-        "mov $5, %%rdi\n"
-        "mov $10, %%rsi\n"
-        "call *%[fn_tag]\n"
-        "movq %%rax, %[result_tag]\n"
-        : [result_tag] "=r"(result) : [fn_tag] "r"(fn)); // Call the function using inline assembly
-
-    // https://github.com/tsoding/b/blob/main/src/codegen/fasm_x86_64.rs#L221
-    // Floating point numbers are passed in xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7
-    // Integer numbers are passed in rdi, rsi, rdx, rcx, r8, r9
-    // The result is returned in rax
-    // If we need more than 6 arguments, the rest are passed on the stack. (?)
-
-
-    std::cout << "Result of multiplication: " << result << std::endl;
-
-
-    dlclose(handle); // Close the library handle
-
+    ffi::ExternalFunctions externalFunctions;
+    auto id = externalFunctions.add("print", "mul");
+    auto r = externalFunctions.call(id, { }); // TODO: Args are not used yet
+    EXPECT_EQ(50, r);
     std::cout << "[ OK ] Library test passed." << std::endl;
 }
 
