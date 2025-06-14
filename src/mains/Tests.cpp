@@ -19,6 +19,12 @@
         throw std::runtime_error("Test failed!"); \
     }
 
+#define EXPECT_FALSE(condition) \
+    if ((condition)) { \
+        std::cerr << __FILE__ << ":" << __LINE__  << " " << __FUNCTION__ << " Expected condition to be false, but it was true." << std::endl; \
+        throw std::runtime_error("Test failed!"); \
+    }
+
 #define EXPECT_TRUE_PRINT(condition, output) \
     if (!(condition)) { \
         std::cerr << __FILE__ << ":" << __LINE__  << " " << __FUNCTION__ << " Expected condition to be true, but it was false." << std::endl; \
@@ -122,11 +128,11 @@ void testFile(std::string path){
 }
 
 void testLibrary(){
-    std::cout << "Testing library..." << std::endl;
+    std::cout << "Testing ffi..." << std::endl;
 
     ffi::ExternalFunctions externalFunctions;
 
-    auto test_ii_i = externalFunctions.add("print", "test_ii_i");
+    auto test_ii_i = externalFunctions.add("test", "test_ii_i");
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -135,7 +141,7 @@ void testLibrary(){
         EXPECT_EQ(15, r);
     }
 
-    auto test_iii_i = externalFunctions.add("print", "test_iii_i");
+    auto test_iii_i = externalFunctions.add("test", "test_iii_i");
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -145,7 +151,7 @@ void testLibrary(){
         EXPECT_EQ(30, r);
     }
 
-    auto test_iiii_i = externalFunctions.add("print", "test_iiii_i");
+    auto test_iiii_i = externalFunctions.add("test", "test_iiii_i");
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -157,7 +163,7 @@ void testLibrary(){
     }
 
 
-    auto test_iiiii_i = externalFunctions.add("print", "test_iiiii_i");
+    auto test_iiiii_i = externalFunctions.add("test", "test_iiiii_i");
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -169,7 +175,7 @@ void testLibrary(){
         EXPECT_EQ(75, r);
     }
 
-    auto test_iiiiii_i = externalFunctions.add("print", "test_iiiiii_i");
+    auto test_iiiiii_i = externalFunctions.add("test", "test_iiiiii_i");
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -182,7 +188,48 @@ void testLibrary(){
         EXPECT_EQ(105, r);
     }
 
-    std::cout << "[ OK ] Library test passed." << std::endl;
+    auto test_ii_b = externalFunctions.add("test", "test_ii_b");
+    {
+        ffi::Arguments args;
+        args.addDWord(5);
+        args.addDWord(5);
+        bool r = (bool)externalFunctions.call(test_ii_b, args);
+        EXPECT_TRUE(r); // true
+    }
+
+    {
+        ffi::Arguments args;
+        args.addDWord(5);
+        args.addDWord(6);
+        bool r = (bool)externalFunctions.call(test_ii_b, args);
+        EXPECT_FALSE(r); // true
+    }
+
+    auto test_bb_b = externalFunctions.add("test", "test_bb_b");
+    {
+        ffi::Arguments args;
+        args.addWord(1); // true
+        args.addWord(0); // false
+        bool r = (bool)externalFunctions.call(test_bb_b, args);
+        EXPECT_FALSE(r);
+    }
+
+    auto test_pp_p = externalFunctions.add("test", "test_pp_p");
+    {
+        ffi::Arguments args;
+        std::string a = "Hello";
+        std::string b = "World";
+        args.addQWord(reinterpret_cast<ffi::qword_t>(const_cast<char*>(a.c_str())));
+        args.addQWord(reinterpret_cast<ffi::qword_t>(const_cast<char*>(b.c_str())));
+        auto r = reinterpret_cast<char*>(externalFunctions.call(test_pp_p, args));
+        // compare strings
+        EXPECT_TRUE(r != nullptr);
+        std::string result(r);
+        std::string expected = "Hello from C!";
+        EXPECT_EQ(expected, result);
+    }
+
+    std::cout << "[ OK ] ffi test passed." << std::endl;
 }
 
 void suiteTestfiles(){

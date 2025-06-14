@@ -13,6 +13,7 @@ extern "C" {
     int test_iiiiii_i(int a, int b, int c, int d, int e, int f);
     bool test_ii_b(int a, int b);
     bool test_bb_b(bool a, bool b);
+    const char* test_pp_p(char* a, char* b);
 }
 
 void print() { printf("It's working!\n"); }
@@ -63,4 +64,9 @@ bool test_bb_b(bool a, bool b) {
     bool r = a == b;
     printf("Test (%s, %s) -> %s\n", a ? "true" : "false", b ? "true" : "false", r ? "true" : "false");
     return r;
+}
+
+const char* test_pp_p(char* a, char* b) {
+    printf("Test (%s, %s)\n", a, b);
+    return "Hello from C!";
 }

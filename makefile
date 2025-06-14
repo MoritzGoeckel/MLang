@@ -28,17 +28,17 @@ ifdef OS
 	# Windows
 	EXECUTE_FILE_TARGET := ${BINDIR}/executefile.exe
 	TESTS_TARGET := ${BINDIR}/tests.exe
-	LIB_TARGET := ${BINDIR}/libprint.dll
+	LIB_TARGET := ${BINDIR}/libtest.dll
 else
 	# Unix
 	EXECUTE_FILE_TARGET := ${BINDIR}/executefile
 	TESTS_TARGET := ${BINDIR}/tests
-	LIB_TARGET := ${BINDIR}/libprint.so
+	LIB_TARGET := ${BINDIR}/libtest.so
 endif
 
 EXES := ${EXECUTE_FILE_TARGET} ${TESTS_TARGET}
 
-Lib: lib/libprint.cpp | bin
+Lib: lib/libtest.cpp | bin
 	$(CXX) $(CXXFLAGS) -shared -fPIC $(CPPFLAGS) -o ${LIB_TARGET} $<
 
 BuildExecuteFile: $(OBJS) $(MAINDIR)/ExecuteFile.o | bin
@@ -67,7 +67,7 @@ else
 	# Linux
 	$(foreach file, $(OBJS), rm ${file};)
 	$(foreach file, $(EXES), rm ${file};)
-	rm bin/libprint.so
+	rm bin/libtest.so
 	rm src/mains/ExecuteFile.o
 	rm src/mains/Tests.o
 endif
