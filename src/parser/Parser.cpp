@@ -162,6 +162,10 @@ std::shared_ptr<AST::Node> Parser::statement() {
         return ret();
     }
 
+    if (speculate(&Parser::externFn, Parser::Rule::ExternFn)) {
+        return externFn();
+    }
+
     if (speculate(&Parser::uninitializedVarDecl, Parser::Rule::UninitializedVarDecl)) {
         return uninitializedVarDecl();
     }
@@ -262,6 +266,50 @@ std::shared_ptr<AST::Ret> Parser::ret() {
     consumeOrFail(Token::Type::StatementTerminator, ";");
 
     return std::make_shared<AST::Ret>(expr, getPosition());
+}
+
+std::shared_ptr<AST::ExternFn> Parser::externFn() {
+    consumeOrFail(Token::Type::Let, "let");
+
+    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
+             "identifier");
+    auto ident = identifier();
+
+    consumeOrFail(Token::Type::Assignment, "=");
+    consumeOrFail(Token::Type::Keyword, "extern");
+
+
+    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
+             "identifier");
+    auto library = identifier();
+
+    consumeOrFail(Token::Type::Colon, ":");
+    consumeOrFail(Token::Type::Colon, ":");
+
+    doOrFail(speculate(&Parser::identifier, Parser::Rule::Identifier),
+             "identifier");
+    auto function = identifier();
+
+    consumeOrFail('(', "(");
+
+    std::vector<std::shared_ptr<AST::Identifier>> params;
+    if (!isNext(')')) {
+        // Identifier list is optional
+        doOrFail(identifierList(params), "list of identifiers");
+    }
+
+    consumeOrFail(')', ")");
+
+    auto result = std::make_shared<AST::ExternFn>(ident, library, params, getPosition());
+
+    if(speculate(&Parser::typeAnnotation, Parser::Rule::TypeAnnotation)) {
+        auto type = typeAnnotation();
+        result->setTypeAnnotation(type->getName());
+    }
+
+    consumeOrFail(Token::Type::StatementTerminator, ";");
+
+    return result;
 }
 
 std::shared_ptr<AST::Block> Parser::block() {

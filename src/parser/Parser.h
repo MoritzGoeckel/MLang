@@ -42,7 +42,8 @@ class Parser {
         DeclStruct,
         TypeAnnotation,
         UninitializedVarDecl,
-        StructAccess
+        StructAccess,
+        ExternFn
     };
 
     enum CacheResult { SUCCESS, FAILURE, MISS };
@@ -110,6 +111,7 @@ class Parser {
     std::shared_ptr<AST::Node> parenthesizedExpression();
     std::shared_ptr<AST::Node> nrExpression();
     std::shared_ptr<AST::Ret> ret();
+    std::shared_ptr<AST::ExternFn> externFn();
     std::shared_ptr<AST::Block> block();
     std::shared_ptr<AST::Call> call();
     std::shared_ptr<AST::Identifier> identifier();

@@ -31,6 +31,10 @@ bool isPeriod(char c) {
 
 }  // namespace CharCategories
 
+bool isKeyword(const std::string& content) {
+    return content == "extern";
+}
+
 // TODO Put token in its own file
 
 Token::Token() : type(Token::Type::None), content(""), itsPosition() {}
@@ -184,6 +188,11 @@ void Token::determineType() {
         return;
     }
 
+    if(isKeyword(content)){
+        type = Token::Type::Keyword;
+        return;
+    }
+
     type = Token::Type::Identifier;
 }
 
@@ -227,6 +236,8 @@ std::string to_string(Token::Type theType) {
             return "Struct";
         case Token::Type::Period:
             return "Period";
+        case Token::Type::Keyword:
+            return "Keyword";
     }
     throwConstraintViolated("Unknown Token::Type in to_string");
     return "Unknown Token::Type";  // Should never reach here

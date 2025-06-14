@@ -42,7 +42,9 @@ class Token {
         Assignment,
         True,
         False,
-        Struct
+        Struct,
+        // General keyword
+        Keyword
     };
     // TODO: String literal
 

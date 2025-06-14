@@ -23,7 +23,8 @@ enum class NodeType {
     Function,
     FnPtr,
     DeclStruct,
-    StructAccess
+    StructAccess,
+    ExternFn
 };
 
 class Node {
@@ -402,6 +403,66 @@ class Declfn : public Node {
     }
 
     virtual NodeType getType() override { return NodeType::Declfn; }
+
+    virtual std::vector<std::shared_ptr<Node>> getChildren() override {
+        std::vector<std::shared_ptr<Node>> vec;
+        vec.reserve(parameters.size() + 1);
+        vec.emplace_back(name);
+        for (auto& p : parameters) {
+            vec.emplace_back(p);
+        }
+        return vec;
+    }
+
+    virtual DataType getDataType() override {
+        return DataType::Primitive::None;
+    }
+};
+
+
+class ExternFn : public Node {
+   private:
+    std::shared_ptr<Identifier> name;
+    std::shared_ptr<Identifier> library;
+    std::vector<std::shared_ptr<Identifier>> parameters;
+    std::string typeAnnotation;
+
+   public:
+    ExternFn(std::shared_ptr<Identifier> name,
+           std::shared_ptr<Identifier> library,
+           std::vector<std::shared_ptr<Identifier>> parameters,
+           const SourcePosition& thePosition)
+        : Node(thePosition), name(name), library(library), parameters(), typeAnnotation{} {
+        for (auto& p : parameters) {
+            this->parameters.push_back(p);
+        }
+    }
+
+    std::vector<std::shared_ptr<Identifier>>& getParameters() {
+        return parameters;
+    }
+
+    std::shared_ptr<Identifier>& getIdentifier() { return name; }
+
+
+    void setTypeAnnotation(const std::string& type) {
+        typeAnnotation = type;
+    }
+
+    virtual void toString(std::stringstream& stream) override {
+        stream << getDataTypeString() << "externfn(";
+        name->toString(stream);
+        stream << ", params(";
+        for (auto it = parameters.begin(); it != parameters.end(); ++it) {
+            (*it)->toString(stream);
+            if (std::next(it) != parameters.end()) {
+                stream << ", ";
+            }
+        }
+        stream << "))";
+    }
+
+    virtual NodeType getType() override { return NodeType::ExternFn; }
 
     virtual std::vector<std::shared_ptr<Node>> getChildren() override {
         std::vector<std::shared_ptr<Node>> vec;
