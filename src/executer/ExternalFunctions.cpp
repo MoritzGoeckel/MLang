@@ -3,7 +3,7 @@
 
 namespace ffi {
 
-Arguments::Arguments() : buffer() {}
+Arguments::Arguments() : size{0}, buffer() {}
 
 void Arguments::addWord(word_t value) {
     ASSURE(size < capacity, "Too many arguments added to the buffer");
@@ -44,7 +44,7 @@ size_t ExternalFunctions::add(const std::string& library, const std::string& fun
     throwConstraintViolated("External functions are not supported on this platform");
 }
 
-qword_t ExternalFunctions::call(size_t id, const std::vector<void*>& args) {
+qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     throwConstraintViolated("External functions are not supported on this platform");
     return 0;
 }
@@ -89,19 +89,50 @@ size_t ExternalFunctions::add(const std::string& library, const std::string& fun
     return functions.size() - 1;
 }
 
-qword_t ExternalFunctions::call(size_t id, const std::vector<void*>& args) {
+qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     ASSURE(id < functions.size(), "Function ID out of bounds");
 
     const ExternalFunction& func = functions[id];
 
     qword_t result;
-    void* fn = func.functionPtr;
-    __asm__ (
-        "mov $5, %%rdi\n"
-        "mov $10, %%rsi\n"
+
+    __asm__ volatile (
+        "movq %[args_tag], %%R10\n" // Bring arg pointer into R10
+
+        // ---
+
+        "get_next_value_into_rax:\n"
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        "add $8, %%R10\n" // Bring the pointer to the argument value
+        "movq (%%R10), %%rdi\n" // Put into target register
+
+        "add $8, %%R10\n" // Move to next argument
+
+        // ---
+        // "movq %%rax, %%rdi\n" // Move the first argument into rdi
+        // "jump get_next_value_into_rdi\n"
+
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        "add $8, %%R10\n" // Bring the pointer to the argument value
+        "movq (%%R10), %%rsi\n" // Put into target register (rsi)
+
+        "add $8, %%R10\n" // Move to next argument
+
+        // ---
+
+        "label_do_call:"
         "call *%[fn_tag]\n"
         "movq %%rax, %[result_tag]\n"
-        : [result_tag] "=r"(result) : [fn_tag] "r"(fn)); // Call the function using inline assembly
+
+        : [result_tag] "=r"(result) 
+        : [fn_tag] "r"(func.functionPtr), 
+          [args_tag] "r"(args.getBuffer())) ;
 
     // https://github.com/tsoding/b/blob/main/src/codegen/fasm_x86_64.rs#L221
     // Floating point numbers are passed in xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7

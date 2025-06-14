@@ -125,7 +125,11 @@ void testLibrary(){
     std::cout << "Testing library..." << std::endl;
     ffi::ExternalFunctions externalFunctions;
     auto id = externalFunctions.add("print", "mul");
-    auto r = externalFunctions.call(id, { }); // TODO: Args are not used yet
+
+    ffi::Arguments args;
+    args.addDWord(5);
+    args.addDWord(10);
+    auto r = externalFunctions.call(id, args); // TODO: Args are not used yet
     EXPECT_EQ(50, r);
     std::cout << "[ OK ] Library test passed." << std::endl;
 }

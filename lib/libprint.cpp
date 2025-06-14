@@ -10,6 +10,7 @@ extern "C" {
 void print() { printf("It's working!\n"); }
 
 int mul(int a, int b) {
+    printf("Multiplying %d and %d\n", a, b);
     int result = a * b;
     printf("Multiplication result: %d\n", result);
     return result;
