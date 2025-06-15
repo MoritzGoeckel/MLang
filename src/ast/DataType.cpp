@@ -14,7 +14,13 @@ DataType::DataType(const std::string& str) // TODO, maybe remove
 DataType::DataType(const std::vector<DataType>& params, DataType ret)
     : impl(Function{
           std::make_shared<const std::vector<DataType>>(params),
-          std::make_shared<const DataType>(ret)}) {}
+          std::make_shared<const DataType>(ret), false /*isExtern*/}) {}
+
+DataType::DataType(const std::vector<DataType>& params, DataType ret, bool isExtern)
+    : impl(Function{
+          std::make_shared<const std::vector<DataType>>(params),
+          std::make_shared<const DataType>(ret), 
+          isExtern}) {}
 
 DataType::DataType(DataType::Struct structType)
     : impl(structType) {}
@@ -39,7 +45,8 @@ bool DataType::operator==(const DataType& other) const {
         const auto& thisFunc = std::get<Function>(impl);
         const auto& otherFunc = std::get<Function>(other.impl);
         return *thisFunc.ret == *otherFunc.ret &&
-               *thisFunc.params == *otherFunc.params;
+               *thisFunc.params == *otherFunc.params &&
+               thisFunc.isExtern == otherFunc.isExtern;
     } else if (std::holds_alternative<Struct>(impl)) {
         return std::get<Struct>(impl).name == std::get<Struct>(other.impl).name;
     }
@@ -114,15 +121,18 @@ std::string DataType::toString() const {
         const auto& params = func.params;
         const auto& ret = func.ret;
         std::stringstream stream;
-        if (params->size() > 1u) stream << "[";
-        if (params->empty()) stream << "[]";
+        if(func.isExtern) {
+            stream << "ext_";
+        }
+        stream << "[";
+        if (params->empty()) stream << "]";
         for (auto it = params->begin(); it != params->end(); ++it) {
             stream << it->toString();
             if (std::next(it) != params->end()) {
                 stream << ", ";
             }
         }
-        if (params->size() > 1u) stream << "]";
+        if (params->size() >= 1u) stream << "]";
         stream << " -> " << ret->toString();
         return stream.str();
     } else if (std::holds_alternative<Struct>(impl)) {

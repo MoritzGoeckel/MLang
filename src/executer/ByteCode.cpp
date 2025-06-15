@@ -42,7 +42,7 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
         { Op::GTE, {"GTE", {}} },
         { Op::NEQ, {"NEQ", {}} },
         { Op::DUB, {"DUB", {"LOOKBACK"}} },
-        { Op::REG_FFI, {"REG_FFI", {}} },
+        { Op::REG_FFI, {"REG_FFI", { "LIB_DATA_IDX", "NAME_DATA_IDX" }} },
         { Op::PUSH_FFI_WORD, {"PUSH_FFI_WORD", {}} },
         { Op::PUSH_FFI_DWORD, {"PUSH_FFI_DWORD", {}} },
         { Op::PUSH_FFI_QWORD, {"PUSH_FFI_QWORD", {}} },
@@ -276,9 +276,10 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
             }
             case Op::REG_FFI: {
                 // Register FFI function
-                // TODO: How do we get strings here?
-                // TODO: Need to somehow embed strings into the bytecode
-                ffiFunctions.add("library", "function");
+                auto lib = program.data.getString(inst.arg1); // Library name
+                auto name = program.data.getString(inst.arg2); // Function name
+                auto id = ffiFunctions.add(lib, name);
+                stack.push(id);
                 break;
             }
             case Op::PUSH_FFI_WORD:

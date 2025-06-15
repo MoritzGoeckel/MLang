@@ -18,6 +18,12 @@ extern "C" {
 
 void print() { printf("It's working!\n"); }
 
+int mul(int a, int b){
+    int r = a * b;
+    printf("Test mul (%d, %d)\n", a, b);
+    return r;
+}
+
 void test_v() {
     printf("Test: void()\n");
 }

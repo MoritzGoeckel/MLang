@@ -43,6 +43,7 @@ class DataType {
         // Types[] -> Type
         std::shared_ptr<const std::vector<DataType>> params;
         std::shared_ptr<const DataType> ret;
+        bool isExtern;
     };
 
     std::variant<Simple, Function, Struct> impl;
@@ -54,6 +55,7 @@ class DataType {
 
     // Function type constructor
     DataType(const std::vector<DataType>& params, DataType ret);
+    DataType(const std::vector<DataType>& params, DataType ret, bool isExtern);
 
     // Struct
     DataType(Struct structType);

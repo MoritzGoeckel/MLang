@@ -71,7 +71,7 @@ std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::No
         }
 
         if(returnType) {
-            externFn->setDataType(DataType(params, *returnType), [this](auto& s) { this->addMessage(s); });
+            externFn->setDataType(DataType(params, *returnType, true /* extern */), [this](auto& s) { this->addMessage(s); });
         }
     } else {
         followChildren(node);

@@ -7,6 +7,12 @@
 #include <string>
 #include <optional>
 
+#define RUN_TEST_LABEL() \
+    std::cout << "[ START ] " << __FUNCTION__ << std::endl;
+
+#define END_TEST_LABEL() \
+    std::cout << "[ OK    ] " << __FUNCTION__ << std::endl;
+
 #define EXPECT_EQ(expected, actual) \
     if ((expected) != (actual)) { \
         std::cerr << __FILE__ << ":" << __LINE__  << " " << __FUNCTION__ << " Expected: " << (expected) << ", but got: " << (actual) << std::endl; \
@@ -79,7 +85,7 @@ bool compareResults(const std::string& expected, const std::string& actual) {
 }
 
 void testFile(std::string path){
-    std::cout << "Testing file: " << path << std::endl;
+    std::cout << "[ START ] " << path << std::endl;
 
     auto metadata = readMetadata(path);
     std::optional<std::string> expectResult;
@@ -124,11 +130,11 @@ void testFile(std::string path){
         EXPECT_TRUE(rs == core::Mlang::Result::Signal::Success);
     }
 
-    std::cout << "[ OK ] " << path << std::endl;
+    std::cout << "[ OK    ] " << path << std::endl;
 }
 
 void testLibrary(){
-    std::cout << "Testing ffi..." << std::endl;
+    RUN_TEST_LABEL();
 
     ffi::ExternalFunctions externalFunctions;
 
@@ -229,7 +235,24 @@ void testLibrary(){
         EXPECT_EQ(expected, result);
     }
 
-    std::cout << "[ OK ] ffi test passed." << std::endl;
+    END_TEST_LABEL();
+}
+
+void testExecutorData(){
+    RUN_TEST_LABEL();
+    executor::Data data;
+    auto idx = data.addString("Hello");
+    EXPECT_EQ("Hello", std::string(data.getString(idx)));
+
+    idx = data.addString("World");
+    EXPECT_EQ("World", std::string(data.getString(idx)));
+
+    idx = data.addString("Hello World");
+    EXPECT_EQ("Hello World", std::string(data.getString(idx)));
+
+    // Check that the strings are null-terminated
+    EXPECT_EQ('\0', data.getString(idx)[11]);
+    END_TEST_LABEL();
 }
 
 void suiteTestfiles(){
@@ -262,12 +285,13 @@ void suiteTestfiles(){
     // testFile("mfiles/blob.m");
 
     // TODO: Extern functions
-    // testFile("mfiles/extern.m");
+    testFile("mfiles/extern.m");
 }
 
 int main() {
     suiteTestfiles();
     testLibrary();
+    testExecutorData();
     // Structs:
     //    member functions for structs
 

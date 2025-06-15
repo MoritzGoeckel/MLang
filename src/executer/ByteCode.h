@@ -13,6 +13,7 @@
 namespace executor {
 
 using word_t = unsigned long;
+static_assert(sizeof(word_t) == 8);
 
 enum class Op { 
     NOP, 
@@ -68,8 +69,37 @@ struct OpCodeMetadata {
 
 std::string instructionsToString(const std::vector<Instruction>& instructions, bool named_args = false);
 
+class Data {
+    // TODO: Bring into cpp
+    private:
+    using byte_t = unsigned char;
+    static_assert(sizeof(byte_t) == 1);
+    std::vector<byte_t> data;
+
+    public:
+    Data(): data() {}
+
+    char* getString(size_t idx){
+        if (idx >= data.size()) {
+            throwConstraintViolated("Data: Index out of bounds");
+        }
+        return reinterpret_cast<char*>(&data[idx]);
+    }
+
+    size_t addString(const std::string& str) {
+        size_t startIdx = data.size();
+        data.resize(startIdx + str.size() + 1); // +1 for null terminator
+
+        for (size_t i = 0; i < str.size(); ++i) {
+            data[startIdx + i] = static_cast<byte_t>(str[i]);
+        }
+        data[startIdx + str.size()] = 0; // Null terminator
+        return startIdx;
+    }
+};
+
 struct Program {
-    std::vector<word_t> data; // TODO: Unused
+    Data data;
     std::vector<Instruction> code;
 };
 
