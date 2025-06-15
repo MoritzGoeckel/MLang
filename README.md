@@ -1,6 +1,6 @@
 # MLang
 
-MLang is my strictly typed programming language with full type inference that compiles to LLVM. The language uses a custom recursive descent parser as the front-end and targets LLVM JIT as the backend. The project is tested with the google test framework. This is a multiplatform project targeting both Linux and Windows.
+MLang is my strictly typed programming language with full type inference that compiles to a custom byte code. This project is hand crafted with zero dependencies. The language uses a custom recursive descent parser as the front-end and targets a custom byte code vm as the backend. This is a multiplatform project targeting both Linux and Windows.
 
 This language is build solely for fun and educational purposes, so maybe you should not use this in production 🐴
 
@@ -22,12 +22,11 @@ You can download the executables for Windows and Linux in the [release section](
 - [x] Linux support
 - [x] Windows support
 - [x] Error reporting
-- [ ] Heap allocation
+- [x] Structs (on the heap)
+- [x] C-calls (FFI) to dynamic libraries
 - [ ] Arrays
-- [ ] Pointers
 - [ ] String type
 - [ ] Printing
-- [ ] Structs
 - [ ] Closures
 
 ## Examples
@@ -82,6 +81,37 @@ let x = 3 + 10 + 6 / 3 - 2 * 5;
 ret x; # is 5
 ```
 
+```
+# FFI to dynamic c libraries (libtest.so)
+let mul = extern test::mul(a: Int, b: Int): Int;
+let result = mul(5, 3);
+```
+
+```
+# Structs
+
+struct Point {
+    let x: Int;
+    let y: Int;
+}
+
+struct Line {
+    let begin: Point;
+    let someInt: Int;
+    let end: Point;
+}
+
+let l: Line;
+l.begin.x = 3;
+l.begin.y = 4;
+
+l.end.x = 8;
+l.end.y = 9;
+
+ret l.begin.x + l.end.y;
+```
+
+
 ## Error reporting
 
 Following you find an example on how parsing errors are reported to the user
@@ -99,9 +129,8 @@ Consider adding a semicolon to the end of the statement
 
 ## Dependencies
 
-- LLVM
-- GTest
+None
 
 ## Getting started
 
-You can find an installation guide in [INSTALL.md](/INSTALL.md)
+If you want to build this yourself, refere to this guide [INSTALL.md](/INSTALL.md)

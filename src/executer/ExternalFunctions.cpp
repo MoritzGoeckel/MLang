@@ -40,6 +40,8 @@ void Arguments::clear() {
 
 #ifdef WIN // Windows
 
+// TODO: Implement for windows with LoadLibrary and GetProcAddress
+
 ExternalFunctions::ExternalFunctions() = default;
 
 size_t ExternalFunctions::add(const std::string& library, const std::string& functionName) {

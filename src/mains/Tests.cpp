@@ -280,46 +280,23 @@ void suiteTestfiles(){
     testFile("mfiles/type_annotation.m");
     testFile("mfiles/struct.m");
     testFile("mfiles/struct_nested.m");
-
-    // TODO: Blob
-    // testFile("mfiles/blob.m");
-
-    // TODO: Extern functions
     testFile("mfiles/extern.m");
-}
 
-int main() {
-    suiteTestfiles();
-    testLibrary();
-    testExecutorData();
-    // Structs:
-    //    member functions for structs
-
-    // Garbage collection
-
-    // blob type (alloc8(size), get(blob, idx), set(blob, idx)):
+    // TODO: blob type (alloc8(size), get(blob, idx), set(blob, idx)):
     //    synatx sugar for get, set with []
-
-    // Use blob and struct to implement:
-    //   arrays
-    //   strings
-    //   maps?
-
-    // C-Strings / strings
-
-    // c ffi, interop (dlopen / dlsym) and (LoadLibrary / GetProcAddress):
-    //   terminal IO
-    //   file IO
-
-    // Other types:
-    //   floats
-    //   bools
+    // testFile("mfiles/blob.m");
 
     // TODO: Type inference not working for recursive functions
     // We should skip recursive calls and find the terminating return.
     // Assume that type for the recursive calls and see if this passes
     // without conflicts.
     // testFile("mfiles/recursion.m");
+}
+
+int main() {
+    suiteTestfiles();
+    testLibrary();
+    testExecutorData();
 
     return 0;
 }
