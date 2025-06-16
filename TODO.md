@@ -1,7 +1,6 @@
 # Roadmap
 
 - Strings
-- C-Strings
 - terminal IO
 - file IO
 - Floats

@@ -24,9 +24,9 @@ You can download the executables for Windows and Linux in the [release section](
 - [x] Error reporting
 - [x] Structs (on the heap)
 - [x] C-calls (FFI) to dynamic libraries
-- [ ] Arrays
-- [ ] String type
+- [x] Strings
 - [ ] Printing
+- [ ] Arrays
 - [ ] Closures
 
 ## Examples
@@ -125,6 +125,13 @@ Expecting ';' but found 'ret' @3:17
 3:                  ^
 
 Consider adding a semicolon to the end of the statement
+```
+
+```
+# Strings
+let print = extern test::print(s: Str): Void;
+let str = "Hello, World!";
+print(str);
 ```
 
 ## Dependencies
