@@ -281,8 +281,7 @@ void suiteTestfiles(){
     testFile("mfiles/struct.m");
     testFile("mfiles/struct_nested.m");
     testFile("mfiles/extern.m");
-
-    testFile("mfiles/TODO_str.m");
+    testFile("mfiles/str.m");
 
     // TODO: blob type (alloc8(size), get(blob, idx), set(blob, idx)):
     //    synatx sugar for get, set with []

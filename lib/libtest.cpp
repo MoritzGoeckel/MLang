@@ -3,7 +3,8 @@
 
 // To avoid renaming the function in the exported symbols
 extern "C" {
-    void print();
+    void printNoArgs();
+    void print(const char*);
     int mul(int a, int b);
     void test_v();
     int test_ii_i(int a, int b);
@@ -16,7 +17,11 @@ extern "C" {
     const char* test_pp_p(char* a, char* b);
 }
 
-void print() { printf("It's working!\n"); }
+void printNoArgs() { printf("It's working!\n"); }
+
+void print(const char* str) {
+    printf("%s\n", str);
+}
 
 int mul(int a, int b){
     int r = a * b;

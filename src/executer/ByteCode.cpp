@@ -47,7 +47,8 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
         { Op::PUSH_FFI_DWORD, {"PUSH_FFI_DWORD", {}} },
         { Op::PUSH_FFI_QWORD, {"PUSH_FFI_QWORD", {}} },
         { Op::PUSH_FFI_XWORD, {"PUSH_FFI_XWORD", {}} },
-        { Op::CALL_FFI, {"CALL_FFI", {}} }
+        { Op::CALL_FFI, {"CALL_FFI", {}} },
+        { Op::DATA_ADDR, {"DATA_ADDR", {"DATA_IDX"}} }
     };
 
     std::stringstream ss;
@@ -288,7 +289,7 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
             case Op::PUSH_FFI_XWORD: // TODO: Distinguish between these types
             {
                 auto value = stack.pop();
-                ffiArgs.addWord(value);
+                ffiArgs.addQWord(value);
                 break;
             }
             case Op::CALL_FFI: {
@@ -296,6 +297,14 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 auto result = ffiFunctions.call(id, ffiArgs);
                 stack.push(result);
                 ffiArgs.clear();
+                break;
+            }
+            case Op::DATA_ADDR: {
+                // DATA_ADDR DATA_IDX
+                auto dataIdx = inst.arg1;
+                void* addr = program.data.getAddr(dataIdx);
+                static_assert(sizeof(word_t) == sizeof(void*));
+                stack.push(reinterpret_cast<word_t>(addr));
                 break;
             }
         }

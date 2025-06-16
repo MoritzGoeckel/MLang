@@ -275,17 +275,23 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             } else {
                 loadIdentifier(call->getIdentifier()); // Bring the function addr on the stack
 
+                const auto& returnType = fnDataType.getReturn();
+                ASSURE_NOT_NULL(returnType);
+
+                // CALL consumes the arguments from the stack, so we don't need to pop them
+                // If we don't have a consumer, we have to pop the result. We assume only one result.
+                // Only if the function is not void, of course.
                 if (functionType.isExtern) {
                     code().push_back(executor::Instruction(executor::Op::CALL_FFI));
+
+                    // CALL_FFI always pushes a result, so we need to get rid of it
+                    // if we don't have a consumer or the return type is None.
+                    if(!hasConsumer || *returnType == DataType::Primitive::None) {
+                        code().push_back(executor::Instruction(executor::Op::POP));
+                    }
                 } else {
                     code().push_back(executor::Instruction(executor::Op::CALL, call->getArguments().size()));
 
-                    // CALL consumes the arguments from the stack, so we don't need to pop them
-                    // If we don't have a consumer, we have to pop the result. We assume only one result.
-                    // Only if the function is not void, of course.
-
-                    const auto& returnType = fnDataType.getReturn();
-                    ASSURE_NOT_NULL(returnType);
                     if(!hasConsumer && *returnType != DataType::Primitive::None) {
                         code().push_back(executor::Instruction(executor::Op::POP));
                     }
@@ -299,7 +305,7 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
                 auto literal = std::dynamic_pointer_cast<AST::Literal>(node);
                 if (literal->getDataType() == DataType::Primitive::String) {
                     auto strIdx = program.data.addString(literal->getStringValue());
-                    code().push_back(executor::Instruction(executor::Op::PUSH, strIdx));
+                    code().push_back(executor::Instruction(executor::Op::DATA_ADDR, strIdx));
                 } else if (literal->getDataType() == DataType::Primitive::Bool) {
                     code().push_back(executor::Instruction(
                         executor::Op::PUSH, literal->getBoolValue() ? 1 : 0));

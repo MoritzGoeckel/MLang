@@ -47,7 +47,8 @@ enum class Op {
     PUSH_FFI_DWORD, 
     PUSH_FFI_QWORD, 
     PUSH_FFI_XWORD, 
-    CALL_FFI
+    CALL_FFI,
+    DATA_ADDR
 };
 
 // TODO: ADD etc should be type specific, so IADD, FADD
@@ -95,6 +96,13 @@ class Data {
         }
         data[startIdx + str.size()] = 0; // Null terminator
         return startIdx;
+    }
+
+    void* getAddr(size_t idx) {
+        if (idx >= data.size()) {
+            throwConstraintViolated("Data: Index out of bounds");
+        }
+        return reinterpret_cast<void*>(&data[idx]);
     }
 };
 
