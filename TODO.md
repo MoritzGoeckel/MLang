@@ -1,6 +1,5 @@
 # Roadmap
 
-- Strings
 - terminal IO
 - file IO
 - Floats
@@ -9,6 +8,7 @@
   synatx sugar for get, set with []
   (for arrays, strings, maps)
 - Arrays
+- Dynamic Strings
 - Garbage collection for heap objects (structs)
 - Fix recursion example. Get return type of non recursive
   return and use as override. Ignore recursive return.

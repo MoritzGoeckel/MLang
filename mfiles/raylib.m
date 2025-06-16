@@ -1,4 +1,3 @@
-
 let str = "Hello, World!";
 
 let InitWindow = extern raylib::InitWindow(w: Int, h: Int, s: String): Void;
