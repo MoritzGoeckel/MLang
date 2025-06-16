@@ -111,6 +111,12 @@ l.end.y = 9;
 ret l.begin.x + l.end.y;
 ```
 
+```
+# Strings
+let print = extern test::print(s: Str): Void;
+let str = "Hello, World!";
+print(str);
+```
 
 ## Error reporting
 
@@ -125,13 +131,6 @@ Expecting ';' but found 'ret' @3:17
 3:                  ^
 
 Consider adding a semicolon to the end of the statement
-```
-
-```
-# Strings
-let print = extern test::print(s: Str): Void;
-let str = "Hello, World!";
-print(str);
 ```
 
 ## Dependencies
