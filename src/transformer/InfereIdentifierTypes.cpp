@@ -28,6 +28,11 @@ InfereIdentifierTypes::InfereIdentifierTypes() {
 
     DEF_BUILD_IN("||", Bool);
     DEF_BUILD_IN("&&", Bool);
+    DEF_BUILD_IN("==", Bool);
+    DEF_BUILD_IN("!=", Bool);
+
+    DEF_BUILD_IN("==", String);
+    DEF_BUILD_IN("!=", String);
 
     stack.push_back({});
 }

@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
     mlang.settings.showFileContent = false;
     mlang.settings.showResult = false;
     mlang.settings.showAbastractSyntaxTree = false;
+    mlang.settings.showTypeInference = false;
     mlang.settings.showInferedTypes = false;
     mlang.settings.showFunctions = false;
     mlang.settings.showEmission = false;

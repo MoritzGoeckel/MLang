@@ -16,3 +16,4 @@ out/*
 .vs/*
 *.o
 .vscode/*
+.VSCodeCounter/*
