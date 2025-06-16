@@ -32,6 +32,7 @@ class Parser {
         Identifier,
         Integer,
         Boolean,
+        StringLiteral,
         LeftHandValue,
         VariableDecl,
         FunctionDecl,
@@ -117,6 +118,7 @@ class Parser {
     std::shared_ptr<AST::Identifier> identifier();
     std::shared_ptr<AST::Literal> literal();
     std::shared_ptr<AST::Literal> integer();
+    std::shared_ptr<AST::Literal> stringLiteral();
     std::shared_ptr<AST::Call> infixCall();
     std::shared_ptr<AST::Assign> assignment();
     std::shared_ptr<AST::Node> leftHandValue();

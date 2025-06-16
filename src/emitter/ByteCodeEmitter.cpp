@@ -298,7 +298,8 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             if(hasConsumer) {
                 auto literal = std::dynamic_pointer_cast<AST::Literal>(node);
                 if (literal->getDataType() == DataType::Primitive::String) {
-                    // code << "'" << literal->getStringValue() << "'";
+                    auto strIdx = program.data.addString(literal->getStringValue());
+                    code().push_back(executor::Instruction(executor::Op::PUSH, strIdx));
                 } else if (literal->getDataType() == DataType::Primitive::Bool) {
                     code().push_back(executor::Instruction(
                         executor::Op::PUSH, literal->getBoolValue() ? 1 : 0));

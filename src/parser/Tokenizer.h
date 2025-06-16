@@ -26,8 +26,10 @@ class Token {
         // General
         Identifier,
         Special,
-        Number,
         Parenthesis,
+        // Literals
+        Number,
+        StringLiteral,
         // Signs
         StatementTerminator,
         Comma,
@@ -53,6 +55,12 @@ class Token {
           size_t column);
     Token(std::string&& content, const std::string& file, size_t line,
           size_t column);
+
+    Token(Type type, 
+        const std::string& content, 
+        const std::string& file, 
+        size_t line,
+        size_t column);
 
     const std::string& getContent() const;
     char getChar();
@@ -84,12 +92,14 @@ class Tokenizer {
 
    private:
     void pushBuffer();
+    void pushBuffer(Token::Type type);
     void addToBuffer(char c);
 
     std::vector<Token> tokens;
     std::string buffer;
     bool isAlphanumericBuffer;
     bool inComment;
+    char inStringLiteral;
 
     const std::string itsFile;
     size_t line;

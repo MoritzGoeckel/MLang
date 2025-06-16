@@ -405,6 +405,10 @@ std::shared_ptr<AST::Literal> Parser::literal() {
         return boolean();
     }
 
+    if (speculate(&Parser::stringLiteral, Parser::Rule::StringLiteral)) {
+        return stringLiteral();
+    }
+
     fail("Failed to parse literal");
 }
 
@@ -414,6 +418,15 @@ std::shared_ptr<AST::Literal> Parser::integer() {
 
     return std::make_shared<AST::Literal>(
         token.getContent(), DataType::Primitive::Int, getPosition());
+}
+
+
+std::shared_ptr<AST::Literal> Parser::stringLiteral(){
+    doOrFail(isNext(Token::Type::StringLiteral), "string");
+    auto token = consume();
+
+    return std::make_shared<AST::Literal>(
+        token.getContent(), DataType::Primitive::String, getPosition());
 }
 
 std::shared_ptr<AST::Call> Parser::infixCall() {

@@ -21,6 +21,11 @@ bool isSpecial(char c) {
            (c >= '[' && c <= '_') || (c >= '{' && c <= '~');
 }
 bool isCommentStart(char c) { return c == '#'; }
+
+bool isQuote(char c) {
+    return c == '"' || c == '\''; 
+}
+
 bool isCommentTerminator(char c) { return c == '\n'; }
 bool isStatementTerminator(char c) {
     return c == ';'; /* TODO maybe also new line */
@@ -54,6 +59,12 @@ Token::Token(std::string&& content, const std::string& file, size_t line,
       itsPosition(file, line, column) {
     determineType();
 }
+
+Token::Token(Type type, 
+    const std::string& content, 
+    const std::string& file, 
+    size_t line,
+    size_t column) : type(type), content(content), itsPosition(file, line, column) {}
 
 const std::string& Token::getContent() const { return content; }
 
@@ -238,6 +249,8 @@ std::string to_string(Token::Type theType) {
             return "Period";
         case Token::Type::Keyword:
             return "Keyword";
+        case Token::Type::StringLiteral:
+            return "StringLiteral";
     }
     throwConstraintViolated("Unknown Token::Type in to_string");
     return "Unknown Token::Type";  // Should never reach here
@@ -259,11 +272,13 @@ Tokenizer::Tokenizer(const std::string& theFile, const std::string& theInput)
       buffer(),
       isAlphanumericBuffer(true),
       inComment(false),
+      inStringLiteral(0),
       itsFile(theFile),
       line(0u),
       column(0u),
       bufferStartLine(0u),
       bufferStartColumn(0u) {
+
     for (char c : theInput) {
         if (c == '\n') {
             ++line;
@@ -272,7 +287,7 @@ Tokenizer::Tokenizer(const std::string& theFile, const std::string& theInput)
             ++column;
         }
 
-        if (CharCategories::isCommentStart(c)) {
+        if (inStringLiteral == 0 && CharCategories::isCommentStart(c)) {
             inComment = true;
             continue;
         }
@@ -280,6 +295,28 @@ Tokenizer::Tokenizer(const std::string& theFile, const std::string& theInput)
         // Skip comments
         if (inComment) {
             if (CharCategories::isCommentTerminator(c)) inComment = false;
+            continue;
+        }
+
+        if (!CharCategories::isQuote(c) && inStringLiteral != 0) {
+            addToBuffer(c);
+            continue;
+        }
+
+        // TODO: Implement string escaping with \"
+        if (CharCategories::isQuote(c)) {
+            if (inStringLiteral == 0) {
+                // Start of string literal
+                inStringLiteral = c;
+                bufferStartLine = line;
+                bufferStartColumn = column;
+            } else if (inStringLiteral == c) {
+                // End of string literal
+                inStringLiteral = 0;
+                pushBuffer(Token::Type::StringLiteral);
+            } else /* different kind of quote */ {
+                // Already added to buffer above
+            }
             continue;
         }
 
@@ -294,7 +331,7 @@ Tokenizer::Tokenizer(const std::string& theFile, const std::string& theInput)
         }
 
         // Anything unknown is a seperator
-        if (!aSpecial && !aAlphanumeric) {
+        if (inStringLiteral == 0 && !aSpecial && !aAlphanumeric) {
             pushBuffer();
             continue;
         }
@@ -318,15 +355,21 @@ Tokenizer::Tokenizer(const std::string& theFile, const std::string& theInput)
             isAlphanumericBuffer = aAlphanumeric;
         }
     }
-    pushBuffer();
+    pushBuffer(); // Unknown
 }
 
 const std::vector<Token>& Tokenizer::getTokens() const { return tokens; }
 
+void Tokenizer::pushBuffer(Token::Type type) {
+    if (!buffer.empty()) {
+        tokens.emplace_back(type, buffer, itsFile, bufferStartLine, bufferStartColumn - 1u);
+        buffer.clear();
+    }
+}
+
 void Tokenizer::pushBuffer() {
     if (!buffer.empty()) {
-        tokens.emplace_back(buffer, itsFile, bufferStartLine,
-                            bufferStartColumn - 1u);
+        tokens.emplace_back(buffer, itsFile, bufferStartLine, bufferStartColumn - 1u);
         buffer.clear();
     }
 }
