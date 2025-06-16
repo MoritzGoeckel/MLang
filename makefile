@@ -15,7 +15,7 @@ SRCDIR := src
 BINDIR := bin
 MAINDIR := src/mains
 
-all: ExecuteFile Tests
+all: BuildExecuteFile BuildTests
 
 HEADERS := $(wildcard $(SRCDIR)/*.h $(SRCDIR)/*/*.h $(SRCDIR)/*.hpp $(SRCDIR)/*/*.hpp)
 SRCS := $(wildcard $(SRCDIR)/*.cpp $(SRCDIR)/*/*.cpp)

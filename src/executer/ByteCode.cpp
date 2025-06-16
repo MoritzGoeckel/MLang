@@ -87,7 +87,6 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
 }
 
 ProgramState ByteCodeVM::run(size_t maxInstructions) {
-    std::cout << "Running ByteCodeVM with max instructions: " << maxInstructions << std::endl;
     for (size_t instructionCount = 0; instructionCount < maxInstructions; ++instructionCount) {
         if (idx >= program.code.size()) {
             throwConstraintViolated("ByteCodeVM: Instruction index out of bounds");

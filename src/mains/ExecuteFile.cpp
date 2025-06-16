@@ -20,19 +20,31 @@ int main(int argc, char** argv) {
     mlang.settings.showResult = false;
     mlang.settings.showAbastractSyntaxTree = false;
     mlang.settings.showInferedTypes = false;
-    mlang.settings.showFunctions = true;
-    mlang.settings.showEmission = true;
+    mlang.settings.showFunctions = false;
+    mlang.settings.showEmission = false;
     // TODO: Config params from cmd
 
     int exitCode = 0;
     try {
         auto rs = mlang.executeFile(scriptFile);
         if (rs == core::Mlang::Result::Signal::Success) {
-            std::cout << "Result: " << rs.getResult() << std::endl;
+            const auto& result = rs.getResult();
+
+            if (result == "void"){
+                exitCode = 0;
+            } else {
+                try {
+                    exitCode = std::stoi(result);
+                } catch (const std::invalid_argument&) {
+                    // Non-integer result, just print it
+                    std::cout << "Result: " << result << std::endl;
+                    exitCode = 0;
+                }
+            }
         } else {
             std::cout << rs.getErrorString() << std::endl;
         }
-    } catch (MException e) {
+    } catch (const MException& e) {
         std::cout << "Execution failed with exception: " << e.show(true)
                   << std::endl;
         exitCode = 1;

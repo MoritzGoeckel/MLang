@@ -15,7 +15,7 @@ struct MException : public std::exception {
     std::string getFileShort() const;
 
     virtual std::string show() const;
-    virtual std::string show(bool underline);
+    virtual std::string show(bool underline) const;
 
    protected:
     std::string msg;

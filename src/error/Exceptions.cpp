@@ -52,7 +52,7 @@ std::string MException::show() const {
     return msg + " in " + getFileShort() + ":" + getLine();
 }
 
-std::string MException::show(bool underline) {
+std::string MException::show(bool underline) const {
     if (underline) {
         auto banner = show();
         return banner + '\n' + std::string(banner.size(), '^');
