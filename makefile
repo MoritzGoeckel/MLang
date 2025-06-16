@@ -15,7 +15,7 @@ SRCDIR := src
 BINDIR := bin
 MAINDIR := src/mains
 
-all: BuildExecuteFile BuildTests
+all: BuildMLang BuildTests
 
 HEADERS := $(wildcard $(SRCDIR)/*.h $(SRCDIR)/*/*.h $(SRCDIR)/*.hpp $(SRCDIR)/*/*.hpp)
 SRCS := $(wildcard $(SRCDIR)/*.cpp $(SRCDIR)/*/*.cpp)
@@ -26,23 +26,23 @@ OBJS := $(NON_MAIN_SRCS:$(SRCDIR)/%.cpp=$(SRCDIR)/%.o)
 
 ifdef OS
 	# Windows
-	EXECUTE_FILE_TARGET := ${BINDIR}/executefile.exe
+	MLANG_TARGET := ${BINDIR}/mlang.exe
 	TESTS_TARGET := ${BINDIR}/tests.exe
 	LIB_TARGET := ${BINDIR}/libtest.dll
 else
 	# Unix
-	EXECUTE_FILE_TARGET := ${BINDIR}/executefile
+	MLANG_TARGET := ${BINDIR}/mlang
 	TESTS_TARGET := ${BINDIR}/tests
 	LIB_TARGET := ${BINDIR}/libtest.so
 endif
 
-EXES := ${EXECUTE_FILE_TARGET} ${TESTS_TARGET}
+EXES := ${MLANG_TARGET} ${TESTS_TARGET}
 
 Lib: lib/libtest.cpp | bin
 	$(CXX) $(CXXFLAGS) -shared -fPIC $(CPPFLAGS) -o ${LIB_TARGET} $<
 
-BuildExecuteFile: $(OBJS) $(MAINDIR)/ExecuteFile.o | bin
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${EXECUTE_FILE_TARGET} $^
+BuildMLang: $(OBJS) $(MAINDIR)/MLang.o | bin
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${MLANG_TARGET} $^
 
 BuildTests: $(OBJS) $(MAINDIR)/Tests.o | bin
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${TESTS_TARGET} $^
@@ -53,7 +53,7 @@ bin:
 Test: BuildTests Lib
 	${TESTS_TARGET}
 
-Build: BuildExecuteFile BuildTests Lib
+Build: BuildMLang BuildTests Lib
 
 %.o: %.cpp %.h
 	$(CXX) $(CXXFLAGS) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
@@ -68,6 +68,6 @@ else
 	$(foreach file, $(OBJS), rm ${file};)
 	$(foreach file, $(EXES), rm ${file};)
 	rm bin/libtest.so
-	rm src/mains/ExecuteFile.o
+	rm src/mains/mlang.o
 	rm src/mains/Tests.o
 endif
