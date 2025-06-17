@@ -1,4 +1,4 @@
-# failure=true
+# expect_result=2
 let f(x) = {
     if (x == 1) {
         ret 2;

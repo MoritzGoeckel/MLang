@@ -28,6 +28,7 @@ You can download the executables for Windows and Linux in the [release section](
 - [x] Printing
 - [ ] Arrays
 - [ ] Closures
+- [ ] Garbage collection
 
 ## Examples
 

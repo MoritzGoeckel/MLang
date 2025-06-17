@@ -1,6 +1,6 @@
 # Roadmap
 
-- terminal IO
+- terminal IO (possible with external library, but need intrinsics)
 - file IO
 - Floats
 - Blob type (for raw memory)
