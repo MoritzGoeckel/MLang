@@ -8,12 +8,10 @@
 
 #include "../executer/ExternalFunctions.h"
 #include "../error/Exceptions.h"
+#include "Types.h"
 #include "Stack.h"
 
 namespace executor {
-
-using word_t = unsigned long;
-static_assert(sizeof(word_t) == 8);
 
 enum class Op { 
     NOP, 

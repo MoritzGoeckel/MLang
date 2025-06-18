@@ -2,11 +2,9 @@
 
 #include <vector>
 #include "../error/Exceptions.h"
+#include "Types.h"
 
 namespace executor {
-
-// TODO: Duplicate of src/executer/ByteCode.h
-using word_t = unsigned long;
     
 class Stack {
 private:

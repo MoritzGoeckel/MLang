@@ -4,8 +4,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
-void print_stacktrace();
- {
+void print_stacktrace()
+{
     const ULONG framesToSkip = 0;
     const ULONG framesToCapture = 64;
     void* backTrace[framesToCapture] {};
@@ -21,7 +21,7 @@ void print_stacktrace();
     for(USHORT iFrame = 0; iFrame < nFrame; ++iFrame) {
         printf("[%3d] = %p\n", iFrame, backTrace[iFrame]);
     }
-    printf("backTraceHash = %08x\n", backTraceHash);
+    printf("backTraceHash = %08lx\n", backTraceHash);
 }
 #else
 #include <execinfo.h> /* backtrace, backtrace_symbols_fd */

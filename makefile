@@ -1,13 +1,13 @@
 # -rdynamic for backtrace support
 
-SHARED_FLAGS := -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Werror -O0 -std=c++17 -rdynamic -ggdb
+SHARED_FLAGS := -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Werror -O0 -std=c++17 -ggdb
 
 ifdef OS
 	# Windows
 	CXXFLAGS := ${SHARED_FLAGS} -DWIN
 else
 	# Unix
-	CXXFLAGS := ${SHARED_FLAGS}
+	CXXFLAGS := ${SHARED_FLAGS} -rdynamic
 endif
 
 CXX := g++
@@ -60,7 +60,6 @@ Build: BuildMLang BuildTests Lib
 
 Clean:
 ifdef OS
-	# Windows
 	$(foreach file, $(OBJS), -del $(subst /,\,${file}) >nul 2>&1;)
 	$(foreach file, $(EXES), -del $(subst /,\,${file}) >nul 2>&1;)
 else

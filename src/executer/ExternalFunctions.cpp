@@ -1,5 +1,11 @@
 #include "../executer/ExternalFunctions.h"
+
+
+#ifdef WIN
+// Windows
+#else
 #include <dlfcn.h>
+#endif
 
 namespace ffi {
 
