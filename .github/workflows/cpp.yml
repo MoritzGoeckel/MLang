@@ -8,10 +8,10 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-    - name: make Test
-      run: make Test
+    - name: make RunTest
+      run: make RunTest
+    - name: make MLang
+      run: make MLang
