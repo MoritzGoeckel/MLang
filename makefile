@@ -4,7 +4,7 @@ SHARED_FLAGS := -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Werror -O
 
 ifdef OS
 	# Windows
-	CXXFLAGS := ${SHARED_FLAGS} -DWIN
+	CXXFLAGS := ${SHARED_FLAGS} -DWIN  -static-libstdc++
 else
 	# Unix
 	CXXFLAGS := ${SHARED_FLAGS} -rdynamic
