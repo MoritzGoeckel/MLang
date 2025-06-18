@@ -1,8 +1,7 @@
 #include "../executer/ExternalFunctions.h"
 
-
 #ifdef WIN
-// Windows
+#include <windows.h>
 #else
 #include <dlfcn.h>
 #endif
@@ -46,17 +45,120 @@ void Arguments::clear() {
 
 #ifdef WIN // Windows
 
-// TODO: Implement for windows with LoadLibrary and GetProcAddress
-
 ExternalFunctions::ExternalFunctions() = default;
 
 size_t ExternalFunctions::add(const std::string& library, const std::string& functionName) {
-    throwConstraintViolated("External functions are not supported on this platform");
+    ExternalFunction functionInfo;
+    functionInfo.library = library;
+    functionInfo.name = functionName;
+    functionInfo.functionPtr = nullptr;
+
+    std::string libPath = "bin\\lib" + library + ".dll";
+    HINSTANCE libraryHandle = LoadLibrary(libPath.c_str());
+
+    if (!libraryHandle) {
+        std::cerr << "Error: Could not load library " << libPath << std::endl;
+        throwConstraintViolated("Failed to load library");
+    }
+
+    // resolve function address here
+    functionInfo.functionPtr = (void*)GetProcAddress(libraryHandle, functionInfo.name.c_str());
+    if (!functionInfo.functionPtr) {
+        std::cerr << "Error: Could not located the function " << functionInfo.name << " in " << libPath << std::endl;
+        throwConstraintViolated("Failed to find symbol in library");
+    }
+    ASSURE_NOT_NULL(functionInfo.functionPtr);
+
+    functions.push_back(functionInfo);
+    return functions.size() - 1;
 }
 
 qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
-    throwConstraintViolated("External functions are not supported on this platform");
-    return 0;
+    ASSURE(id < functions.size(), "Function ID out of bounds");
+
+    const ExternalFunction& func = functions[id];
+    ASSURE_NOT_NULL(func.functionPtr);
+
+    // TODO: We don't support more than 6 arguments yet (put on stack)
+    ASSURE(args.getSize() <= 6, "Too many arguments for external function");
+
+    // Windows 64 calling convention:
+    // https://learn.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170
+    // RCX, RDX, R8, and R9, 
+    // shadow store allocated on stack for those four registers
+    // then follow by the rest of the arguments on the stack
+    // Floats go into XMM0 - XMM3
+    
+    qword_t result;
+    __asm__ volatile (
+        "movq %[args_tag], %%R10\n" // Bring arg pointer into R10
+        "movq %[size_tag], %%R11\n" // Bring arg size into R11
+        "movq %%rsp, %%rbx\n" // Clear rbx, used for shadow space
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        "addq $8, %%R10\n" // Bring the pointer to the argument value
+        "movq (%%R10), %%rcx\n" // Put into target register
+        "add $8, %%R10\n" // Move to next argument
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        "addq $8, %%R10\n" // Bring the pointer to the argument value
+        "movq (%%R10), %%rdx\n" // Put into target register
+        "add $8, %%R10\n" // Move to next argument
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        "addq $8, %%R10\n" // Bring the pointer to the argument value
+        "movq (%%R10), %%r8\n" // Put into target register
+        "addq $8, %%R10\n" // Move to next argument
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        "addq $8, %%R10\n" // Bring the pointer to the argument value
+        "movq (%%R10), %%r9\n" // Put into target register
+        "addq $8, %%R10\n" // Move to next argument
+
+        "cmpq $0, (%%R10)\n" // Check if type is None (0)
+        "je label_do_call\n" // End of args
+
+        // Allocate stack
+        "subq $64, %%rsp\n"
+
+        // Next argument (stack 32)
+        "addq $8, %%R10\n"
+        "movq (%%R10), %%r12\n"
+        "movq %%r12, 32(%%rsp)\n"
+        "addq $8, %%R10\n"
+
+        "cmpq $0, (%%R10)\n"
+        "je label_do_call\n"
+
+        // Next argument (stack 40)
+        "addq $8, %%R10\n"
+        "movq (%%R10), %%r12\n"
+        "movq %%r12, 40(%%rsp)\n"
+        "addq $8, %%R10\n"
+
+        // Do the call
+        "label_do_call:"
+
+        "call *%[fn_tag]\n"
+        "movq %%rax, %[result_tag]\n"
+
+        // Reset stack
+        "movq %%rbx, %%rsp\n"
+
+        : [result_tag] "=r"(result) 
+        : [fn_tag] "r"(func.functionPtr), 
+          [args_tag] "r"(args.getBuffer()),
+          [size_tag] "r"(args.getSize()));
+
+    return result;
 }
 
 ExternalFunctions::~ExternalFunctions() = default;

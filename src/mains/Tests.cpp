@@ -168,6 +168,7 @@ void testLibrary(){
         EXPECT_EQ(50, r);
     }
 
+    std::cout << "Testing with 5 arguments..." << std::endl;
 
     auto test_iiiii_i = externalFunctions.add("test", "test_iiiii_i");
     {
@@ -181,6 +182,8 @@ void testLibrary(){
         EXPECT_EQ(75, r);
     }
 
+    std::cout << "Testing with 6 arguments..." << std::endl;
+
     auto test_iiiiii_i = externalFunctions.add("test", "test_iiiiii_i");
     {
         ffi::Arguments args;
@@ -193,6 +196,8 @@ void testLibrary(){
         auto r = externalFunctions.call(test_iiiiii_i, args);
         EXPECT_EQ(105, r);
     }
+
+    std::cout << "Testing return boolean values..." << std::endl;
 
     auto test_ii_b = externalFunctions.add("test", "test_ii_b");
     {
@@ -280,12 +285,8 @@ void suiteTestfiles(){
     testFile("mfiles/type_annotation.m");
     testFile("mfiles/struct.m");
     testFile("mfiles/struct_nested.m");
-
-    #ifndef WIN
-    // Those need ffi, which is not implemented on Windows yet
     testFile("mfiles/extern.m");
     testFile("mfiles/str.m");
-    #endif
 
     // TODO: blob type (alloc8(size), get(blob, idx), set(blob, idx)):
     //    synatx sugar for get, set with []
@@ -300,9 +301,7 @@ void suiteTestfiles(){
 
 int main() {
     suiteTestfiles();
-    #ifndef WIN
     testLibrary();
-    #endif
     testExecutorData();
 
     return 0;
