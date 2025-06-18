@@ -280,8 +280,12 @@ void suiteTestfiles(){
     testFile("mfiles/type_annotation.m");
     testFile("mfiles/struct.m");
     testFile("mfiles/struct_nested.m");
+
+    #ifndef WIN
+    // Those need ffi, which is not implemented on Windows yet
     testFile("mfiles/extern.m");
     testFile("mfiles/str.m");
+    #endif
 
     // TODO: blob type (alloc8(size), get(blob, idx), set(blob, idx)):
     //    synatx sugar for get, set with []
@@ -296,7 +300,9 @@ void suiteTestfiles(){
 
 int main() {
     suiteTestfiles();
+    #ifndef WIN
     testLibrary();
+    #endif
     testExecutorData();
 
     return 0;

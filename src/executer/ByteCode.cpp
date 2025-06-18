@@ -133,7 +133,11 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
             case Op::LOCALS: {
                 // LOCALS ID
                 auto& locals = callstack.back().locals;
-                locals.resize(inst.arg1 + 1); // TODO: Expensive!
+
+                auto idx = inst.arg1 + 1;
+                if(locals.size() <= idx) {
+                    locals.resize(idx); // TODO: Expensive!
+                }
 
                 auto value = stack.pop();
                 locals[inst.arg1] = value; // Store value in local variable
@@ -141,7 +145,10 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
             }
             case Op::LOCALL: {
                 // LOCALL ID
+                ASSURE(!callstack.empty(), "ByteCodeVM: Empty callstack");
                 auto& locals = callstack.back().locals;
+                std::cout << "locals.size()=" << locals.size() << " arg1=" << inst.arg1 << " callstack.size()=" << callstack.size() << std::endl;
+                ASSURE(inst.arg1 < locals.size(), "ByteCodeVM: Local variable index out of bounds");
                 stack.push(locals[inst.arg1]); // Push local variable onto stack
                 break;
             }
@@ -243,7 +250,10 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 // auto parentObj = stack.pop(); // TODO: Also have a parent object and garbage collection
                 auto addr = heap.size();
                 stack.push(addr + 1);
-                heap.resize(addr + inst.arg1 + 1);
+                auto idx = addr + inst.arg1 + 1;
+                if(heap.size() <= idx) {
+                    heap.resize(idx);
+                }
                 // heap[addr] = parentObj; // Store parent object for garbage collection
                 break;
             }
