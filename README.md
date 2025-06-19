@@ -23,7 +23,7 @@ You can download the executables for Windows and Linux in the [release section](
 - [x] Windows support
 - [x] Error reporting
 - [x] Structs (on the heap)
-- [x] C-calls (FFI) to dynamic libraries
+- [x] C-calls (FFI) to dynamic libraries (x64 Win & x86_64 Linux)
 - [x] Strings
 - [x] Printing
 - [ ] Arrays
