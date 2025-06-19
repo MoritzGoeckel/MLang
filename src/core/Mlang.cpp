@@ -158,7 +158,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
     auto program = byteCodeEmitter.getProgram();
     executor::ByteCodeVM runner(program);
     runner.setDebug(settings.showExecution);
-    auto result = runner.execute();
+    auto result = runner.execute(settings.maxInstructions);
 
     return Mlang::Result(Mlang::Result::Signal::Success, result);
 }

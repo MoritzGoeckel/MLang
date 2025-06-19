@@ -110,6 +110,7 @@ void testFile(std::string path){
     mlang.settings.showEmission = true;
     mlang.settings.showExecution = true;
     mlang.settings.showTypeInference = true;
+    mlang.settings.maxInstructions = 1000;
 
     auto rs = mlang.executeFile(path);
 

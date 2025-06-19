@@ -45,6 +45,7 @@ class Mlang {
         bool showEmission = false;
         bool showTypeInference = false;
         bool showExecution = false;
+        size_t maxInstructions = 0; // 0 means no limit
     };
 
     Settings settings;

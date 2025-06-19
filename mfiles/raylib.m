@@ -14,11 +14,13 @@ let ClearBackground = extern raylib::ClearBackground(color: Int): Void;
 let EndDrawing = extern raylib::EndDrawing(): Void;
 
 let DrawText = extern raylib::DrawText(text: String, x: Int, y: Int, fontSize: Int, color: Int): Void;
+let DrawRectangle = extern raylib::DrawRectangle(x: Int, y: Int, width: Int, height: Int, color: Int): Void;
 
 while(WindowShouldClose() == false) {
     BeginDrawing();
-    ClearBackground(1);
-    DrawText(str, 190, 200, 20, 1);
+    ClearBackground(9000);
+    DrawText(str, 200, 200, 5, 7000);
+    DrawRectangle(100, 100, 150, 150, 7000);
     EndDrawing();
 }
 

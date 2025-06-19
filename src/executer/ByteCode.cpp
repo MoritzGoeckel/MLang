@@ -87,7 +87,7 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
 }
 
 ProgramState ByteCodeVM::run(size_t maxInstructions) {
-    for (size_t instructionCount = 0; instructionCount < maxInstructions; ++instructionCount) {
+    for (size_t instructionCount = 0; instructionCount < maxInstructions || maxInstructions == 0; ++instructionCount) {
         if (idx >= program.code.size()) {
             throwConstraintViolated("ByteCodeVM: Instruction index out of bounds");
         }
@@ -147,7 +147,6 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 // LOCALL ID
                 ASSURE(!callstack.empty(), "ByteCodeVM: Empty callstack");
                 auto& locals = callstack.back().locals;
-                std::cout << "locals.size()=" << locals.size() << " arg1=" << inst.arg1 << " callstack.size()=" << callstack.size() << std::endl;
                 ASSURE(inst.arg1 < locals.size(), "ByteCodeVM: Local variable index out of bounds");
                 stack.push(locals[inst.arg1]); // Push local variable onto stack
                 break;

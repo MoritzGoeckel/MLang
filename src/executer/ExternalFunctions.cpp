@@ -89,6 +89,7 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     // then follow by the rest of the arguments on the stack
     // Floats go into XMM0 - XMM3
     
+    // This is AT&T (AT&T syntax) assembly code for x64 Windows
     qword_t result;
     __asm__ volatile (
         "movq %[args_tag], %%R10\n" // Bring arg pointer into R10
@@ -217,6 +218,7 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     // The result is returned in rax
     // If we need more than 6 arguments, the rest are passed on the stack. (?)
 
+    // This is ATT (AT&T syntax) assembly code for x86_64 Linux
     qword_t result;
     __asm__ volatile (
         "movq %[args_tag], %%R10\n" // Bring arg pointer into R10

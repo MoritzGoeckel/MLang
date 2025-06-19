@@ -23,6 +23,8 @@ int main(int argc, char** argv) {
     mlang.settings.showInferedTypes = false;
     mlang.settings.showFunctions = false;
     mlang.settings.showEmission = false;
+    mlang.settings.showExecution = false;
+    mlang.settings.maxInstructions = 0; // 0 means no limit
     // TODO: Config params from cmd
 
     int exitCode = 0;
