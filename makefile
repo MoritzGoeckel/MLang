@@ -48,7 +48,7 @@ bin/libtest.so: lib/libtest.cpp | bin
 	$(CXX) $(CXXFLAGS) -shared -fPIC $(CPPFLAGS) -o $@ $<
 endif
 
-include/libmlang.h: | include
+include/libmlang.h: $(NON_MAIN_SRCS) $(HEADERS) | include
 	python3 tools/generate_single_header.py
 
 ${MLANG_TARGET}: $(OBJS) $(MAINDIR)/MLang.o | bin

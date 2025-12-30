@@ -1,7 +1,5 @@
 import os
 
-# g++ -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Werror -O0 -std=c++17 -fmax-errors=1 -DSINGLE_HEADER src/mains/Tests.cpp
-
 def read_header_and_source_files(directory):
     header_files = []
     source_files = []
@@ -36,18 +34,16 @@ def read_header_and_source_files(directory):
 def read_file_include_order(path, first_file):
     result = []
     visited = set()
-    headers = []
-    cpps = []
-    stack = [first_file] # TODO remove stack
+    queue = [first_file]
 
     for root, _, files in os.walk(directory):
         for file in files:
             path = os.path.join(root, file)
             if file.endswith('.h') or file.endswith('.hpp'):
-                headers.append(path)
+                queue.append(path)
             if file.endswith('.cpp') or file.endswith('.c'):
                 if not 'int main(' in open(path, 'r').read():
-                    cpps.append(path)
+                    queue.append(path)
                 else:
                     print(f"Skipping main file: {file}")
     
@@ -72,14 +68,8 @@ def read_file_include_order(path, first_file):
 
         result.append(file)
     
-    while stack or headers or cpps:
-        if stack:
-            current_file = stack.pop()
-            postOrder(current_file)
-        elif headers:
-            stack.append(headers.pop())
-        elif cpps:
-            stack.append(cpps.pop())
+    while queue:
+        postOrder(queue.pop())
     
     return result
 
