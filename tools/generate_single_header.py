@@ -140,7 +140,7 @@ if __name__ == "__main__":
     os.makedirs("include", exist_ok=True)
 
     files = read_file_include_order(directory, "src/core/Mlang.cpp")
-    print("Files to be processed in order:"  + '\n'.join(files))
+    print("Files to be processed in order:\n"  + '\n'.join(files))
     
     processed_code = concat_files(files)
 

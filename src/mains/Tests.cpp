@@ -1,5 +1,3 @@
-#define SINGLE_HEADER
-
 #ifdef SINGLE_HEADER
     #include "../../include/libmlang.h"
 #else

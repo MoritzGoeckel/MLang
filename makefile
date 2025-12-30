@@ -26,11 +26,13 @@ ifdef OS
 	# Windows
 	MLANG_TARGET := ${BINDIR}\mlang.exe
 	TESTS_TARGET := ${BINDIR}\tests.exe
+	TESTS_TARGET_SINGLE_HEADER := ${BINDIR}\tests_single_header.exe
 	LIB_TARGET := ${BINDIR}\libtest.dll
 else
 	# Unix
 	MLANG_TARGET := ${BINDIR}/mlang
 	TESTS_TARGET := ${BINDIR}/tests
+	TESTS_TARGET_SINGLE_HEADER := ${BINDIR}/tests_single_header
 	LIB_TARGET := ${BINDIR}/libtest.so
 endif
 
@@ -49,11 +51,20 @@ bin/libtest.so: lib/libtest.cpp | bin
 	$(CXX) $(CXXFLAGS) -shared -fPIC $(CPPFLAGS) -o $@ $<
 endif
 
+HeaderLib: include/libmlang.h | include
+	python3 tools/generate_single_header.py
+
 MLang: $(OBJS) $(MAINDIR)/MLang.o | bin
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${MLANG_TARGET} $^
 
 Tests: $(OBJS) $(MAINDIR)/Tests.o | bin
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${TESTS_TARGET} $^
+
+HeaderLibTest: src/mains/Tests.cpp include/libmlang.h | bin
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -DSINGLE_HEADER -o ${TESTS_TARGET_SINGLE_HEADER} $<
+
+include:
+	mkdir include
 
 bin:
 	mkdir bin
@@ -61,7 +72,10 @@ bin:
 RunTest: Tests Lib
 	${TESTS_TARGET}
 
-Build: MLang Tests Lib
+RunSingleHeaderTest: HeaderLibTest Lib
+	${TESTS_TARGET_SINGLE_HEADER}
+
+Build: MLang Tests Lib HeaderLib
 
 %.o: %.cpp %.h
 	$(CXX) $(CXXFLAGS) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
