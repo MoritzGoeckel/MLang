@@ -197,7 +197,7 @@ size_t DataType::getHashNum() const {
         return static_cast<size_t>(simple);
     } else if (std::holds_alternative<Function>(impl)) {
         const auto& function = std::get<Function>(impl);
-        size_t sum;
+        size_t sum = 0;
         for (const auto& p : *function.params) sum += p.getHashNum();
         sum += function.ret->getHashNum();
         return sum;
