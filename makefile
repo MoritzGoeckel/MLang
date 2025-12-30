@@ -36,10 +36,7 @@ else
 	LIB_TARGET := ${BINDIR}/libtest.so
 endif
 
-EXES := ${MLANG_TARGET} ${TESTS_TARGET}
-
-.PHONY: All
-All: MLang Tests Lib
+EXES := ${MLANG_TARGET} ${TESTS_TARGET} ${TESTS_TARGET_SINGLE_HEADER}
 
 Lib: ${LIB_TARGET} | bin
 
@@ -51,16 +48,16 @@ bin/libtest.so: lib/libtest.cpp | bin
 	$(CXX) $(CXXFLAGS) -shared -fPIC $(CPPFLAGS) -o $@ $<
 endif
 
-HeaderLib: include/libmlang.h | include
+include/libmlang.h: | include
 	python3 tools/generate_single_header.py
 
-MLang: $(OBJS) $(MAINDIR)/MLang.o | bin
+${MLANG_TARGET}: $(OBJS) $(MAINDIR)/MLang.o | bin
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${MLANG_TARGET} $^
 
-Tests: $(OBJS) $(MAINDIR)/Tests.o | bin
+${TESTS_TARGET}: $(OBJS) $(MAINDIR)/Tests.o | bin
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o ${TESTS_TARGET} $^
 
-HeaderLibTest: src/mains/Tests.cpp include/libmlang.h | bin
+${TESTS_TARGET_SINGLE_HEADER}: src/mains/Tests.cpp | bin include include/libmlang.h
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -DSINGLE_HEADER -o ${TESTS_TARGET_SINGLE_HEADER} $<
 
 include:
@@ -69,13 +66,13 @@ include:
 bin:
 	mkdir bin
 
-RunTest: Tests Lib
+RunTest: ${TESTS_TARGET} Lib
 	${TESTS_TARGET}
 
-RunSingleHeaderTest: HeaderLibTest Lib
+RunSingleHeaderTest: ${TESTS_TARGET_SINGLE_HEADER} Lib
 	${TESTS_TARGET_SINGLE_HEADER}
 
-Build: MLang Tests Lib HeaderLib
+Build: ${MLANG_TARGET} ${TESTS_TARGET} ${TESTS_TARGET_SINGLE_HEADER} Lib include/libmlang.h
 
 %.o: %.cpp %.h
 	$(CXX) $(CXXFLAGS) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
@@ -88,11 +85,12 @@ ifdef OS
 	-del bin\libtest.dll >nul 2>&1;
 	-del src\mains\MLang.o >nul 2>&1;
 	-del src\mains\Tests.o >nul 2>&1;
+	-del include\libmlang.h >nul 2>&1;
 else
-	# Linux
-	$(foreach file, $(OBJS), rm ${file};)
-	$(foreach file, $(EXES), rm ${file};)
-	rm bin/libtest.so
-	rm src/mains/mlang.o
-	rm src/mains/Tests.o
+	$(foreach file, $(OBJS), rm -f ${file};)
+	$(foreach file, $(EXES), rm -f ${file};)
+	rm -f bin/libtest.so
+	rm -f src/mains/MLang.o
+	rm -f src/mains/Tests.o
+	rm -f include/libmlang.h
 endif
