@@ -335,9 +335,7 @@ std::string ByteCodeVM::execute(size_t maxInstructions) {
         return "Program did not finish";
     }
 
-    if(stack.empty()){
-        return "void";
-    } else {
+    if(!stack.empty()) {
         std::stringstream ss;
         while (stack.size() > 1) {
             ss << stack.pop() << ", ";
@@ -347,6 +345,7 @@ std::string ByteCodeVM::execute(size_t maxInstructions) {
         }
         return ss.str();
     }
+    return "void";
 }
 
 }

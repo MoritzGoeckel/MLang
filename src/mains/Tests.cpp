@@ -1,7 +1,14 @@
-#include "../executer/ExternalFunctions.h"
-#include "../executer/ByteCode.h"
+#define SINGLE_HEADER
+
+#ifdef SINGLE_HEADER
+    #include "../../bin/libmlang.h"
+#else
+    #include "../executer/ExternalFunctions.h"
+    #include "../executer/ByteCode.h"
+    #include "../core/Mlang.h"
+#endif
+
 #include <iostream>
-#include "../core/Mlang.h"
 #include <fstream>
 #include <sstream>
 #include <string>
