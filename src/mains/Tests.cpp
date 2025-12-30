@@ -1,7 +1,7 @@
 #define SINGLE_HEADER
 
 #ifdef SINGLE_HEADER
-    #include "../../bin/libmlang.h"
+    #include "../../include/libmlang.h"
 #else
     #include "../executer/ExternalFunctions.h"
     #include "../executer/ByteCode.h"

@@ -1,6 +1,6 @@
 import os
 
-# g++ -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Werror -O0 -std=c++17 -fmax-errors=1 src/mains/Tests.cpp
+# g++ -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Werror -O0 -std=c++17 -fmax-errors=1 -DSINGLE_HEADER src/mains/Tests.cpp
 
 def read_header_and_source_files(directory):
     header_files = []
@@ -33,7 +33,6 @@ def read_header_and_source_files(directory):
                 print(f"Warning: Unrecognized file type: {file}")
     return header_files, source_files
 
-# put all header depencencies of file on stack, resolve the dependencies recursively
 def read_file_include_order(path, first_file):
     result = []
     visited = set()
@@ -136,7 +135,9 @@ def remove_empty_lines(lines):
 
 if __name__ == "__main__":
     directory = "src" 
-    result_file = "bin/libmlang.h"
+    result_file = "include/libmlang.h"
+
+    os.makedirs("include", exist_ok=True)
 
     files = read_file_include_order(directory, "src/core/Mlang.cpp")
     print("Files to be processed in order:"  + '\n'.join(files))
