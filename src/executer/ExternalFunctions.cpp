@@ -1,5 +1,7 @@
 #include "../executer/ExternalFunctions.h"
 
+#include <cstring>
+
 #ifdef WIN
 #include <windows.h>
 #else
@@ -17,7 +19,10 @@ void Arguments::addWord(word_t value) {
 
     arg_t& arg = buffer[size++];
     arg.type = arg_types::Word;
-    *reinterpret_cast<word_t*>(&arg.value) = value;
+
+    char* dest = reinterpret_cast<char*>(&arg.value);
+    char* src = reinterpret_cast<char*>(&value);
+    std::memcpy(dest, src, sizeof(word_t));
 }
 
 void Arguments::addDWord(dword_t value) {
@@ -25,7 +30,10 @@ void Arguments::addDWord(dword_t value) {
     
     arg_t& arg = buffer[size++];
     arg.type = arg_types::DWord;
-    *reinterpret_cast<dword_t*>(&arg.value) = value;
+
+    char* dest = reinterpret_cast<char*>(&arg.value);
+    char* src = reinterpret_cast<char*>(&value);
+    std::memcpy(dest, src, sizeof(dword_t));
 }
 
 void Arguments::addQWord(qword_t value) {
@@ -33,7 +41,7 @@ void Arguments::addQWord(qword_t value) {
     
     arg_t& arg = buffer[size++];
     arg.type = arg_types::QWord;
-    *reinterpret_cast<qword_t*>(&arg.value) = value;
+    arg.value = value;
 }
 
 void Arguments::clear() {

@@ -56,7 +56,7 @@ std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::No
             }
         }
 
-        if(!returnType && *returnType == DataType::Primitive::Unknown) {
+        if(!returnType || *returnType == DataType::Primitive::Unknown) {
             return node;
         }
 
