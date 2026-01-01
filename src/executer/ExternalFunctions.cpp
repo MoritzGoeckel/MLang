@@ -237,62 +237,57 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     // This is ATT (AT&T syntax) assembly code for x86_64 Linux
     qword_t result = 0;
     __asm__ volatile (
-        "movq %[args_tag], %%R10\n" // Bring arg pointer into R10
+        "movq %[args_tag], %%r10\n" 
+        
+        // Save original stack and align
+        "pushq %%rbp\n"
+        "movq %%rsp, %%rbp\n"
+        "andq $-16, %%rsp\n"
 
-        // Align stack to 16 bytes
-        "pushq %%rbp\n"           // Save RBP (standard practice)
-        "movq %%rsp, %%rbp\n"     // Set up frame pointer
-        "andq $-16, %%rsp\n"      // Align RSP to 16-byte boundary
+        // Arg 1: RDI
+        "addq $8, %%r10\n"
+        "movq (%%r10), %%rdi\n"
+        "addq $8, %%r10\n"
+        "cmpq $0, (%%r10)\n"
+        "je 1f\n"
 
-        "call bring_next_value_into_rax\n"
-        "movq %%rax, %%rdi\n" // Move the first argument into rdi
+        // Arg 2: RSI
+        "addq $8, %%r10\n"
+        "movq (%%r10), %%rsi\n"
+        "addq $8, %%r10\n"
+        "cmpq $0, (%%r10)\n"
+        "je 1f\n"
 
-        "cmpq $0, (%%R10)\n" // Check if type is None (0)
-        "je label_do_call\n" // End of args
+        // Arg 3: RDX
+        "addq $8, %%r10\n"
+        "movq (%%r10), %%rdx\n"
+        "addq $8, %%r10\n"
+        "cmpq $0, (%%r10)\n"
+        "je 1f\n"
 
-        "call bring_next_value_into_rax\n"
-        "movq %%rax, %%rsi\n" // Move the first argument into rsi
+        // Arg 4: RCX
+        "addq $8, %%r10\n"
+        "movq (%%r10), %%rcx\n"
+        "addq $8, %%r10\n"
+        "cmpq $0, (%%r10)\n"
+        "je 1f\n"
 
-        "cmpq $0, (%%R10)\n" // Check if type is None (0)
-        "je label_do_call\n" // End of args
+        // Arg 5: R8
+        "addq $8, %%r10\n"
+        "movq (%%r10), %%r8\n"
+        "addq $8, %%r10\n"
+        "cmpq $0, (%%r10)\n"
+        "je 1f\n"
 
-        "call bring_next_value_into_rax\n"
-        "movq %%rax, %%rdx\n" // Move the first argument into rdx
+        // Arg 6: R9
+        "addq $8, %%r10\n"
+        "movq (%%r10), %%r9\n"
+        "addq $8, %%r10\n"
 
-        "cmpq $0, (%%R10)\n" // Check if type is None (0)
-        "je label_do_call\n" // End of args
-
-        "call bring_next_value_into_rax\n"
-        "movq %%rax, %%rcx\n" // Move the first argument into rcx
-
-        "cmpq $0, (%%R10)\n" // Check if type is None (0)
-        "je label_do_call\n" // End of args
-
-        "call bring_next_value_into_rax\n"
-        "movq %%rax, %%r8\n" // Move the first argument into r8
-
-        "cmpq $0, (%%R10)\n" // Check if type is None (0)
-        "je label_do_call\n" // End of args
-
-        "call bring_next_value_into_rax\n"
-        "movq %%rax, %%r9\n" // Move the first argument into r9
-
-        "jmp label_do_call\n" // Skip the function and call the method
-
-        "bring_next_value_into_rax:\n"
-        // These chacks would be nice to have here, but the call somehow segfaults then
-        // "   cmpq $0, (%%R10)\n" // Check if type is None (0)
-        // "   je label_do_call\n" // End of args
-        "   add $8, %%R10\n" // Bring the pointer to the argument value
-        "   movq (%%R10), %%rax\n" // Put into target register
-        "   add $8, %%R10\n" // Move to next argument
-        "   ret\n"
-        // End of bring_next_value_into_rax
-
-        "label_do_call:"
-        "   movq $0, %%rax\n" // Indicate no vector registers used
-        "   call *%[fn_tag]\n"
-        "   movq %%rax, %[result_tag]\n"
+    "1:\n" // Local label for 'end of args'
+        "xorl %%eax, %%eax\n" // Shorter version of mov $0, %rax
+        "call *%[fn_tag]\n"
+        "movq %%rax, %[result_tag]\n"
 
         // Restore stack
         "movq %%rbp, %%rsp\n"
@@ -301,7 +296,7 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
         : [result_tag] "=r"(result) 
         : [fn_tag] "r"(func.functionPtr), 
           [args_tag] "r"(args.getBuffer())
-        : "rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9", "r10", "memory" // Mark touched registers
+        : "rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9", "r10", "memory", "cc"
     );
 
     if (func.returnType == ret_type::Bool){
@@ -313,11 +308,11 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
         return 0;
     }
 
-    if (func.returnType == ret_type::Number) {
+    /*if (func.returnType == ret_type::Number) {
         int iresult = 0;
         std::memcpy(&iresult, &result, sizeof(int));
         return iresult;
-    }
+    }*/
 
     /*if (func.returnType == ret_type::Float) {
         float fresult;

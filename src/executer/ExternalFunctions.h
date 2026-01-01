@@ -46,7 +46,7 @@ struct arg_t {
     arg_types::type type; // This cannot be smaller than qword_t
     qword_t value; // Use the largest type
 };
-
+static_assert(sizeof(arg_t) == 16);
 static_assert(sizeof(arg_t) == sizeof(qword_t) + sizeof(arg_types::type));
 
 class Arguments {
