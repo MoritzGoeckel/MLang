@@ -236,67 +236,58 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
 
     // This is ATT (AT&T syntax) assembly code for x86_64 Linux
     qword_t result = 0;
+    const void* fn_ptr = func.functionPtr;
+    const void* args_ptr = args.getBuffer();
     __asm__ volatile (
-        "movq %[args_tag], %%r10\n" 
-        
-        // Save original stack and align
         "pushq %%rbp\n"
         "movq %%rsp, %%rbp\n"
         "andq $-16, %%rsp\n"
 
-        // Arg 1: RDI
-        "addq $8, %%r10\n"
-        "movq (%%r10), %%rdi\n"
-        "addq $8, %%r10\n"
-        "cmpq $0, (%%r10)\n"
+        // Use R11 as our base pointer to avoid clobbering R10 if the compiler used it
+        "movq %[args_tag], %%r11\n"
+
+        // Arg 1: Type is at 0(r11), Value is at 8(r11)
+        "cmpq $0, 0(%%r11)\n"
         "je 1f\n"
+        "movq 8(%%r11), %%rdi\n"
 
-        // Arg 2: RSI
-        "addq $8, %%r10\n"
-        "movq (%%r10), %%rsi\n"
-        "addq $8, %%r10\n"
-        "cmpq $0, (%%r10)\n"
+        // Arg 2: Type is at 16(r11), Value is at 24(r11)
+        "cmpq $0, 16(%%r11)\n"
         "je 1f\n"
+        "movq 24(%%r11), %%rsi\n"
 
-        // Arg 3: RDX
-        "addq $8, %%r10\n"
-        "movq (%%r10), %%rdx\n"
-        "addq $8, %%r10\n"
-        "cmpq $0, (%%r10)\n"
+        // Arg 3: Type is at 32(r11), Value is at 40(r11)
+        "cmpq $0, 32(%%r11)\n"
         "je 1f\n"
+        "movq 40(%%r11), %%rdx\n"
 
-        // Arg 4: RCX
-        "addq $8, %%r10\n"
-        "movq (%%r10), %%rcx\n"
-        "addq $8, %%r10\n"
-        "cmpq $0, (%%r10)\n"
+        // Arg 4: Type is at 48(r11), Value is at 56(r11)
+        "cmpq $0, 48(%%r11)\n"
         "je 1f\n"
+        "movq 56(%%r11), %%rcx\n"
 
-        // Arg 5: R8
-        "addq $8, %%r10\n"
-        "movq (%%r10), %%r8\n"
-        "addq $8, %%r10\n"
-        "cmpq $0, (%%r10)\n"
+        // Arg 5: Type is at 64(r11), Value is at 72(r11)
+        "cmpq $0, 64(%%r11)\n"
         "je 1f\n"
+        "movq 72(%%r11), %%r8\n"
 
-        // Arg 6: R9
-        "addq $8, %%r10\n"
-        "movq (%%r10), %%r9\n"
-        "addq $8, %%r10\n"
+        // Arg 6: Type is at 80(r11), Value is at 88(r11)
+        "cmpq $0, 80(%%r11)\n"
+        "je 1f\n"
+        "movq 88(%%r11), %%r9\n"
 
-    "1:\n" // Local label for 'end of args'
-        "xorl %%eax, %%eax\n" // Shorter version of mov $0, %rax
+    "1:\n"
+        "xorl %%eax, %%eax\n" 
         "call *%[fn_tag]\n"
         "movq %%rax, %[result_tag]\n"
 
-        // Restore stack
         "movq %%rbp, %%rsp\n"
         "popq %%rbp\n"
 
         : [result_tag] "=r"(result) 
-        : [fn_tag] "r"(func.functionPtr), 
-          [args_tag] "r"(args.getBuffer())
-        : "rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9", "r10", "memory", "cc"
+        : [fn_tag] "r"(fn_ptr), 
+        [args_tag] "r"(args_ptr)
+        : "rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9", "r11", "memory", "cc"
     );
 
     if (func.returnType == ret_type::Bool){
