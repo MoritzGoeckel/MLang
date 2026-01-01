@@ -234,13 +234,15 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     // The result is returned in rax
     // If we need more than 6 arguments, the rest are passed on the stack. (?)
 
-    std::cout << "Calling external function " << func.name << " from library " << func.library << " with " << args.getSize() << " arguments." << std::endl;
-    std::cout << "Return: " << func.returnType << std::endl;
-
     // This is ATT (AT&T syntax) assembly code for x86_64 Linux
     qword_t result = 0;
     __asm__ volatile (
         "movq %[args_tag], %%R10\n" // Bring arg pointer into R10
+
+        // Align stack to 16 bytes
+        "pushq %%rbp\n"           // Save RBP (standard practice)
+        "movq %%rsp, %%rbp\n"     // Set up frame pointer
+        "andq $-16, %%rsp\n"      // Align RSP to 16-byte boundary
 
         "call bring_next_value_into_rax\n"
         "movq %%rax, %%rdi\n" // Move the first argument into rdi
@@ -289,47 +291,36 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
         // End of bring_next_value_into_rax
 
         "label_do_call:"
+        "movq $0, %%rax\n" // Indicate no vector registers used
         "call *%[fn_tag]\n"
         "movq %%rax, %[result_tag]\n"
 
+        // Restore stack
+        "movq %%rbp, %%rsp\n"
+        "popq %%rbp\n"
+
         : [result_tag] "=r"(result) 
         : [fn_tag] "r"(func.functionPtr), 
-          [args_tag] "r"(args.getBuffer()));
-
-    std::cout << "External function call returned: " << result << std::endl; // Without this it segfaults
-
-    // TODO: This seems to be very instable. Probably with O3 optimizations the registers are filled partially
-    // or some get messed up.
+          [args_tag] "r"(args.getBuffer())
+        : "rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9", "r10", "memory" // Mark touched registers
+    );
 
     if (func.returnType == ret_type::Bool){
         // Only look at the lowest byte for boolean result
-        std::cout << "Bool!" << std::endl;
         return static_cast<bool>(result & 0xFF);
     }
 
-    if (func.returnType == ret_type::Float) {
-        float fresult;
-        std::memcpy(&fresult, &result, sizeof(float));
-        std::cout << "Float result: " << fresult << std::endl;
-        return fresult;
-    }
-
-    if (func.returnType == ret_type::Ptr) {
-        std::cout << "Pointer result: " << reinterpret_cast<void*>(result) << std::endl;
-        return result;
-    }
-
     if (func.returnType == ret_type::Void) {
-        std::cout << "Void result." << std::endl;
         return 0;
     }
 
-    if (func.returnType == ret_type::Number) {
-        std::cout << "Number result: " << result << std::endl;
-        int numResult;
-        std::memcpy(&numResult, &result, sizeof(int));
-        return numResult;
-    }
+    /*if (func.returnType == ret_type::Float) {
+        float fresult;
+        std::memcpy(&fresult, &result, sizeof(float));
+        return fresult;
+    }*/
+    // if (func.returnType == ret_type::Ptr)
+    // if (func.returnType == ret_type::Number)
 
     return result;
 }
