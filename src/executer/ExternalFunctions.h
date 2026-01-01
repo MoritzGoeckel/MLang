@@ -82,7 +82,7 @@ class ExternalFunctions {
 
     size_t add(const std::string& library, const std::string& functionName, qword_t returnType);
 
-    qword_t call(size_t id, const Arguments& args);
+    __attribute__((optimize("-O0"))) qword_t call(size_t id, const Arguments& args);
 
     ~ExternalFunctions();
 

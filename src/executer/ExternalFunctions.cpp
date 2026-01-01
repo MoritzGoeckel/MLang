@@ -217,7 +217,7 @@ size_t ExternalFunctions::add(const std::string& library, const std::string& fun
     return functions.size() - 1;
 }
 
-qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
+__attribute__((optimize("-O0"))) qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     ASSURE(id < functions.size(), "Function ID out of bounds");
 
     const ExternalFunction& func = functions[id];
@@ -278,6 +278,8 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
 
     "1:\n"
         "xorl %%eax, %%eax\n" 
+        "xorq %%rax, %%rax\n" 
+
         "call *%[fn_tag]\n"
         "movq %%rax, %[result_tag]\n"
 
