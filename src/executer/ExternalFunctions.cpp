@@ -279,7 +279,6 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
 
         "jmp label_do_call\n" // Skip the function and call the method
 
-        // Function bring_next_value_into_rax
         "bring_next_value_into_rax:\n"
         // These chacks would be nice to have here, but the call somehow segfaults then
         // "   cmpq $0, (%%R10)\n" // Check if type is None (0)
@@ -291,9 +290,9 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
         // End of bring_next_value_into_rax
 
         "label_do_call:"
-        "movq $0, %%rax\n" // Indicate no vector registers used
-        "call *%[fn_tag]\n"
-        "movq %%rax, %[result_tag]\n"
+        "   movq $0, %%rax\n" // Indicate no vector registers used
+        "   call *%[fn_tag]\n"
+        "   movq %%rax, %[result_tag]\n"
 
         // Restore stack
         "movq %%rbp, %%rsp\n"
@@ -314,13 +313,18 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
         return 0;
     }
 
+    if (func.returnType == ret_type::Number) {
+        int iresult = 0;
+        std::memcpy(&iresult, &result, sizeof(int));
+        return iresult;
+    }
+
     /*if (func.returnType == ret_type::Float) {
         float fresult;
         std::memcpy(&fresult, &result, sizeof(float));
         return fresult;
     }*/
     // if (func.returnType == ret_type::Ptr)
-    // if (func.returnType == ret_type::Number)
 
     return result;
 }

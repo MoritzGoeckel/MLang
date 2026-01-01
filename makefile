@@ -1,6 +1,6 @@
 # -rdynamic for backtrace support
 
-OPTIMIZATION := -O3 # -O1 -O2 -O3 does not compile (in FFI)
+OPTIMIZATION := -O3
 SHARED_FLAGS := -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Werror $(OPTIMIZATION) -std=c++17 -ggdb
 
 ifdef OS
