@@ -144,7 +144,7 @@ void testLibrary(){
 
     ffi::ExternalFunctions externalFunctions;
 
-    auto test_ii_i = externalFunctions.add("test", "test_ii_i");
+    auto test_ii_i = externalFunctions.add("test", "test_ii_i", ffi::ret_type::Number);
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -153,7 +153,7 @@ void testLibrary(){
         EXPECT_EQ(15, r);
     }
 
-    auto test_iii_i = externalFunctions.add("test", "test_iii_i");
+    auto test_iii_i = externalFunctions.add("test", "test_iii_i", ffi::ret_type::Number);
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -163,7 +163,7 @@ void testLibrary(){
         EXPECT_EQ(30, r);
     }
 
-    auto test_iiii_i = externalFunctions.add("test", "test_iiii_i");
+    auto test_iiii_i = externalFunctions.add("test", "test_iiii_i", ffi::ret_type::Number);
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -176,7 +176,7 @@ void testLibrary(){
 
     std::cout << "Testing with 5 arguments..." << std::endl;
 
-    auto test_iiiii_i = externalFunctions.add("test", "test_iiiii_i");
+    auto test_iiiii_i = externalFunctions.add("test", "test_iiiii_i", ffi::ret_type::Number);
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -190,7 +190,7 @@ void testLibrary(){
 
     std::cout << "Testing with 6 arguments..." << std::endl;
 
-    auto test_iiiiii_i = externalFunctions.add("test", "test_iiiiii_i");
+    auto test_iiiiii_i = externalFunctions.add("test", "test_iiiiii_i", ffi::ret_type::Number);
     {
         ffi::Arguments args;
         args.addDWord(5);
@@ -205,33 +205,33 @@ void testLibrary(){
 
     std::cout << "Testing return boolean values..." << std::endl;
 
-    auto test_ii_b = externalFunctions.add("test", "test_ii_b");
+    auto test_ii_b = externalFunctions.add("test", "test_ii_b", ffi::ret_type::Bool);
     {
         ffi::Arguments args;
         args.addDWord(5);
         args.addDWord(5);
-        bool r = (bool)externalFunctions.call(test_ii_b, args);
-        EXPECT_TRUE(r); // true
+        auto r = externalFunctions.call(test_ii_b, args);
+        EXPECT_EQ(1, r); // true
     }
 
     {
         ffi::Arguments args;
         args.addDWord(5);
         args.addDWord(6);
-        bool r = (bool)externalFunctions.call(test_ii_b, args);
-        EXPECT_FALSE(r); // true
+        auto r = externalFunctions.call(test_ii_b, args);
+        EXPECT_EQ(0, r); // false
     }
 
-    auto test_bb_b = externalFunctions.add("test", "test_bb_b");
+    auto test_bb_b = externalFunctions.add("test", "test_bb_b", ffi::ret_type::Bool);
     {
         ffi::Arguments args;
         args.addWord(1); // true
         args.addWord(0); // false
-        bool r = (bool)externalFunctions.call(test_bb_b, args);
-        EXPECT_FALSE(r);
+        bool r = externalFunctions.call(test_bb_b, args);
+        EXPECT_EQ(0, r); // false
     }
 
-    auto test_pp_p = externalFunctions.add("test", "test_pp_p");
+    auto test_pp_p = externalFunctions.add("test", "test_pp_p", ffi::ret_type::Ptr);
     {
         ffi::Arguments args;
         std::string a = "Hello";

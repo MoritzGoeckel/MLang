@@ -161,9 +161,27 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             auto aLibIdx = program.data.addString(externFn->getLibrary());
             auto aNameIdx = program.data.addString(externFn->getName());
 
+            ffi::qword_t returnTypeCode = 0;
+            switch(externFn->getDataType().getReturn()->getPrimitive()){
+                case DataType::Primitive::Int:
+                    returnTypeCode = ffi::ret_type::Number;
+                    break;
+                case DataType::Primitive::Float:
+                    returnTypeCode = ffi::ret_type::Float;
+                    break;
+                case DataType::Primitive::Bool:
+                    returnTypeCode = ffi::ret_type::Bool;
+                    break;
+                case DataType::Primitive::Void:
+                    returnTypeCode = ffi::ret_type::Void;
+                    break;
+                default:
+                    throwConstraintViolated("Unsupported extern function return type.");
+            }
+
             // Register the external function
             // This brings the function address on the stack
-            code().push_back(executor::Instruction(executor::Op::REG_FFI, aLibIdx, aNameIdx));
+            code().push_back(executor::Instruction(executor::Op::REG_FFI, aLibIdx, aNameIdx, returnTypeCode));
 
             if(!hasConsumer) {
                 // TODO: We might just skip creating the function at all

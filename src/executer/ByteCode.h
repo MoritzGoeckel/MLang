@@ -40,7 +40,7 @@ enum class Op {
     LOADW, 
     STOREW, 
     DUB,
-    REG_FFI,
+    REG_FFI, // TODO: Rename FFI_...
     PUSH_FFI_WORD, 
     PUSH_FFI_DWORD, 
     PUSH_FFI_QWORD, 

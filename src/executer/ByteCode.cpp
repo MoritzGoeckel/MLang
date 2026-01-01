@@ -42,7 +42,7 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
         { Op::GTE, {"GTE", {}} },
         { Op::NEQ, {"NEQ", {}} },
         { Op::DUB, {"DUB", {"LOOKBACK"}} },
-        { Op::REG_FFI, {"REG_FFI", { "LIB_DATA_IDX", "NAME_DATA_IDX" }} },
+        { Op::REG_FFI, {"REG_FFI", { "LIB_DATA_IDX", "NAME_DATA_IDX", "RETURN" }} },
         { Op::PUSH_FFI_WORD, {"PUSH_FFI_WORD", {}} },
         { Op::PUSH_FFI_DWORD, {"PUSH_FFI_DWORD", {}} },
         { Op::PUSH_FFI_QWORD, {"PUSH_FFI_QWORD", {}} },
@@ -287,7 +287,8 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 // Register FFI function
                 auto lib = program.data.getString(inst.arg1); // Library name
                 auto name = program.data.getString(inst.arg2); // Function name
-                auto id = ffiFunctions.add(lib, name);
+                auto retType = inst.arg3;
+                auto id = ffiFunctions.add(lib, name, retType);
                 stack.push(id);
                 break;
             }
@@ -301,9 +302,13 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 break;
             }
             case Op::CALL_FFI: {
+                std::cout << "Op::CALL_FFI\n";
                 auto id = stack.pop();
+                std::cout << "Op::CALL_FFI 1\n";
                 auto result = ffiFunctions.call(id, ffiArgs);
+                std::cout << "Op::CALL_FFI 2\n";
                 stack.push(result);
+                std::cout << "Op::CALL_FFI 3\n";
                 ffiArgs.clear();
                 break;
             }

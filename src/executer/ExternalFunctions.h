@@ -33,6 +33,15 @@ namespace arg_types{
     // constexpr byte_t XMMWord = 4; // Not used yet
 }
 
+namespace ret_type {
+    using type = qword_t;
+    constexpr type Void = 0;
+    constexpr type Number = 1;
+    constexpr type Float = 2;
+    constexpr type Bool = 3;
+    constexpr type Ptr = 4;
+}
+
 struct arg_t {
     arg_types::type type; // This cannot be smaller than qword_t
     qword_t value; // Use the largest type
@@ -63,6 +72,7 @@ class Arguments {
 struct ExternalFunction {
     std::string library;
     std::string name;
+    qword_t returnType;
     void* functionPtr;
 };
 
@@ -70,7 +80,7 @@ class ExternalFunctions {
    public:
     ExternalFunctions();
 
-    size_t add(const std::string& library, const std::string& functionName);
+    size_t add(const std::string& library, const std::string& functionName, qword_t returnType);
 
     qword_t call(size_t id, const Arguments& args);
 

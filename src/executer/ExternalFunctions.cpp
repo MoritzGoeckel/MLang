@@ -96,7 +96,7 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     // shadow store allocated on stack for those four registers
     // then follow by the rest of the arguments on the stack
     // Floats go into XMM0 - XMM3
-    
+
     // This is AT&T (AT&T syntax) assembly code for x64 Windows
     qword_t result;
     __asm__ volatile (
@@ -167,6 +167,13 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
           [args_tag] "r"(args.getBuffer()),
           [size_tag] "r"(args.getSize()));
 
+    if (args.returnType == ret_type::Bool){
+        // Only look at the lowest byte for boolean result
+        return static_cast<bool>(result & 0xFF);
+    }
+
+    // TODO: Handle other return types properly
+
     return result;
 }
 
@@ -176,10 +183,11 @@ ExternalFunctions::~ExternalFunctions() = default;
 
 ExternalFunctions::ExternalFunctions() = default;
 
-size_t ExternalFunctions::add(const std::string& library, const std::string& functionName) {
+size_t ExternalFunctions::add(const std::string& library, const std::string& functionName, qword_t returnType) {
     ExternalFunction functionInfo;
     functionInfo.library = library;
     functionInfo.name = functionName;
+    functionInfo.returnType = returnType;
     functionInfo.functionPtr = nullptr;
 
     void* libraryHandle = nullptr;
@@ -226,8 +234,11 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
     // The result is returned in rax
     // If we need more than 6 arguments, the rest are passed on the stack. (?)
 
+    std::cout << "Calling external function " << func.name << " from library " << func.library << " with " << args.getSize() << " arguments." << std::endl;
+    std::cout << "Return: " << func.returnType << std::endl;
+
     // This is ATT (AT&T syntax) assembly code for x86_64 Linux
-    qword_t result;
+    qword_t result = 0;
     __asm__ volatile (
         "movq %[args_tag], %%R10\n" // Bring arg pointer into R10
 
@@ -283,7 +294,42 @@ qword_t ExternalFunctions::call(size_t id, const Arguments& args) {
 
         : [result_tag] "=r"(result) 
         : [fn_tag] "r"(func.functionPtr), 
-          [args_tag] "r"(args.getBuffer())) ;
+          [args_tag] "r"(args.getBuffer()));
+
+    std::cout << "External function call returned: " << result << std::endl; // Without this it segfaults
+
+    // TODO: This seems to be very instable. Probably with O3 optimizations the registers are filled partially
+    // or some get messed up.
+
+    if (func.returnType == ret_type::Bool){
+        // Only look at the lowest byte for boolean result
+        std::cout << "Bool!" << std::endl;
+        return static_cast<bool>(result & 0xFF);
+    }
+
+    if (func.returnType == ret_type::Float) {
+        float fresult;
+        std::memcpy(&fresult, &result, sizeof(float));
+        std::cout << "Float result: " << fresult << std::endl;
+        return fresult;
+    }
+
+    if (func.returnType == ret_type::Ptr) {
+        std::cout << "Pointer result: " << reinterpret_cast<void*>(result) << std::endl;
+        return result;
+    }
+
+    if (func.returnType == ret_type::Void) {
+        std::cout << "Void result." << std::endl;
+        return 0;
+    }
+
+    if (func.returnType == ret_type::Number) {
+        std::cout << "Number result: " << result << std::endl;
+        int numResult;
+        std::memcpy(&numResult, &result, sizeof(int));
+        return numResult;
+    }
 
     return result;
 }
