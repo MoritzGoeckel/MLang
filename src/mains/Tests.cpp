@@ -282,8 +282,8 @@ void suiteTestfiles(){
     testFile("mfiles/multiple_vars.m");
     testFile("mfiles/simple_fns.m");
     testFile("mfiles/while.m");
-    testFile("mfiles/return_in_some_cases_0.m");
-    testFile("mfiles/return_in_some_cases_1.m");
+    testFile("mfiles/return_int_in_some_cases.m");
+    testFile("mfiles/return_void_in_some_cases.m");
     testFile("mfiles/ignored_return.m");
     testFile("mfiles/function_without_return.m");
     testFile("mfiles/var_declaration_addition.m");

@@ -18,6 +18,7 @@
 #include "../transformer/InfereParameterTypes.h"
 #include "../transformer/InstantiateFunctions.h"
 #include "../transformer/AddVoidReturn.h"
+#include "../validator/AllPathsReturn.h"
 #include "../emitter/Emitter.h"
 #include "../emitter/Python.h"
 #include "../emitter/ByteCodeEmitter.h"
@@ -130,6 +131,22 @@ Mlang::Result Mlang::execute(const std::string& theFile,
     InstantiateFunctions instantiator(ast); // Do not use ast after this point!
     auto fns = instantiator.getFunctions();
 
+    // Validate that all code paths return a value (before AddVoidReturn fixes it)
+    {
+        validator::AllPathsReturn returnValidator;
+        for (auto& fn : fns) {
+            returnValidator.validate(fn.second);
+
+            // Check for errors after each function
+            if (returnValidator.hasErrors()) {
+                const auto& returnErrors = returnValidator.getErrors();
+                return Mlang::Result(Mlang::Result::Signal::Failure)
+                    .addError("Return path validation failed:\n" +
+                              returnErrors.front().generateString(theCode));
+            }
+        }
+    }
+
     for (auto& fn : fns) {
         transformer::AddVoidReturn addVoidReturn;
         fn.second = addVoidReturn.process(fn.second);
@@ -143,9 +160,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         }
     }
 
-    // TODO: If function returns nothing, add a void return as last statement of the body
-    // Make sure after a return no other statements exist, otherwise create error
-    // If a function has a return type, make sure that all paths return a value of that type
+    // TODO: Make sure after a return no other statements exist, otherwise create error
 
     emitter::ByteCodeEmitter byteCodeEmitter(fns);
     byteCodeEmitter.run();
