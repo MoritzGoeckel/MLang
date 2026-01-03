@@ -11,6 +11,9 @@
 #include <sstream>
 #include <string>
 #include <optional>
+#include <filesystem>
+#include <vector>
+#include <algorithm>
 
 #define RUN_TEST_LABEL() \
     std::cout << "[ START ] " << __FUNCTION__ << std::endl;
@@ -267,44 +270,24 @@ void testExecutorData(){
 }
 
 void suiteTestfiles(){
-    testFile("mfiles/addition_infix.m");
-    testFile("mfiles/addition.m");
-    testFile("mfiles/broken_syntax.m");
-    testFile("mfiles/broken_semantics.m");
-    testFile("mfiles/comment.m");
-    testFile("mfiles/if_else_no_brackets.m");
-    testFile("mfiles/if_else.m");
-    testFile("mfiles/if.m");
-    testFile("mfiles/infix_operator_precedence.m");
-    testFile("mfiles/method_decl_multiline.m");
-    testFile("mfiles/method_declaration_brackets.m");
-    testFile("mfiles/method_declaration.m");
-    testFile("mfiles/multiple_vars.m");
-    testFile("mfiles/simple_fns.m");
-    testFile("mfiles/while.m");
-    testFile("mfiles/return_int_in_some_cases.m");
-    testFile("mfiles/return_void_in_some_cases.m");
-    testFile("mfiles/ignored_return.m");
-    testFile("mfiles/function_without_return.m");
-    testFile("mfiles/invalid_type_annotation.m");
-    testFile("mfiles/invalid_extern_type_annotation.m");
-    testFile("mfiles/var_declaration_addition.m");
-    testFile("mfiles/var_declaration.m");
-    testFile("mfiles/type_annotation.m");
-    testFile("mfiles/struct.m");
-    testFile("mfiles/struct_nested.m");
-    testFile("mfiles/extern.m");
-    testFile("mfiles/str.m");
+    std::vector<std::string> testFiles;
+    for (const auto& entry : std::filesystem::directory_iterator("mfiles")) {
+        if (entry.is_regular_file() && entry.path().extension() == ".m") {
+            std::string filename = entry.path().filename().string();
 
-    // TODO: blob type (alloc8(size), get(blob, idx), set(blob, idx)):
-    //    synatx sugar for get, set with []
-    // testFile("mfiles/blob.m");
+            // Skip files with TODO_ prefix
+            if (filename.find("TODO_") == 0) {
+                continue;
+            }
 
-    // TODO: Type inference not working for recursive functions
-    // We should skip recursive calls and find the terminating return.
-    // Assume that type for the recursive calls and see if this passes
-    // without conflicts.
-    // testFile("mfiles/recursion.m");
+            testFiles.push_back(entry.path().string());
+        }
+    }
+
+    std::sort(testFiles.begin(), testFiles.end());
+    for (const auto& file : testFiles) {
+        testFile(file);
+    }
 }
 
 int main() {
