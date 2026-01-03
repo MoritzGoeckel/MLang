@@ -18,3 +18,5 @@ out/*
 .vscode/*
 .VSCodeCounter/*
 include
+.claude
+CLAUDE.md
