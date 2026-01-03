@@ -76,6 +76,10 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         CollectTypes collectTypesWalker{structs};
         ApplyTypeAnnotations applyTypeAnnotationsWalker{structs};
         while (true) {
+            // Errors in previous iteration are maybe fine, 
+            // if we find fitting custom types later
+            applyTypeAnnotationsWalker.clearErrors();
+
             applyTypeAnnotationsWalker.process(ast);
             collectTypesWalker.process(ast);
             updateOffsets(structs);
@@ -109,6 +113,14 @@ Mlang::Result Mlang::execute(const std::string& theFile,
                 lastUnresolved = validator.getNumUnresolved();
                 validator.reset();
             }
+        }
+
+        // Check for invalid type annotation errors after all iterations
+        if (applyTypeAnnotationsWalker.hasErrors()) {
+            const auto& annotationErrors = applyTypeAnnotationsWalker.getErrors();
+            return Mlang::Result(Mlang::Result::Signal::Failure)
+                .addError("Invalid type annotation:\n" +
+                          annotationErrors.front().generateString(theCode));
         }
 
         const auto& aTypeErrors = validator.getErrors();

@@ -20,6 +20,10 @@ std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::No
                 DataType::Primitive primitive = DataType::toPrimitive(annotationText);
                 if(primitive != DataType::Primitive::Unknown) {
                     identifier->setDataType(DataType(primitive), [this](auto& s) { this->addMessage(s); });
+                } else {
+                    std::string msg = "Invalid type annotation '" + annotationText +
+                                     "' for variable '" + identifier->getName() + "'";
+                    itsErrors.emplace_back(msg, declvar->getPosition());
                 }
             }
         }
@@ -33,6 +37,10 @@ std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::No
                 DataType::Primitive primitive = DataType::toPrimitive(annotationText);
                 if(primitive != DataType::Primitive::Unknown) {
                     identifier->setDataType(DataType(primitive), [this](auto& s) { this->addMessage(s); });
+                } else {
+                    std::string msg = "Invalid type annotation '" + annotationText +
+                                     "' for identifier '" + identifier->getName() + "'";
+                    itsErrors.emplace_back(msg, identifier->getPosition());
                 }
             }
         }
@@ -52,6 +60,10 @@ std::shared_ptr<AST::Node> ApplyTypeAnnotations::process(std::shared_ptr<AST::No
                 DataType::Primitive primitive = DataType::toPrimitive(annotationText);
                 if (primitive != DataType::Primitive::Unknown) {
                     returnType = std::make_shared<DataType>(primitive);
+                } else {
+                    std::string msg = "Invalid return type annotation '" + annotationText +
+                                     "' for extern function";
+                    itsErrors.emplace_back(msg, externFn->getPosition());
                 }
             }
         }

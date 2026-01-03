@@ -286,6 +286,8 @@ void suiteTestfiles(){
     testFile("mfiles/return_void_in_some_cases.m");
     testFile("mfiles/ignored_return.m");
     testFile("mfiles/function_without_return.m");
+    testFile("mfiles/invalid_type_annotation.m");
+    testFile("mfiles/invalid_extern_type_annotation.m");
     testFile("mfiles/var_declaration_addition.m");
     testFile("mfiles/var_declaration.m");
     testFile("mfiles/type_annotation.m");
