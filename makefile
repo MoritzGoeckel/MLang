@@ -75,7 +75,7 @@ RunSingleHeaderTest: $(TESTS_TARGET_SINGLE_HEADER) Lib
 
 Build: $(MLANG_TARGET) $(TESTS_TARGET) $(TESTS_TARGET_SINGLE_HEADER) Lib include/libmlang.h
 
-%.o: %.cpp %.h
+%.o: %.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 .PHONY: Clean
