@@ -301,11 +301,11 @@ __attribute__((optimize("-O0"))) qword_t ExternalFunctions::call(size_t id, cons
         return 0;
     }
 
-    /*if (func.returnType == ret_type::Number) {
+    if (func.returnType == ret_type::Number) {
         int iresult = 0;
         std::memcpy(&iresult, &result, sizeof(int));
         return iresult;
-    }*/
+    }
 
     /*if (func.returnType == ret_type::Float) {
         float fresult;
