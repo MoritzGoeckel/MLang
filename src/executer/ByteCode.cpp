@@ -346,13 +346,9 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 break;
             }
             case Op::CALL_FFI: {
-                std::cout << "Op::CALL_FFI\n";
                 auto id = stack.pop();
-                std::cout << "Op::CALL_FFI 1\n";
                 auto result = ffiFunctions.call(id, ffiArgs);
-                std::cout << "Op::CALL_FFI 2\n";
                 stack.push(result);
-                std::cout << "Op::CALL_FFI 3\n";
                 ffiArgs.clear();
                 break;
             }
