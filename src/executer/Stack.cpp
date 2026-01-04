@@ -38,4 +38,32 @@ bool Stack::empty() const {
 size_t Stack::size() const {
     return impl.size();
 }
+
+word_t Stack::get(size_t index) const {
+    if (index >= impl.size()) {
+        throwConstraintViolated("Stack::get index out of bounds");
+    }
+    return impl[index];
+}
+
+void Stack::set(size_t index, word_t value) {
+    if (index >= impl.size()) {
+        throwConstraintViolated("Stack::set index out of bounds");
+    }
+    impl[index] = value;
+}
+
+word_t& Stack::operator[](size_t index) {
+    if (index >= impl.size()) {
+        throwConstraintViolated("Stack::operator[] index out of bounds");
+    }
+    return impl[index];
+}
+
+const word_t& Stack::operator[](size_t index) const {
+    if (index >= impl.size()) {
+        throwConstraintViolated("Stack::operator[] const index out of bounds");
+    }
+    return impl[index];
+}
 } // namespace executor

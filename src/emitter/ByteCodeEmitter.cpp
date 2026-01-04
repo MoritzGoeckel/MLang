@@ -29,6 +29,7 @@ void ByteCodeEmitter::run() {
         for(const auto& param : fn.second->getHead()->getParameters()) {
             localNames.push_back(param->getName());
         }
+        num_params = localNames.size();  // Remember parameter count
         function_idxs[fn.first] = code().size();
         process(fn.second->getBody(), false);
     }
@@ -206,7 +207,9 @@ void ByteCodeEmitter::process(const std::shared_ptr<AST::Node>& node, bool hasCo
             if (ret->getExpr()) {
                 process(ret->getExpr(), true);
             }
-            code().push_back(executor::Instruction(executor::Op::RET));
+            // RET arg1=num_params, arg2=num_locals
+            size_t num_locals = localNames.size() - num_params;
+            code().push_back(executor::Instruction(executor::Op::RET, num_params, num_locals));
             break;
         }
         case AST::NodeType::Assign: {

@@ -22,6 +22,12 @@ public:
 
     word_t lookback(size_t n) const;
 
+    // Indexed access for register-based VM
+    word_t get(size_t index) const;
+    void set(size_t index, word_t value);
+    word_t& operator[](size_t index);
+    const word_t& operator[](size_t index) const;
+
     using const_iterator = std::vector<word_t>::const_iterator;
 
     auto begin() const {

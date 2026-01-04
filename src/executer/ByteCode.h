@@ -114,41 +114,14 @@ enum class ProgramState {
     Finished
 };
 
-// TODO: We don't need any of this, we can just use the stack
-// https://stackoverflow.com/questions/1395591/what-exactly-is-the-base-pointer-and-stack-pointer-to-what-do-they-point
-// https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
-
-// We just need to introduce registers
-// esp: Current stack top
-// ebp: Stack base pointer, is set to esp in the beginning of a function
-// eax: Return value of the function
-
-// On function call:
-// - Push the parameters in reverse order
-// - Push return address (done by the CALL instruction)
-// - Push the current ebp
-// - Set ebp to esp
-// - Push locals
-// Within fucnction:
-// - Use ebp + n to access parameters
-// - Use ebp + n to access locals
-// On function return:
-// - Put result into eax register
-// - Pop locals from the stack
-// - Pop ebp from the stack, put into ebp register
-// - Pop return address from the stack, and jump (done by the RET instruction)
-// - Pop parameters from the stack (done by the caller, not the callee)
-// - Get result from eax register
-
-struct StackFrame {
-    std::vector<word_t> locals;
-    word_t return_address;
-};
-
 class ByteCodeVM {
     private:
         word_t idx;
-        std::vector<StackFrame> callstack;
+
+        // Registers to manage stack-based function calls, parameters, locals, and return values
+        word_t function_stack_base;
+        word_t return_value;
+
         Stack stack;
         std::vector<word_t> heap;
         Program program;

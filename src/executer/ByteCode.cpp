@@ -20,7 +20,7 @@ std::string instructionsToString(const std::vector<Instruction>& instructions, b
         { Op::LOCALS, { "LOCALS", { "ID" } } },
         { Op::LOCALL, { "LOCALL", { "ID" } } },
         { Op::CALL, { "CALL", { "NUM_ARGS" } } },
-        { Op::RET, { "RET", { } } },
+        { Op::RET, { "RET", { "NUM_PARAMS", "NUM_LOCALS" } } },
         { Op::PUSH, { "PUSH", { "VALUE" } } },
         { Op::POP, { "POP", {} } },
         { Op::ADD, { "ADD", {} } },
@@ -108,47 +108,91 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
                 break;
             }
             case Op::CALL: {
-                auto return_address = idx;
+                word_t num_params = inst.arg1;
+                word_t jmp_dest = stack.pop();
 
-                auto dest = stack.pop();
-                idx = dest; // Jump to function address
-
-                // Bring parameters to locals
-                std::vector<word_t> locals;
-                for (int i = 0; i < inst.arg1; ++i) {
-                    locals.push_back(stack.pop());
+                // Save parameters temporarily (they're on stack in order: param0, param1, ...)
+                std::vector<word_t> params;
+                for (word_t i = 0; i < num_params; ++i) {
+                    params.push_back(stack.pop());
                 }
 
-                callstack.push_back({locals, return_address});
+                stack.push(idx); // Push return address
+                stack.push(function_stack_base); // Push prev function_stack_base
+                function_stack_base = stack.size(); // Update function_stack_base to current top
+
+                // Push parameters in reverse order (so param0 is at function_stack_base+0)
+                for (auto it = params.rbegin(); it != params.rend(); ++it) {
+                    stack.push(*it);
+                }
+                
+                idx = jmp_dest; // Jump to function
                 break;
             }
             case Op::RET: {
-                if(callstack.empty()){
+                word_t num_params = inst.arg1;
+                word_t num_locals = inst.arg2;
+
+                //                                           function_stack_base
+                //                                                   |
+                // Stack layout: [ret_addr][prev_function_stack_base]^[params...][locals...][return_value?]
+
+                word_t expected_stack_size = function_stack_base + num_params + num_locals;
+                bool has_return_value = false;
+                if (stack.size() > expected_stack_size) {
+                    return_value = stack.pop();
+                    has_return_value = true;
+                } else {
+                    return_value = 0;
+                }
+
+                // Pop locals
+                while (stack.size() > function_stack_base + num_params) {
+                    stack.pop();
+                }
+
+                // Pop parameters
+                for (word_t i = 0; i < num_params; ++i) {
+                    stack.pop();
+                }
+
+                // Check if this is the main function return
+                if (function_stack_base == 0) {
                     return ProgramState::Finished;
                 }
-                idx = callstack.back().return_address;
-                callstack.pop_back();
+
+                function_stack_base = stack.pop(); // Restore function_stack_base
+                idx = stack.pop(); // Jump back to return address
+
+                if (has_return_value) {
+                    stack.push(return_value);
+                }
+
                 break;
             }
             case Op::LOCALS: {
-                // LOCALS ID
-                auto& locals = callstack.back().locals;
+                // LOCALS n: Store stack top into local variable/parameter n
+                word_t value = stack.pop();
 
-                auto idx = inst.arg1 + 1;
-                if(locals.size() <= idx) {
-                    locals.resize(idx); // TODO: Expensive!
+                word_t localIndex = function_stack_base + inst.arg1;
+
+                // Expand stack if necessary
+                while (stack.size() <= localIndex) {
+                    stack.push(0);
                 }
 
-                auto value = stack.pop();
-                locals[inst.arg1] = value; // Store value in local variable
+                stack.set(localIndex, value);
                 break;
             }
             case Op::LOCALL: {
-                // LOCALL ID
-                ASSURE(!callstack.empty(), "ByteCodeVM: Empty callstack");
-                auto& locals = callstack.back().locals;
-                ASSURE(inst.arg1 < locals.size(), "ByteCodeVM: Local variable index out of bounds");
-                stack.push(locals[inst.arg1]); // Push local variable onto stack
+                // LOCALL n: Load local variable/parameter n onto stack
+                word_t localIndex = function_stack_base + inst.arg1;
+
+                ASSURE(localIndex < stack.size(),
+                       "ByteCodeVM: Local variable index out of bounds");
+
+                word_t value = stack.get(localIndex);
+                stack.push(value);
                 break;
             }
             case Op::PRINTS: {
@@ -325,11 +369,12 @@ ProgramState ByteCodeVM::run(size_t maxInstructions) {
     return ProgramState::Paused;
 }
 
-ByteCodeVM::ByteCodeVM(const Program& program) : 
-    idx{0ull}, 
-    callstack{}, 
-    stack{}, 
-    program(program), 
+ByteCodeVM::ByteCodeVM(const Program& program) :
+    idx{0ull},
+    function_stack_base{0ull},
+    return_value{0ull},
+    stack{},
+    program(program),
     debug{true},
     ffiFunctions{},
     ffiArgs{} {}

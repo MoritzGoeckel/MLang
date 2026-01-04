@@ -1,7 +1,6 @@
 # Roadmap
 
 - [ ] Garbage collection for heap objects (structs)
-- [ ] Remove locals and add registers: src/executer/ByteCode.h:117
 - [ ] Dynamic Strings
 - [ ] Arrays
 
@@ -22,3 +21,4 @@
 
 - [x] Throw when finding a type annotation that does not name a type (struct or primitive)
 - [x] Throw when encountering a function that does not return on all paths
+- [x] Remove locals and add registers: src/executer/ByteCode.h:117

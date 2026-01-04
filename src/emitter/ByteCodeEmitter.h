@@ -27,6 +27,7 @@ class ByteCodeEmitter {
     };
     std::vector<Backpatch> backpatches;
     std::vector<std::string> localNames; // Id is idx
+    size_t num_params;  // Number of parameters for current function
 
     public:
     ByteCodeEmitter(const std::map<std::string, std::shared_ptr<AST::Function>> &functions);
