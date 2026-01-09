@@ -112,7 +112,7 @@ void testFile(std::string path){
     mlang.settings.showTokens = true;
     mlang.settings.showFileContent = true;
     mlang.settings.showResult = true;
-    mlang.settings.showAbastractSyntaxTree = true;
+    mlang.settings.showAbstractSyntaxTree = true;
     mlang.settings.showInferedTypes = true;
     mlang.settings.showFunctions = true;
     mlang.settings.showEmission = true;

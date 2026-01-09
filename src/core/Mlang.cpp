@@ -38,6 +38,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
                              const std::string& theCode) {
     Tokenizer tokenizer(theFile, theCode);
 
+    std::cout << "Tokens:" << std::endl;
     auto tokens = tokenizer.getTokens();
     if (settings.showTokens) {
         for (auto token : tokens) {
@@ -45,6 +46,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         }
         std::cout << std::endl;
     }
+    std::cout << std::endl;
 
     Parser parser(std::move(tokens));
     auto ast = parser.getAst();
@@ -55,8 +57,9 @@ Mlang::Result Mlang::execute(const std::string& theFile,
             .addError(parser.getError(theCode));
     }
 
-    if (settings.showAbastractSyntaxTree) {
-        std::cout << ast->toString() << std::endl;
+    if (settings.showAbstractSyntaxTree) {
+        std::cout << "Abstract Syntax Tree:" << std::endl;
+        std::cout << ast->toString() << std::endl << std::endl;
     }
 
     {
@@ -90,7 +93,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
 
             if(settings.showTypeInference) {
                 std::cout << "After InfereIdentifierTypes: " << std::endl;
-                std::cout << ast->toString() << std::endl;
+                std::cout << ast->toString() << std::endl << std::endl;
             }
 
             // Function types / params
@@ -99,7 +102,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
 
             if(settings.showTypeInference) {
                 std::cout << "After InfereParameterTypes: " << std::endl;
-                std::cout << ast->toString() << std::endl;
+                std::cout << ast->toString() << std::endl << std::endl;
             }
 
             validator.process(ast);
@@ -111,6 +114,9 @@ Mlang::Result Mlang::execute(const std::string& theFile,
                 break;
             } else {
                 lastUnresolved = validator.getNumUnresolved();
+                if(settings.showTypeInference) {
+                    std::cout << "After round of type inference we have " << lastUnresolved << " unresolved types" << std::endl << std::endl;
+                }
                 validator.reset();
             }
         }
@@ -136,7 +142,7 @@ Mlang::Result Mlang::execute(const std::string& theFile,
         }
 
         if (settings.showInferedTypes) {
-            std::cout << ast->toString() << std::endl;
+            std::cout << ast->toString() << std::endl << std::endl;
         }
     }
 

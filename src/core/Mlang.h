@@ -39,7 +39,7 @@ class Mlang {
         bool showTokens = false;
         bool showFileContent = false;
         bool showResult = false;
-        bool showAbastractSyntaxTree = false;
+        bool showAbstractSyntaxTree = false;
         bool showInferedTypes = false;
         bool showFunctions = false;
         bool showEmission = false;
